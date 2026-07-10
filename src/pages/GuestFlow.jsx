@@ -1138,7 +1138,7 @@ export function GuestPhotoLightbox({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#06080C] z-[99999] flex flex-col justify-between p-5 select-none text-white animate-fade-in guest-lightbox max-w-[430px] mx-auto w-full">
+    <div className="fixed inset-0 bg-[#06080C] z-[9000] flex flex-col justify-between p-5 select-none text-white animate-fade-in guest-lightbox max-w-[430px] mx-auto w-full">
       {/* Header action bar */}
       <div className="flex items-center justify-between z-10 pt-4">
         <button 
