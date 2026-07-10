@@ -2689,16 +2689,11 @@ const handleFileChange = (e) => {
                       </div>
                     ) : (
                       /* Pinterest-like 2-column masonry grid */
-                      <div 
-                        className="photo-masonry mt-2"
-                        style={{
-                          columnCount: 2,
-                          columnGap: "10px",
-                          width: "100%",
-                          maxWidth: "100%"
-                        }}
-                      >
-                        {allPhotos.map((photo) => {
+                      (() => {
+                        const leftColumn = allPhotos.filter((_, idx) => idx % 2 === 0);
+                        const rightColumn = allPhotos.filter((_, idx) => idx % 2 !== 0);
+
+                        const renderPhotoCard = (photo) => {
                           const isFav = favorites.some(p => p.id === photo.id);
                           const photoUrl = photo.original_url || photo.thumbnail_url || photo.url || photo.previewUrl || FALLBACK_IMAGE;
 
@@ -2710,12 +2705,7 @@ const handleFileChange = (e) => {
                           return (
                             <div 
                               key={photo.id}
-                              className="photo-masonry-item relative mb-3 group cursor-pointer overflow-hidden rounded-[20px] bg-[#0A0D14] border border-white/10 select-none shadow-xl active:scale-[0.98] transition-all duration-200"
-                              style={{
-                                breakInside: "avoid",
-                                width: "100%",
-                                display: "inline-block"
-                              }}
+                              className="relative group cursor-pointer overflow-hidden rounded-[20px] bg-[#0A0D14] border border-white/10 select-none shadow-xl active:scale-[0.98] transition-all duration-200 w-full"
                               onClick={() => handlePhotoSelect(photo)}
                             >
                               <img 
@@ -2783,8 +2773,19 @@ const handleFileChange = (e) => {
                               </div>
                             </div>
                           );
-                        })}
-                      </div>
+                        };
+
+                        return (
+                          <div className="flex items-start gap-2.5 mt-2 w-full">
+                            <div className="flex flex-1 min-w-0 flex-col gap-2.5">
+                              {leftColumn.map(renderPhotoCard)}
+                            </div>
+                            <div className="flex flex-1 min-w-0 flex-col gap-2.5">
+                              {rightColumn.map(renderPhotoCard)}
+                            </div>
+                          </div>
+                        );
+                      })()
                     )}
                   </div>
                 );
