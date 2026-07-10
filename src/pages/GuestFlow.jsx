@@ -49,6 +49,7 @@ import {
   Settings,
   BrainCircuit,
   Plus,
+  Upload,
   X
 } from "lucide-react";
 
@@ -766,7 +767,8 @@ export function GuestEventAlbumDetail({
   onToggleFavorite, 
   onDownload, 
   onShare,
-  onBulkDownload 
+  onBulkDownload,
+  onPhotoUpload
 }) {
   const [viewMode, setViewMode] = useState("swipe");
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
@@ -786,15 +788,54 @@ export function GuestEventAlbumDetail({
   return (
     <div className="flex flex-col gap-4 animate-fade-in text-left">
       {/* Back button & Action Header */}
-      <div className="flex items-center justify-between z-10">
-        <button 
-          onClick={onBack}
-          className="flex items-center gap-1 bg-transparent border-none text-xs font-black cursor-pointer p-0 active:opacity-75 transition-opacity"
-          style={{ color: "var(--guest-accent)" }}
-        >
-          <ArrowLeft size={16} />
-          <span>Albümler</span>
-        </button>
+      <div className="flex items-center justify-between z-10 w-full">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={onBack}
+            className="flex items-center gap-1 bg-transparent border-none text-xs font-black cursor-pointer p-0 active:opacity-75 transition-opacity"
+            style={{ color: "var(--guest-accent)" }}
+          >
+            <ArrowLeft size={16} />
+            <span>Albümler</span>
+          </button>
+
+          {/* Conditional Upload Photo Button - Only for Wedding category! */}
+          {event?.category === "wedding" && (
+            <>
+              <button
+                onClick={() => {
+                  document.getElementById("guest-album-photo-upload").click();
+                }}
+                className="flex items-center gap-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full cursor-pointer transition-all active:scale-95 shrink-0"
+              >
+                <Upload size={10} />
+                <span>Fotoğraf Yükle</span>
+              </button>
+              <input 
+                type="file" 
+                id="guest-album-photo-upload" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    const localUrl = URL.createObjectURL(file);
+                    const newPhoto = {
+                      id: `ph-uploaded-${Date.now()}`,
+                      event_id: event.id,
+                      url: localUrl,
+                      thumbnail_url: localUrl,
+                      filename: file.name,
+                      matchConfidence: 100,
+                      date: new Date().toISOString()
+                    };
+                    if (onPhotoUpload) onPhotoUpload(newPhoto);
+                  }
+                }}
+              />
+            </>
+          )}
+        </div>
         
         {/* Apple style Glass Pill Selector for viewMode */}
         <div className="flex bg-white/5 border border-white/10 rounded-full p-0.5 select-none shrink-0 shadow-inner">
@@ -2310,6 +2351,13 @@ const handleFileChange = (e) => {
                         onDownload={handleDownload}
                         onShare={handleShare}
                         onBulkDownload={handleBulkDownload}
+                        onPhotoUpload={(newPhoto) => {
+                          setMatchedPhotosMap(prev => ({
+                            ...prev,
+                            [selectedEvent.id]: [newPhoto, ...(prev[selectedEvent.id] || [])]
+                          }));
+                          showToast("Fotoğraf albüme başarıyla eklendi!", "success");
+                        }}
                       />
                     </div>
                   ) : (
