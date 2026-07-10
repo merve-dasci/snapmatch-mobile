@@ -2652,122 +2652,12 @@ const handleFileChange = (e) => {
               {/* TAB 2: Photos (Unified Photos List) */}
               {activeTab === "photos" && (() => {
                 const allPhotos = Object.values(matchedPhotosMap).flat();
-                
-                // Group photos
-                const groupedPhotos = {
-                  "09:00 — Hazırlık": [],
-                  "10:30 — Karşılama": [],
-                  "12:00 — Tören": [],
-                  "14:15 — Kutlama": [],
-                  "18:30 — Gece Çekimleri": []
-                };
-
-                allPhotos.forEach((ph, idx) => {
-                  let groupKey = "";
-                  const dateStr = ph.date || ph.uploaded_at || ph.created_at || (ph.metadata_json && ph.metadata_json.time);
-                  if (dateStr) {
-                    try {
-                      const dateObj = new Date(dateStr);
-                      const hour = dateObj.getHours();
-                      if (hour < 10) groupKey = "09:00 — Hazırlık";
-                      else if (hour < 12) groupKey = "10:30 — Karşılama";
-                      else if (hour < 14) groupKey = "12:00 — Tören";
-                      else if (hour < 18) groupKey = "14:15 — Kutlama";
-                      else groupKey = "18:30 — Gece Çekimleri";
-                    } catch (e) {
-                      // fallback to index
-                    }
-                  }
-                  
-                  if (!groupKey) {
-                    const fallbackKeys = [
-                      "09:00 — Hazırlık",
-                      "10:30 — Karşılama",
-                      "12:00 — Tören",
-                      "14:15 — Kutlama",
-                      "18:30 — Gece Çekimleri"
-                    ];
-                    groupKey = fallbackKeys[idx % 5];
-                  }
-
-                  groupedPhotos[groupKey].push(ph);
-                });
-
                 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&auto=format&fit=crop";
 
-                const renderEditorialLayout = (items) => {
-                  if (items.length === 0) return null;
-
-                  const handlePhotoSelect = (photo) => {
-                    setSelectedPhoto(photo);
-                    const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
-                    setSelectedPhotoEvent(relatedEvent);
-                  };
-
-                  const renderCard = (photo, heightClass) => {
-                    const photoUrl = photo.original_url || photo.thumbnail_url || photo.url || photo.previewUrl || FALLBACK_IMAGE;
-
-                    const handleImgError = (e) => {
-                      e.target.onerror = null;
-                      e.target.src = FALLBACK_IMAGE;
-                    };
-
-                    return (
-                      <div 
-                        key={photo.id}
-                        onClick={() => handlePhotoSelect(photo)}
-                        className={`relative rounded-2xl overflow-hidden border border-white/10 bg-white/5 cursor-pointer shadow-lg active:scale-[0.98] transition-transform select-none w-full ${heightClass}`}
-                      >
-                        <img 
-                          src={photoUrl} 
-                          alt="" 
-                          onError={handleImgError}
-                          className="w-full h-full object-cover block"
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                          loading="lazy"
-                        />
-                        {photo.status === "processing" ? (
-                          <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-blue-600/80 backdrop-blur-md border border-blue-500/20 text-[8px] font-black text-white uppercase tracking-wider animate-pulse">
-                            İşleniyor
-                          </div>
-                        ) : photo.matchConfidence ? (
-                          <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
-                            %{photo.matchConfidence}
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  };
-
-                  if (items.length === 1) {
-                    return (
-                      <div className="flex flex-col w-full">
-                        {renderCard(items[0], "h-[240px] max-h-[240px]")}
-                      </div>
-                    );
-                  }
-
-                  if (items.length === 2) {
-                    return (
-                      <div className="flex flex-col gap-3 w-full">
-                        {renderCard(items[0], "h-[240px] max-h-[240px]")}
-                        {renderCard(items[1], "h-[150px] max-h-[150px]")}
-                      </div>
-                    );
-                  }
-
-                  // 3 or more photos
-                  const largePhoto = items[0];
-                  const remainingPhotos = items.slice(1);
-
-                  return (
-                    <div className="flex flex-col gap-3 w-full">
-                      {renderCard(largePhoto, "h-[240px] max-h-[240px]")}
-                      <div className="grid grid-cols-2 gap-3">
-                        {remainingPhotos.map(photo => renderCard(photo, "h-[150px] max-h-[150px]"))}
-                      </div>
-                    </div>
-                  );
+                const handlePhotoSelect = (photo) => {
+                  setSelectedPhoto(photo);
+                  const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
+                  setSelectedPhotoEvent(relatedEvent);
                 };
 
                 return (
@@ -2783,7 +2673,7 @@ const handleFileChange = (e) => {
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-white/50 m-0 font-medium">Etkinlik boyunca sana ait bulunan fotoğrafları çekim sırasına göre keşfet.</p>
+                        <p className="text-[10px] text-white/50 m-0 font-medium">Etkinlik boyunca sana ait bulunan fotoğrafları dikey galeri şeklinde keşfet.</p>
                       </div>
                     </div>
 
@@ -2795,36 +2685,102 @@ const handleFileChange = (e) => {
                           <ImageIcon size={24} />
                         </div>
                         <span className="text-xs font-black text-white/70 font-sans">Zaman tünelin henüz hazır değil.</span>
-                        <p className="text-[10px] text-white/40 max-w-[240px] mt-1 font-medium">Yeni eşleşmeler tamamlandığında fotoğrafların çekim sırasına göre burada görünecek.</p>
+                        <p className="text-[10px] text-white/40 max-w-[240px] mt-1 font-medium">Yeni eşleşmeler tamamlandığında fotoğrafların dikey galeri şeklinde burada görünecek.</p>
                       </div>
                     ) : (
-                      /* Chronological Timeline */
-                      <div className="relative pl-6 mt-4 flex flex-col gap-8 w-full">
-                        {/* Vertical Timeline Axis Line */}
-                        <div className="absolute left-[7px] top-2 bottom-2 w-[1px] bg-white/10" />
+                      /* Pinterest-like 2-column masonry grid */
+                      <div 
+                        className="photo-masonry mt-2"
+                        style={{
+                          columnCount: 2,
+                          columnGap: "10px",
+                          width: "100%",
+                          maxWidth: "100%"
+                        }}
+                      >
+                        {allPhotos.map((photo) => {
+                          const isFav = favorites.some(p => p.id === photo.id);
+                          const photoUrl = photo.original_url || photo.thumbnail_url || photo.url || photo.previewUrl || FALLBACK_IMAGE;
 
-                        {Object.entries(groupedPhotos).map(([groupTitle, groupItems]) => {
-                          if (groupItems.length === 0) return null;
-                          
-                          const [groupTime, groupLabel] = groupTitle.split(" — ");
+                          const handleImgError = (e) => {
+                            e.target.onerror = null;
+                            e.target.src = FALLBACK_IMAGE;
+                          };
 
                           return (
-                            <div key={groupTitle} className="relative flex flex-col gap-3 w-full">
-                              {/* Dot and Group Header */}
-                              <div className="absolute left-[-25px] top-1.5 flex items-center gap-2">
-                                {/* Small indicator dot */}
-                                <div className="w-2 h-2 rounded-full bg-emerald-500 border-2 border-[#080A0F] shadow-[0_0_8px_rgba(16,185,129,0.5)] z-10" />
-                                <div className="flex items-center gap-1.5 ml-2 shrink-0">
-                                  <span className="text-[10px] font-black text-white font-mono bg-white/5 px-2 py-0.5 rounded-md border border-white/10">{groupTime}</span>
-                                  <span className="text-[10px] font-black text-white/70 uppercase tracking-widest">{groupLabel}</span>
-                                </div>
+                            <div 
+                              key={photo.id}
+                              className="photo-masonry-item relative mb-3 group cursor-pointer overflow-hidden rounded-[20px] bg-[#0A0D14] border border-white/10 select-none shadow-xl active:scale-[0.98] transition-all duration-200"
+                              style={{
+                                breakInside: "avoid",
+                                width: "100%",
+                                display: "inline-block"
+                              }}
+                              onClick={() => handlePhotoSelect(photo)}
+                            >
+                              <img 
+                                src={photoUrl} 
+                                alt="" 
+                                onError={handleImgError}
+                                className="w-full h-auto block object-cover"
+                                style={{ width: "100%", height: "auto", display: "block" }}
+                                loading="lazy"
+                              />
+
+                              {/* Apple Style Dark Overlay at the bottom */}
+                              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-100 pointer-events-none" />
+
+                              {/* Sol üst (top-left) glass AI badge */}
+                              <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-[8px] font-black text-white select-none flex items-center gap-1 z-10">
+                                <Sparkles size={8} className="text-emerald-400 fill-emerald-400 shrink-0" />
+                                <span>AI %{photo.matchConfidence || 98}</span>
                               </div>
 
-                              {/* Spacer to push photos down past absolute header */}
-                              <div className="h-6" />
+                              {/* Right top processing status badge */}
+                              {photo.status === "processing" && (
+                                <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-blue-600/80 backdrop-blur-md border border-blue-500/20 text-[8px] font-black text-white uppercase tracking-wider animate-pulse z-10">
+                                  İşleniyor
+                                </div>
+                              )}
 
-                              {/* Editorial Grid Layout */}
-                              {renderEditorialLayout(groupItems)}
+                              {/* Bottom actions pill layout */}
+                              <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1 z-10">
+                                {/* Like / Favorite pill button */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleFavorite(photo);
+                                  }}
+                                  className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-[9px] font-extrabold text-white cursor-pointer active:scale-90 transition-transform hover:bg-black/50 border-none"
+                                >
+                                  <Heart size={10} className={isFav ? "fill-rose-500 text-rose-500" : "text-white"} />
+                                  <span>Beğen</span>
+                                </button>
+                                
+                                <div className="flex items-center gap-1">
+                                  {/* Download button */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownload(photo);
+                                    }}
+                                    className="w-6 h-6 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-white cursor-pointer active:scale-90 transition-transform hover:bg-black/50 border-none"
+                                  >
+                                    <Download size={10} />
+                                  </button>
+                                  
+                                  {/* Share button */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleShare(photo);
+                                    }}
+                                    className="w-6 h-6 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-white cursor-pointer active:scale-90 transition-transform hover:bg-black/50 border-none"
+                                  >
+                                    <Share2 size={10} />
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           );
                         })}
