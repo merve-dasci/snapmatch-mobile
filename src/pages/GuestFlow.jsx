@@ -666,7 +666,7 @@ export function GuestPhotoGrid({
         </span>
         
         {/* Bottom actions pill layout matching the reference design */}
-        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1">
+        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-start gap-1">
           {/* Like / Favorite pill button */}
           <button
             onClick={(e) => {
@@ -677,18 +677,6 @@ export function GuestPhotoGrid({
           >
             <Heart size={11} className={isFav ? "fill-rose-500 text-rose-500" : "text-white"} />
             <span>{mockLikes}</span>
-          </button>
-          
-          {/* Share / Download pill button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onDownload) onDownload(ph);
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-[10px] font-extrabold text-white cursor-pointer active:scale-90 transition-transform hover:bg-black/50"
-          >
-            <Share2 size={11} className="text-white" />
-            <span>{mockShares}</span>
           </button>
         </div>
       </div>
