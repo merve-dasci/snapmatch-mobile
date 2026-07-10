@@ -2462,75 +2462,173 @@ const handleFileChange = (e) => {
               })()}
 
               {/* TAB 2: Photos (Unified Photos List) */}
-              {activeTab === "photos" && (
-                <div className="flex flex-col gap-4 p-4 pb-36 animate-fade-in text-left">
-                  <div className="flex justify-between items-start mt-2">
-                    <div className="flex flex-col gap-1">
-                      <h2 className="text-lg font-black m-0 text-white font-sans">Tüm Fotoğraflar</h2>
-                      <p className="text-[10px] text-white/50 m-0">Tüm etkinliklerden size özel eşleşen fotoğrafların akışı.</p>
-                    </div>
+              {/* TAB 2: Photos (Unified Photos List) */}
+              {activeTab === "photos" && (() => {
+                const allPhotos = Object.values(matchedPhotosMap).flat();
+                
+                // Group photos
+                const groupedPhotos = {
+                  "09:00 — Hazırlık": [],
+                  "10:30 — Karşılama": [],
+                  "12:00 — Tören": [],
+                  "14:15 — Kutlama": [],
+                  "18:30 — Gece Çekimleri": []
+                };
 
-                    {/* Apple style Glass Pill Selector for photosViewMode */}
-                    <div className="flex bg-white/5 border border-white/10 rounded-full p-0.5 select-none shrink-0 shadow-inner">
-                      <button
-                        onClick={() => setPhotosViewMode("grid")}
-                        className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${
-                          photosViewMode === "grid" 
-                            ? "bg-white/10 text-white shadow-md" 
-                            : "bg-transparent text-white/40"
-                        }`}
-                      >
-                        <Grid size={10} />
-                        <span>Izgara</span>
-                      </button>
-                      <button
-                        onClick={() => setPhotosViewMode("timeline")}
-                        className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${
-                          photosViewMode === "timeline" 
-                            ? "bg-white/10 text-white shadow-md" 
-                            : "bg-transparent text-white/40"
-                        }`}
-                      >
-                        <Clock size={10} />
-                        <span>Zaman Tüneli</span>
-                      </button>
-                    </div>
-                  </div>
+                allPhotos.forEach((ph, idx) => {
+                  let groupKey = "";
+                  const dateStr = ph.date || ph.uploaded_at || ph.created_at || (ph.metadata_json && ph.metadata_json.time);
+                  if (dateStr) {
+                    try {
+                      const dateObj = new Date(dateStr);
+                      const hour = dateObj.getHours();
+                      if (hour < 10) groupKey = "09:00 — Hazırlık";
+                      else if (hour < 12) groupKey = "10:30 — Karşılama";
+                      else if (hour < 14) groupKey = "12:00 — Tören";
+                      else if (hour < 18) groupKey = "14:15 — Kutlama";
+                      else groupKey = "18:30 — Gece Çekimleri";
+                    } catch (e) {
+                      // fallback to index
+                    }
+                  }
+                  
+                  if (!groupKey) {
+                    const fallbackKeys = [
+                      "09:00 — Hazırlık",
+                      "10:30 — Karşılama",
+                      "12:00 — Tören",
+                      "14:15 — Kutlama",
+                      "18:30 — Gece Çekimleri"
+                    ];
+                    groupKey = fallbackKeys[idx % 5];
+                  }
 
-                  {/* Pinterest-style Masonry Unified Photo Feed Grid or Timeline */}
-                  <div className="mt-2">
-                    {photosViewMode === "grid" ? (
-                      <GuestPhotoGrid 
-                        photos={Object.values(matchedPhotosMap).flat()}
-                        onPhotoClick={(idx) => {
-                          const allPhotos = Object.values(matchedPhotosMap).flat();
-                          setSelectedPhoto(allPhotos[idx]);
-                          const relatedEvent = allEvents.find(e => e.id === allPhotos[idx].event_id) || event;
-                          setSelectedPhotoEvent(relatedEvent);
-                        }}
-                        favorites={favorites}
-                        onToggleFavorite={handleToggleFavorite}
-                        onDownload={handleDownload}
-                        onShare={handleShare}
+                  groupedPhotos[groupKey].push(ph);
+                });
+
+                const renderEditorialLayout = (items) => {
+                  if (items.length === 0) return null;
+
+                  const handlePhotoSelect = (photo) => {
+                    setSelectedPhoto(photo);
+                    const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
+                    setSelectedPhotoEvent(relatedEvent);
+                  };
+
+                  const renderCard = (photo, sizeClass) => (
+                    <div 
+                      key={photo.id}
+                      onClick={() => handlePhotoSelect(photo)}
+                      className={`relative rounded-2xl overflow-hidden border border-white/10 bg-white/5 cursor-pointer shadow-lg active:scale-[0.98] transition-transform select-none ${sizeClass}`}
+                    >
+                      <img 
+                        src={photo.url} 
+                        alt={photo.filename} 
+                        className="w-full h-full object-cover"
+                        loading="lazy"
                       />
+                      {photo.matchConfidence && (
+                        <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
+                          %{photo.matchConfidence}
+                        </div>
+                      )}
+                    </div>
+                  );
+
+                  if (items.length === 1) {
+                    return (
+                      <div className="flex flex-col w-full">
+                        {renderCard(items[0], "w-full aspect-[4/3]")}
+                      </div>
+                    );
+                  }
+
+                  if (items.length === 2) {
+                    return (
+                      <div className="flex flex-col gap-3 w-full">
+                        {renderCard(items[0], "w-full aspect-[4/3]")}
+                        {renderCard(items[1], "w-full aspect-[16/9]")}
+                      </div>
+                    );
+                  }
+
+                  // 3 or more photos
+                  const largePhoto = items[0];
+                  const remainingPhotos = items.slice(1);
+
+                  return (
+                    <div className="flex flex-col gap-3 w-full">
+                      {renderCard(largePhoto, "w-full aspect-[4/3]")}
+                      <div className="grid grid-cols-2 gap-3">
+                        {remainingPhotos.map(photo => renderCard(photo, "w-full aspect-square"))}
+                      </div>
+                    </div>
+                  );
+                };
+
+                return (
+                  <div className="flex flex-col gap-4 p-4 pb-36 animate-fade-in text-left relative overflow-x-hidden w-full">
+                    {/* Header Area */}
+                    <div className="flex justify-between items-center mt-2 w-full select-none">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-lg font-black m-0 text-white font-sans">Zaman Tüneli</h2>
+                          {allPhotos.length > 0 && (
+                            <span className="text-[9px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                              {allPhotos.length} Fotoğraf
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-white/50 m-0 font-medium">Etkinlik boyunca sana ait bulunan fotoğrafları çekim sırasına göre keşfet.</p>
+                      </div>
+                    </div>
+
+                    {/* Timeline Content */}
+                    {allPhotos.length === 0 ? (
+                      /* EMPTY STATE */
+                      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10 mb-4 text-white/20">
+                          <ImageIcon size={24} />
+                        </div>
+                        <span className="text-xs font-black text-white/70 font-sans">Zaman tünelin henüz hazır değil.</span>
+                        <p className="text-[10px] text-white/40 max-w-[240px] mt-1 font-medium">Yeni eşleşmeler tamamlandığında fotoğrafların çekim sırasına göre burada görünecek.</p>
+                      </div>
                     ) : (
-                      <GuestPhotoTimeline 
-                        photos={Object.values(matchedPhotosMap).flat()}
-                        onPhotoClick={(idx) => {
-                          const allPhotos = Object.values(matchedPhotosMap).flat();
-                          setSelectedPhoto(allPhotos[idx]);
-                          const relatedEvent = allEvents.find(e => e.id === allPhotos[idx].event_id) || event;
-                          setSelectedPhotoEvent(relatedEvent);
-                        }}
-                        favorites={favorites}
-                        onToggleFavorite={handleToggleFavorite}
-                        onDownload={handleDownload}
-                        onShare={handleShare}
-                      />
+                      /* Chronological Timeline */
+                      <div className="relative pl-6 mt-4 flex flex-col gap-8 w-full">
+                        {/* Vertical Timeline Axis Line */}
+                        <div className="absolute left-[7px] top-2 bottom-2 w-[1px] bg-white/10" />
+
+                        {Object.entries(groupedPhotos).map(([groupTitle, groupItems]) => {
+                          if (groupItems.length === 0) return null;
+                          
+                          const [groupTime, groupLabel] = groupTitle.split(" — ");
+
+                          return (
+                            <div key={groupTitle} className="relative flex flex-col gap-3 w-full">
+                              {/* Dot and Group Header */}
+                              <div className="absolute left-[-25px] top-1.5 flex items-center gap-2">
+                                {/* Small indicator dot */}
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 border-2 border-[#080A0F] shadow-[0_0_8px_rgba(16,185,129,0.5)] z-10" />
+                                <div className="flex items-center gap-1.5 ml-2 shrink-0">
+                                  <span className="text-[10px] font-black text-white font-mono bg-white/5 px-2 py-0.5 rounded-md border border-white/10">{groupTime}</span>
+                                  <span className="text-[10px] font-black text-white/70 uppercase tracking-widest">{groupLabel}</span>
+                                </div>
+                              </div>
+
+                              {/* Spacer to push photos down past absolute header */}
+                              <div className="h-6" />
+
+                              {/* Editorial Grid Layout */}
+                              {renderEditorialLayout(groupItems)}
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
 
 
