@@ -673,10 +673,9 @@ export function GuestPhotoGrid({
               e.stopPropagation();
               if (onToggleFavorite) onToggleFavorite(ph);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-[10px] font-extrabold text-white cursor-pointer active:scale-90 transition-transform hover:bg-black/50"
+            className="w-7 h-7 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-white cursor-pointer active:scale-90 transition-transform hover:bg-black/50 border-none"
           >
             <Heart size={11} className={isFav ? "fill-rose-500 text-rose-500" : "text-white"} />
-            <span>{mockLikes}</span>
           </button>
         </div>
       </div>
