@@ -685,36 +685,6 @@ export function GuestPhotoTimeline({
   onDownload, 
   onShare 
 }) {
-  const grouped = React.useMemo(() => {
-    if (!photos || photos.length === 0) return [];
-    
-    // Stably sort photos by id
-    const sorted = [...photos].sort((a, b) => a.id.localeCompare(b.id));
-    
-    const moments = [
-      { label: "19:00 Karşılama & Kokteyl", minPct: 0.0, maxPct: 0.2 },
-      { label: "20:00 Giriş & Nikah", minPct: 0.2, maxPct: 0.45 },
-      { label: "21:00 İlk Dans", minPct: 0.45, maxPct: 0.65 },
-      { label: "22:00 Eğlence & Pasta", minPct: 0.65, maxPct: 0.85 },
-      { label: "23:00 After Party", minPct: 0.85, maxPct: 1.01 }
-    ];
-
-    const groupedMap = {};
-    sorted.forEach((ph, idx) => {
-      const pct = idx / sorted.length;
-      const m = moments.find(moment => pct >= moment.minPct && pct < moment.maxPct) || moments[moments.length - 1];
-      if (!groupedMap[m.label]) {
-        groupedMap[m.label] = [];
-      }
-      groupedMap[m.label].push(ph);
-    });
-
-    return Object.entries(groupedMap).map(([label, items]) => ({
-      label,
-      items
-    }));
-  }, [photos]);
-
   if (!photos || photos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center select-none animate-fade-in">
@@ -727,87 +697,107 @@ export function GuestPhotoTimeline({
   }
 
   return (
-    <div className="relative pl-6 flex flex-col gap-6 select-none py-2">
-      {/* Vertical line axis */}
-      <div className="absolute left-[9px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-blue-500/30 via-emerald-500/20 to-transparent" />
+    <div className="w-full flex flex-col gap-4 select-none py-2 overflow-hidden">
+      {photos.map((ph, idx) => {
+        const isFav = favorites.some(p => p.id === ph.id);
+        const charCodeSum = ph.id.toString().split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
-      {grouped.map((group, groupIdx) => (
-        <div key={groupIdx} className="flex flex-col gap-3 relative">
-          
-          {/* Bullet dot indicator */}
-          <div className="absolute left-[-22px] top-1.5 w-3.5 h-3.5 rounded-full bg-[#0E121E] border border-white/10 flex items-center justify-center z-10">
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+        return (
+          <div 
+            key={ph.id}
+            className="w-full glass-panel border border-white/10 bg-white/5 rounded-[24px] overflow-hidden p-3 flex flex-col gap-2.5 relative shadow-lg hover:bg-white/10 active:scale-95 transition-all duration-200"
+          >
+            {/* Photo container */}
+            <div 
+              onClick={() => onPhotoClick(idx)}
+              className="relative aspect-[3/4] w-full rounded-[18px] overflow-hidden cursor-pointer bg-[#0A0D14]"
+            >
+              <img 
+                src={ph.thumbnail_url || ph.url} 
+                alt="timeline moment photo" 
+                className="w-full h-full object-cover"
+              />
+              
+              {/* Top-left match tag */}
+              <span className="absolute top-2.5 left-2.5 backdrop-blur-md bg-black/40 border border-white/10 text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 text-white">
+                <Sparkles size={10} className="text-emerald-400 fill-emerald-400 shrink-0" />
+                <span>%{ph.matchConfidence || (94 + (charCodeSum % 6))}</span>
+              </span>
+            </div>
+
+            {/* Actions row */}
+            <div className="flex justify-between items-center px-1">
+              {/* Favorite check */}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onToggleFavorite) onToggleFavorite(ph);
+                }}
+                className="bg-transparent border-none p-1 cursor-pointer flex items-center justify-center text-white/60 active:scale-90"
+              >
+                <Heart size={15} className={isFav ? "fill-rose-500 text-rose-500" : ""} />
+              </button>
+
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onDownload) onDownload(ph);
+                }}
+                className="bg-transparent border-none p-1 cursor-pointer flex items-center justify-center text-white/60 active:scale-90"
+              >
+                <Download size={15} />
+              </button>
+            </div>
           </div>
+        );
+      })}
+    </div>
+  );
+}
 
-          {/* Group Header */}
-          <div className="flex items-center gap-1.5">
-            <Clock size={12} className="text-blue-400" />
-            <span className="text-[10px] font-black uppercase text-white/70 tracking-widest">{group.label}</span>
-            <span className="text-[9px] text-white/35 font-bold">({group.items.length})</span>
-          </div>
+export function GuestPhotoHorizontalGrid({ photos, onPhotoClick, favorites = [], onToggleFavorite, onDownload }) {
+  if (!photos || photos.length === 0) {
+    return (
+      <div className="text-center py-12 text-xs text-white/40">
+        Gösterilecek fotoğraf bulunamadı.
+      </div>
+    );
+  }
 
-          {/* Horizontal scroll list of transparent cards */}
-          <div className="flex overflow-x-auto gap-3.5 pb-2 scrollbar-none snap-x snap-mandatory">
-            {group.items.map((ph) => {
-              const globalIdx = photos.findIndex(p => p.id === ph.id);
-              const isFav = favorites.some(p => p.id === ph.id);
-              const charCodeSum = ph.id.toString().split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-              const mockLikes = (1.0 + (charCodeSum % 9) / 10).toFixed(1) + "k";
+  return (
+    <div className="w-full overflow-hidden">
+      <div className="grid grid-rows-2 grid-flow-col gap-3 overflow-x-auto scrollbar-none py-2 -mx-5 px-5 guest-horizontal-scroller overscroll-contain">
+        {photos.map((photo, idx) => {
+          const charCodeSum = photo.id.toString().split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
-              return (
-                <div 
-                  key={ph.id}
-                  className="snap-start shrink-0 w-[140px] glass-panel border border-white/10 bg-white/5 rounded-[22px] overflow-hidden p-2.5 flex flex-col gap-2 relative shadow-lg hover:bg-white/10 active:scale-95 transition-all duration-200"
-                >
-                  {/* Photo container */}
-                  <div 
-                    onClick={() => onPhotoClick(globalIdx)}
-                    className="relative aspect-[3/4] w-full rounded-[16px] overflow-hidden cursor-pointer bg-[#0A0D14]"
-                  >
-                    <img 
-                      src={ph.thumbnail_url || ph.url} 
-                      alt="timeline moment photo" 
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    {/* Top-left match tag */}
-                    <span className="absolute top-2 left-2 backdrop-blur-md bg-black/40 border border-white/10 text-[8px] font-black px-1.5 py-0.5 rounded-full flex items-center gap-0.5 text-white">
-                      <Sparkles size={8} className="text-emerald-400 fill-emerald-400 shrink-0" />
-                      <span>%{ph.matchConfidence || (94 + (charCodeSum % 6))}</span>
-                    </span>
-                  </div>
-
-                  {/* Actions row */}
-                  <div className="flex justify-between items-center px-0.5">
-                    {/* Favorite check */}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onToggleFavorite) onToggleFavorite(ph);
-                      }}
-                      className="bg-transparent border-none p-1 cursor-pointer flex items-center justify-center text-white/60 active:scale-90"
-                    >
-                      <Heart size={14} className={isFav ? "fill-rose-500 text-rose-500" : ""} />
-                    </button>
-
-                    {/* Share / download */}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onDownload) onDownload(ph);
-                      }}
-                      className="bg-transparent border-none p-1 cursor-pointer flex items-center justify-center text-white/60 active:scale-90"
-                    >
-                      <Download size={14} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-        </div>
-      ))}
+          return (
+            <div 
+              key={photo.id}
+              className="relative w-[140px] aspect-square rounded-[22px] overflow-hidden border border-white/5 bg-white/5 shadow-md shrink-0 select-none cursor-pointer active:scale-95 transition-transform"
+              onClick={() => onPhotoClick(idx)}
+            >
+              <img 
+                src={photo.thumbnail_url || photo.url} 
+                alt={photo.filename || "grid item"} 
+                className="w-full h-full object-cover pointer-events-none"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+              
+              {/* Bottom tag / indicator */}
+              <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center z-10">
+                <span className="text-[7.5px] font-black text-white/70 tracking-wide uppercase truncate max-w-[60px]">
+                  {photo.filename ? photo.filename.split(".")[0] : `Foto ${idx + 1}`}
+                </span>
+                <span className="text-[7.5px] font-bold text-emerald-400 bg-emerald-500/10 px-1 py-0.5 rounded border border-emerald-500/20">
+                  %{photo.matchConfidence || (94 + (charCodeSum % 6))}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+        {/* End padding spacing card */}
+        <div className="w-6 shrink-0 h-full" />
+      </div>
     </div>
   );
 }
@@ -2460,7 +2450,7 @@ const handleFileChange = (e) => {
                   {/* Pinterest-style Masonry Unified Photo Feed Grid or Timeline */}
                   <div className="mt-2">
                     {photosViewMode === "grid" ? (
-                      <GuestPhotoGrid 
+                      <GuestPhotoHorizontalGrid 
                         photos={Object.values(matchedPhotosMap).flat()}
                         onPhotoClick={(idx) => {
                           const allPhotos = Object.values(matchedPhotosMap).flat();
@@ -2471,7 +2461,6 @@ const handleFileChange = (e) => {
                         favorites={favorites}
                         onToggleFavorite={handleToggleFavorite}
                         onDownload={handleDownload}
-                        onShare={handleShare}
                       />
                     ) : (
                       <GuestPhotoTimeline 
