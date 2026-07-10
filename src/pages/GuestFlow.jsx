@@ -315,7 +315,12 @@ export function GuestBottomNav({ activeTab, setActiveTab, onTabClick }) {
         boxSizing: "border-box",
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-around"
+        justifyContent: "space-around",
+        background: "rgba(255, 255, 255, 0.72)",
+        backdropFilter: "blur(22px)",
+        WebkitBackdropFilter: "blur(22px)",
+        borderTop: "1px solid rgba(255, 255, 255, 0.65)",
+        boxShadow: "0 -8px 24px rgba(30, 38, 49, 0.08)"
       }}
     >
       {tabs.map((tab) => {
@@ -331,12 +336,13 @@ export function GuestBottomNav({ activeTab, setActiveTab, onTabClick }) {
             style={{
               flex: 1,
               minWidth: 0,
-              color: isActive ? "#34d399" : "rgba(255, 255, 255, 0.4)",
+              color: isActive ? "#3A4B5C" : "rgba(58, 75, 92, 0.55)",
               fontWeight: isActive ? "800" : "normal",
-              transform: isActive ? "scale(1.08)" : "scale(1)"
+              transform: isActive ? "scale(1.05)" : "scale(1)",
+              opacity: isActive ? 1 : 0.75
             }}
           >
-            {tab.icon}
+            {React.cloneElement(tab.icon, { strokeWidth: isActive ? 2.4 : 1.8 })}
             <span className="text-[8.5px] mt-1 block font-bold leading-none">{tab.label}</span>
           </button>
         );
