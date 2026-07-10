@@ -1444,13 +1444,25 @@ const { showToast } = useToast();
               const allMatches = mockApi.getMatches(evt.id);
               const participantMatches = allMatches.filter(m => m.participant_id === part.id);
               const eventPhotos = mockApi.getPhotos(evt.id);
-              let matched = eventPhotos.filter(ph => 
+              
+              const matched = eventPhotos.filter(ph => 
                 participantMatches.some(m => m.photo_id === ph.id)
               );
-              if (matched.length === 0 && eventPhotos.length > 0) {
-                matched = eventPhotos.slice(0, Math.min(3, eventPhotos.length));
+              
+              const guestUploaded = eventPhotos.filter(ph => ph.source === "guest");
+              
+              let combined = [...guestUploaded, ...matched];
+              const seen = new Set();
+              combined = combined.filter(p => {
+                if (seen.has(p.id)) return false;
+                seen.add(p.id);
+                return true;
+              });
+
+              if (combined.length === 0 && eventPhotos.length > 0) {
+                combined = eventPhotos.slice(0, Math.min(3, eventPhotos.length));
               }
-              loadedMatches[evt.id] = matched;
+              loadedMatches[evt.id] = combined;
             });
           } else {
             // Skipped selfie, show all photos for the active events
@@ -1544,7 +1556,7 @@ const { showToast } = useToast();
         };
       });
 
-      mockApi.uploadPhotos(selectedUploadEventId, filesWithUrls, "guest");
+      const newUploadedPhotos = mockApi.uploadPhotos(selectedUploadEventId, filesWithUrls, "guest") || [];
       
       setUploadProgress(100);
       setUploadingState("success");
@@ -1555,7 +1567,15 @@ const { showToast } = useToast();
       setSelectedUploadFiles([]);
       setUploadingState("idle");
       
-      refreshPhotos();
+      setMatchedPhotosMap(prev => {
+        const oldList = prev[selectedUploadEventId] || [];
+        const filteredOld = oldList.filter(oldPhoto => !newUploadedPhotos.some(newPhoto => newPhoto.id === oldPhoto.id));
+        return {
+          ...prev,
+          [selectedUploadEventId]: [...newUploadedPhotos, ...filteredOld]
+        };
+      });
+
       setActiveTab("photos");
       
     } catch (err) {
@@ -2697,11 +2717,15 @@ const handleFileChange = (e) => {
                           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                           loading="lazy"
                         />
-                        {photo.matchConfidence && (
+                        {photo.status === "processing" ? (
+                          <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-blue-600/80 backdrop-blur-md border border-blue-500/20 text-[8px] font-black text-white uppercase tracking-wider animate-pulse">
+                            İşleniyor
+                          </div>
+                        ) : photo.matchConfidence ? (
                           <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
                             %{photo.matchConfidence}
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     );
                   };
