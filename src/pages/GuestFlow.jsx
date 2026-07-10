@@ -755,52 +755,7 @@ export function GuestPhotoTimeline({
   );
 }
 
-export function GuestPhotoHorizontalGrid({ photos, onPhotoClick, favorites = [], onToggleFavorite, onDownload }) {
-  if (!photos || photos.length === 0) {
-    return (
-      <div className="text-center py-12 text-xs text-white/40">
-        Gösterilecek fotoğraf bulunamadı.
-      </div>
-    );
-  }
 
-  return (
-    <div className="w-full overflow-hidden">
-      <div className="grid grid-rows-2 grid-flow-col gap-3 overflow-x-auto scrollbar-none py-2 -mx-5 px-5 guest-horizontal-scroller overscroll-contain">
-        {photos.map((photo, idx) => {
-          const charCodeSum = photo.id.toString().split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-
-          return (
-            <div 
-              key={photo.id}
-              className="relative w-[140px] aspect-square rounded-[22px] overflow-hidden border border-white/5 bg-white/5 shadow-md shrink-0 select-none cursor-pointer active:scale-95 transition-transform"
-              onClick={() => onPhotoClick(idx)}
-            >
-              <img 
-                src={photo.thumbnail_url || photo.url} 
-                alt={photo.filename || "grid item"} 
-                className="w-full h-full object-cover pointer-events-none"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-              
-              {/* Bottom tag / indicator */}
-              <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center z-10">
-                <span className="text-[7.5px] font-black text-white/70 tracking-wide uppercase truncate max-w-[60px]">
-                  {photo.filename ? photo.filename.split(".")[0] : `Foto ${idx + 1}`}
-                </span>
-                <span className="text-[7.5px] font-bold text-emerald-400 bg-emerald-500/10 px-1 py-0.5 rounded border border-emerald-500/20">
-                  %{photo.matchConfidence || (94 + (charCodeSum % 6))}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-        {/* End padding spacing card */}
-        <div className="w-6 shrink-0 h-full" />
-      </div>
-    </div>
-  );
-}
 
 export function GuestEventAlbumDetail({ 
   event, 
@@ -2450,7 +2405,7 @@ const handleFileChange = (e) => {
                   {/* Pinterest-style Masonry Unified Photo Feed Grid or Timeline */}
                   <div className="mt-2">
                     {photosViewMode === "grid" ? (
-                      <GuestPhotoHorizontalGrid 
+                      <GuestPhotoGrid 
                         photos={Object.values(matchedPhotosMap).flat()}
                         onPhotoClick={(idx) => {
                           const allPhotos = Object.values(matchedPhotosMap).flat();
@@ -2461,6 +2416,7 @@ const handleFileChange = (e) => {
                         favorites={favorites}
                         onToggleFavorite={handleToggleFavorite}
                         onDownload={handleDownload}
+                        onShare={handleShare}
                       />
                     ) : (
                       <GuestPhotoTimeline 
