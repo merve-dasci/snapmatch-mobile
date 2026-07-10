@@ -2185,7 +2185,7 @@ body:has(.guest-app-root) #root {
   min-height: 100dvh !important;
   height: 100dvh !important;
   max-height: 100dvh !important;
-  padding: 20px !important;
+  padding: 20px 20px 0 20px !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
@@ -2228,16 +2228,20 @@ body:has(.guest-app-root) #root {
   justify-content: space-between !important;
 }
 
-/* Bottom Tab Bar stretching using negative margins */
+/* Bottom Tab Bar stretching locked to absolute bottom */
 .guest-tab-bar {
-  margin: 20px -20px -20px -20px !important;
-  padding: 12px 20px 24px 20px !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 12px)) 20px !important;
   background: var(--guest-tabbar) !important;
   backdrop-filter: blur(20px) saturate(120%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(120%) !important;
   border-top: 1px solid var(--guest-border) !important;
-  position: sticky !important;
-  bottom: 0 !important;
   z-index: 100 !important;
   display: flex !important;
   align-items: center !important;
@@ -2574,6 +2578,11 @@ input:checked + .ios-slider {
   -webkit-backdrop-filter: blur(28px) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Notch safe-area spacing padding */
+.guest-safe-area-pb {
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 

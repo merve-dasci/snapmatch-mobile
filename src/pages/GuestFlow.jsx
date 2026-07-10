@@ -1761,7 +1761,7 @@ const handleFileChange = (e) => {
 
         {/* STEP 2: Welcome / Onboarding Landing Screen */}
         {step === "welcome" && (
-          <div className="flex-1 flex flex-col justify-between overflow-y-auto scrollbar-none min-h-0 w-full animate-fade-in py-1 select-none pb-8">
+          <div className="flex-1 flex flex-col justify-between overflow-y-auto scrollbar-none min-h-0 w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb">
             {/* Top part cover card */}
             <div className="relative w-full aspect-[4/3] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shrink-0">
               <img 
@@ -1860,7 +1860,7 @@ const handleFileChange = (e) => {
 
         {/* STEP 3: KVKK Privacy / Consent screen */}
         {step === "consent" && (
-          <div className="flex-1 flex flex-col justify-between overflow-y-auto scrollbar-none min-h-0 w-full animate-fade-in py-1 select-none pb-8">
+          <div className="flex-1 flex flex-col justify-between overflow-y-auto scrollbar-none min-h-0 w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb">
             <div className="flex flex-col gap-3 mt-4 text-left">
               <button 
                 onClick={() => setStep("welcome")}
@@ -1939,7 +1939,7 @@ const handleFileChange = (e) => {
 
         {/* STEP 4: Selfie Face Registration Onboarding */}
         {step === "selfie" && (
-          <div className="flex-1 flex flex-col justify-between overflow-y-auto scrollbar-none min-h-0 w-full animate-fade-in relative py-1 select-none pb-8">
+          <div className="flex-1 flex flex-col justify-between overflow-y-auto scrollbar-none min-h-0 w-full animate-fade-in relative py-1 select-none pb-8 guest-safe-area-pb">
             {/* Camera Flash overlay simulation */}
             {flashActive && (
               <div className="absolute inset-0 bg-white z-[99999] animate-fade-out" />
@@ -2016,62 +2016,95 @@ const handleFileChange = (e) => {
             {/* Camera Actions */}
             <div className="flex flex-col gap-4 mt-6">
               {!selfieCaptured ? (
-                <div className="grid grid-cols-2 gap-3">
-                  <button 
-                    onClick={() => {
-                      setFlashActive(true);
-                      setTimeout(() => setFlashActive(false), 300);
-                      setSelfieCaptured(true);
-                      showToast("Kamera açıldı, selfie kaydedildi.", "success");
-                    }}
-                    className="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform"
-                  >
-                    <Camera size={14} />
-                    <span>Kamerayı Aç</span>
-                  </button>
+                <div className="flex flex-col gap-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={() => {
+                        setFlashActive(true);
+                        setTimeout(() => setFlashActive(false), 300);
+                        setSelfieCaptured(true);
+                        showToast("Kamera açıldı, selfie kaydedildi.", "success");
+                      }}
+                      className="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform"
+                    >
+                      <Camera size={14} />
+                      <span>Kamerayı Aç</span>
+                    </button>
+
+                    <button 
+                      onClick={() => {
+                        setGuestName("Ezgi Çelik");
+                        const mockSelfie = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80";
+                        setSelfieUrl(mockSelfie);
+                        setSelfieCaptured(true);
+                        
+                        // Directly trigger matches and advance to processing
+                        const newPart = mockApi.createParticipant(event.id, "Ezgi Çelik", mockSelfie);
+                        setParticipant(newPart);
+                        const loadedMatches = {};
+                        const events = mockApi.getEvents();
+                        events.forEach(evt => {
+                          mockApi.simulateAiMatchingForParticipant(evt.id, newPart.id);
+                          const allMatches = mockApi.getMatches(evt.id);
+                          const participantMatches = allMatches.filter(m => m.participant_id === newPart.id);
+                          const eventPhotos = mockApi.getPhotos(evt.id);
+                          let matched = eventPhotos.filter(ph => 
+                            participantMatches.some(m => m.photo_id === ph.id)
+                          );
+                          if (matched.length === 0 && eventPhotos.length > 0) {
+                            matched = eventPhotos.slice(0, Math.min(3, eventPhotos.length));
+                          }
+                          loadedMatches[evt.id] = matched;
+                        });
+                        setMatchedPhotosMap(loadedMatches);
+                        
+                        const onboardingObj = {
+                          consentAccepted: true,
+                          selfieCaptured: true,
+                          guestName: "Ezgi Çelik",
+                          selfieUrl: mockSelfie
+                        };
+                        localStorage.setItem(`sm_guest_onboarding_${token}`, JSON.stringify(onboardingObj));
+                        
+                        showToast("Demo selfie kullanıldı, analiz ediliyor.", "success");
+                        setStep("processing");
+                      }}
+                      className="p-4 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold text-xs rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform"
+                    >
+                      <ImageIcon size={14} />
+                      <span>Demo Selfie Kullan</span>
+                    </button>
+                  </div>
 
                   <button 
                     onClick={() => {
-                      setGuestName("Ezgi Çelik");
-                      const mockSelfie = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80";
-                      setSelfieUrl(mockSelfie);
-                      setSelfieCaptured(true);
+                      setGuestName("Misafir");
+                      setSelfieUrl(null);
+                      setSelfieCaptured(false);
                       
-                      // Directly trigger matches and advance to processing
-                      const newPart = mockApi.createParticipant(event.id, "Ezgi Çelik", mockSelfie);
-                      setParticipant(newPart);
                       const loadedMatches = {};
                       const events = mockApi.getEvents();
                       events.forEach(evt => {
-                        mockApi.simulateAiMatchingForParticipant(evt.id, newPart.id);
-                        const allMatches = mockApi.getMatches(evt.id);
-                        const participantMatches = allMatches.filter(m => m.participant_id === newPart.id);
                         const eventPhotos = mockApi.getPhotos(evt.id);
-                        let matched = eventPhotos.filter(ph => 
-                          participantMatches.some(m => m.photo_id === ph.id)
-                        );
-                        if (matched.length === 0 && eventPhotos.length > 0) {
-                          matched = eventPhotos.slice(0, Math.min(3, eventPhotos.length));
-                        }
-                        loadedMatches[evt.id] = matched;
+                        loadedMatches[evt.id] = eventPhotos;
                       });
                       setMatchedPhotosMap(loadedMatches);
                       
                       const onboardingObj = {
                         consentAccepted: true,
-                        selfieCaptured: true,
-                        guestName: "Ezgi Çelik",
-                        selfieUrl: mockSelfie
+                        selfieCaptured: false,
+                        guestName: "Misafir",
+                        selfieUrl: null
                       };
                       localStorage.setItem(`sm_guest_onboarding_${token}`, JSON.stringify(onboardingObj));
                       
-                      showToast("Demo selfie kullanıldı, analiz ediliyor.", "success");
-                      setStep("processing");
+                      showToast("Selfie adımı atlandı, albümlere yönlendiriliyorsunuz.", "success");
+                      setStep("albums");
                     }}
-                    className="p-4 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold text-xs rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform"
+                    className="p-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 hover:text-white font-bold text-xs rounded-2xl flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-transform"
                   >
-                    <ImageIcon size={14} />
-                    <span>Demo Selfie Kullan</span>
+                    <span>Şimdilik Atla</span>
+                    <ChevronRight size={12} />
                   </button>
                 </div>
               ) : (
