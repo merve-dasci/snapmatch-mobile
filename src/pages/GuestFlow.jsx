@@ -319,7 +319,10 @@ export function GuestBottomNav({ activeTab, setActiveTab, onTabClick }) {
         maxWidth: "430px",
         paddingBottom: "env(safe-area-inset-bottom, 12px)",
         boxSizing: "border-box",
-        zIndex: 100
+        zIndex: 100,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-around"
       }}
     >
       {tabs.map((tab) => {
@@ -331,9 +334,15 @@ export function GuestBottomNav({ activeTab, setActiveTab, onTabClick }) {
               if (onTabClick) onTabClick(tab.id);
               setActiveTab(tab.id);
             }}
-            className={`flex flex-col items-center justify-center bg-transparent border-none cursor-pointer flex-grow py-2 ${
-              isActive ? "text-emerald-400 font-extrabold scale-[1.08]" : "text-white/40"
-            } transition-all duration-200`}
+            className="flex flex-col items-center justify-center bg-transparent border-none cursor-pointer py-2 transition-all duration-200"
+            style={{
+              flex: "1 1 0%",
+              width: "25%",
+              minWidth: 0,
+              color: isActive ? "#34d399" : "rgba(255, 255, 255, 0.4)",
+              fontWeight: isActive ? "800" : "normal",
+              transform: isActive ? "scale(1.08)" : "scale(1)"
+            }}
           >
             {tab.icon}
             <span className="text-[8.5px] mt-1 block font-bold leading-none">{tab.label}</span>
