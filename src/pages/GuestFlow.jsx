@@ -308,7 +308,20 @@ export function GuestBottomNav({ activeTab, setActiveTab, onTabClick }) {
   ];
 
   return (
-    <nav className="guest-tab-bar">
+    <nav 
+      className="guest-tab-bar"
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "100%",
+        maxWidth: "430px",
+        paddingBottom: "env(safe-area-inset-bottom, 12px)",
+        boxSizing: "border-box",
+        zIndex: 100
+      }}
+    >
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -1864,14 +1877,31 @@ const handleFileChange = (e) => {
   ];
 
   return (
-    <div className="guest-app-root">
+    <div 
+      className="guest-app-root"
+      style={{
+        width: "100%",
+        maxWidth: "100%",
+        overflowX: "hidden",
+        position: "relative"
+      }}
+    >
       {/* Visual gradients */}
       <div className="absolute top-[-10%] left-[-20%] w-[70%] h-[50%] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none z-0 guest-bg-blob-1" />
       <div className="absolute bottom-[-10%] right-[-20%] w-[70%] h-[50%] rounded-full bg-emerald-500/8 blur-[100px] pointer-events-none z-0 guest-bg-blob-2" />
       <div className="absolute top-[40%] left-[20%] w-[60%] h-[40%] rounded-full bg-indigo-500/6 blur-[90px] pointer-events-none z-0 guest-bg-blob-3" />
 
       {/* Main Wrapper */}
-      <div className={`guest-app-wrapper guest-theme-${guestTheme}`}>
+      <div 
+        className={`guest-app-wrapper guest-theme-${guestTheme}`}
+        style={{
+          width: "100%",
+          maxWidth: "430px",
+          overflowX: "hidden",
+          margin: "0 auto",
+          position: "relative"
+        }}
+      >
         
         {/* Instagram Story Style Step Progress Lines */}
         {["welcome", "consent", "selfie"].includes(step) && (
@@ -2529,13 +2559,18 @@ const handleFileChange = (e) => {
                             style={{
                               scrollBehavior: "smooth",
                               overscrollBehaviorX: "contain",
-                              WebkitOverflowScrolling: "touch"
+                              WebkitOverflowScrolling: "touch",
+                              overflowX: "auto",
+                              scrollSnapType: "x mandatory"
                             }}
                           >
                             {allGuestPhotos.map((photo, idx) => (
                               <div 
                                 key={photo.id}
                                 className="snap-start shrink-0 w-[82%] flex flex-col items-center"
+                                style={{
+                                  scrollSnapAlign: "start"
+                                }}
                               >
                                 <div 
                                   onClick={() => {
@@ -2549,6 +2584,7 @@ const handleFileChange = (e) => {
                                     src={photo.url} 
                                     alt={photo.filename} 
                                     className="w-full h-full object-cover"
+                                    style={{ maxWidth: "100%" }}
                                   />
                                   {photo.matchConfidence && (
                                     <div className="absolute top-3 right-3 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
