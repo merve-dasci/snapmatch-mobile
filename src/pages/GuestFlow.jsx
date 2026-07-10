@@ -50,6 +50,8 @@ import {
   BrainCircuit,
   Plus,
   Upload,
+  Grid2X2,
+  GalleryHorizontal,
   X
 } from "lucide-react";
 
@@ -1290,6 +1292,7 @@ const { showToast } = useToast();
   const [selectedEvent, setSelectedEvent] = useState(null); // active event for Screen 7
   const [selectedMemory, setSelectedMemory] = useState(null); // active AI Memory detail page
   const [photosViewMode, setPhotosViewMode] = useState("grid");
+  const [albumViewMode, setAlbumViewMode] = useState("grid"); // grid, slide
   
   // Form/Auth States
   const [guestName, setGuestName] = useState(() => {
@@ -2332,137 +2335,131 @@ const handleFileChange = (e) => {
               </div>
               
               {/* TAB 1: Albums (Albums Grid) */}
-              {activeTab === "albums" && (
-                <div className="flex flex-col pb-36 animate-fade-in">
-                  
-                  {selectedMemory ? (
+              {activeTab === "albums" && (() => {
+                const allGuestPhotos = Object.values(matchedPhotosMap).flat();
+                return (
+                  <div className="flex flex-col pb-36 animate-fade-in text-left">
                     <div className="p-4 flex flex-col gap-4">
-                      <GuestMemoryScreen 
-                        memory={selectedMemory}
-                        photos={Object.values(matchedPhotosMap).flat().slice(0, 10)}
-                        onBack={() => setSelectedMemory(null)}
-                        onPhotoClick={(idx) => {
-                          const photos = Object.values(matchedPhotosMap).flat().slice(0, 10);
-                          setSelectedPhoto(photos[idx]);
-                          const relatedEvent = allEvents.find(e => e.id === photos[idx].event_id) || event;
-                          setSelectedPhotoEvent(relatedEvent);
-                        }}
-                        onPlaySlideshow={(photos) => setActiveSlideshowPhotos(photos)}
-                        favorites={favorites}
-                        onToggleFavorite={handleToggleFavorite}
-                      />
-                    </div>
-                  ) : selectedEvent ? (
-                    <div className="p-4 flex flex-col gap-4">
-                      <GuestEventAlbumDetail 
-                        event={selectedEvent}
-                        photos={matchedPhotosMap[selectedEvent.id] || []}
-                        onBack={() => setSelectedEvent(null)}
-                        onPhotoClick={(idx) => {
-                          const photos = matchedPhotosMap[selectedEvent.id] || [];
-                          setSelectedPhoto(photos[idx]);
-                          setSelectedPhotoEvent(selectedEvent);
-                        }}
-                        favorites={favorites}
-                        onToggleFavorite={handleToggleFavorite}
-                        onDownload={handleDownload}
-                        onShare={handleShare}
-                        onBulkDownload={handleBulkDownload}
-                        onPhotoUpload={(newPhoto) => {
-                          setMatchedPhotosMap(prev => ({
-                            ...prev,
-                            [selectedEvent.id]: [newPhoto, ...(prev[selectedEvent.id] || [])]
-                          }));
-                          showToast("Fotoğraf albüme başarıyla eklendi!", "success");
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    // Screen 3/5: Main Mobile Album list with iOS Albums Stack design
-                    <div className="flex flex-col animate-fade-in text-left">
-                      
-                      {/* Premium Profile Banner Header (Rachel Flowear style) - Completely Full Bleed */}
-                      <div className="relative w-full select-none">
-                        {/* Banner Image */}
-                        <div className="w-full h-44 overflow-hidden relative">
-                          <img 
-                            src="https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=800&auto=format&fit=crop&q=80" 
-                            alt="profile banner" 
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/10" />
+                      {/* HEADER AREA */}
+                      <div className="flex justify-between items-start mt-2 w-full">
+                        <div className="flex flex-col gap-1">
+                          <h2 className="text-lg font-black m-0 text-white font-sans">Fotoğraf Albümüm</h2>
+                          <p className="text-[10px] text-white/50 m-0">Sana ait bulunan tüm fotoğrafları görüntüle.</p>
                         </div>
 
-                        {/* Overlapping Profile Avatar */}
-                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10">
-                          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[var(--guest-bg)] shadow-xl bg-white/5 relative">
-                            {selfieUrl ? (
-                              <img src={selfieUrl} alt="user avatar" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full bg-[var(--accent-gradient)] text-white flex items-center justify-center font-black text-lg">
-                                {guestName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "M"}
+                        {/* Apple style Glass Pill Selector for albumViewMode */}
+                        <div className="flex bg-white/5 border border-white/10 rounded-full p-0.5 select-none shrink-0 shadow-inner">
+                          <button
+                            onClick={() => setAlbumViewMode("grid")}
+                            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${
+                              albumViewMode === "grid" 
+                                ? "bg-white/10 text-white shadow-md" 
+                                : "bg-transparent text-white/40"
+                            }`}
+                          >
+                            <Grid2X2 size={10} />
+                            <span>Izgara</span>
+                          </button>
+                          <button
+                            onClick={() => setAlbumViewMode("slide")}
+                            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${
+                              albumViewMode === "slide" 
+                                ? "bg-white/10 text-white shadow-md" 
+                                : "bg-transparent text-white/40"
+                            }`}
+                          >
+                            <GalleryHorizontal size={10} />
+                            <span>Slide</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* VIEW CONTENT */}
+                      {allGuestPhotos.length === 0 ? (
+                        /* EMPTY STATE */
+                        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10 mb-4 text-white/20">
+                            <ImageIcon size={24} />
+                          </div>
+                          <span className="text-xs font-black text-white/70">Henüz sana ait fotoğraf bulunamadı.</span>
+                          <p className="text-[10px] text-white/40 max-w-[240px] mt-1">Yeni eşleşmeler tamamlandığında burada görünecek.</p>
+                        </div>
+                      ) : albumViewMode === "grid" ? (
+                        /* GRID VIEW */
+                        <div className="grid grid-cols-2 gap-3 mt-2">
+                          {allGuestPhotos.map((photo) => (
+                            <div 
+                              key={photo.id}
+                              onClick={() => {
+                                setSelectedPhoto(photo);
+                                const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
+                                setSelectedPhotoEvent(relatedEvent);
+                              }}
+                              className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-white/5 cursor-pointer shadow-md active:scale-[0.98] transition-transform"
+                            >
+                              <img 
+                                src={photo.url} 
+                                alt={photo.filename} 
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                              {photo.matchConfidence && (
+                                <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
+                                  %{photo.matchConfidence}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        /* SLIDE VIEW */
+                        <div className="flex flex-col gap-4 mt-2 w-full relative">
+                          <div 
+                            className="flex gap-4 w-full overflow-x-auto scrollbar-none snap-x snap-mandatory py-2"
+                            style={{
+                              scrollBehavior: "smooth",
+                              overscrollBehaviorX: "contain",
+                              WebkitOverflowScrolling: "touch"
+                            }}
+                          >
+                            {allGuestPhotos.map((photo, idx) => (
+                              <div 
+                                key={photo.id}
+                                className="snap-start shrink-0 w-[82%] flex flex-col items-center"
+                              >
+                                <div 
+                                  onClick={() => {
+                                    setSelectedPhoto(photo);
+                                    const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
+                                    setSelectedPhotoEvent(relatedEvent);
+                                  }}
+                                  className="w-full aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-white/5 shadow-2xl relative cursor-pointer active:scale-[0.98] transition-transform"
+                                >
+                                  <img 
+                                    src={photo.url} 
+                                    alt={photo.filename} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                  {photo.matchConfidence && (
+                                    <div className="absolute top-3 right-3 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
+                                      %{photo.matchConfidence}
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Counter below the image card */}
+                                <div className="text-[10px] font-extrabold text-white/40 mt-2 select-none tracking-wider">
+                                  {idx + 1} / {allGuestPhotos.length}
+                                </div>
                               </div>
-                            )}
+                            ))}
                           </div>
                         </div>
-                      </div>
-
-                      {/* User Profile Information Details */}
-                      <div className="flex flex-col items-center text-center mt-12 mb-4 px-4 select-none">
-                        <h1 className="text-lg font-black text-white m-0 tracking-tight leading-tight">
-                          {guestName || "Katılımcı"}
-                        </h1>
-                        <span className="text-[10px] text-white/50 font-bold block mt-1">
-                          @{guestName ? guestName.toLowerCase().replace(/\s+/g, "") : "misafir"}
-                        </span>
-                        
-                        {/* Interactive Pill Badges for Event Connection */}
-                        <div className="flex items-center gap-1.5 mt-3">
-                          <span className="text-[9px] text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-                            <Sparkles size={8} />
-                            <span>Katılımcı Hesabı</span>
-                          </span>
-                          <span className="text-[9px] text-white/50 font-bold bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">
-                            {event.title}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Rest of page contents wrapped in a padding div */}
-                      <div className="p-4 flex flex-col gap-6">
-                        {/* Guest Memories Section Carousel */}
-                        <GuestMemoriesSection 
-                          memories={MOCK_MEMORIES}
-                          onMemoryClick={(mem) => setSelectedMemory(mem)}
-                        />
-
-                        <div className="flex flex-col gap-1.5">
-                          <h2 className="text-lg font-black m-0 text-white">Fotoğraf Albümleri</h2>
-                          <p className="text-[10px] text-white/50 m-0">Kayıtlı yüzünüzle eşleşen albümleriniz.</p>
-                        </div>
-
-                        {/* 2-Column Responsive Albums Grid */}
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-6">
-                          {allEvents.map(evt => {
-                            const eventMatched = matchedPhotosMap[evt.id] || [];
-                            return (
-                              <GuestAlbumCard 
-                                key={evt.id}
-                                event={evt}
-                                photos={eventMatched}
-                                matchedPhotosCount={eventMatched.length}
-                                onClick={() => setSelectedEvent(evt)}
-                              />
-                            );
-                          })}
-                        </div>
-                      </div>
-
+                      )}
                     </div>
-                  )}
-
-                </div>
-              )}
+                  </div>
+                );
+              })()}
 
               {/* TAB 2: Photos (Unified Photos List) */}
               {activeTab === "photos" && (
