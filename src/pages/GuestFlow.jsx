@@ -3051,7 +3051,7 @@ const handleFileChange = (e) => {
         </BottomMobileSheet>
 
         {/* Floating Action Button (FAB) for Guest Photo Upload */}
-        {step === "albums" && (
+        {step === "albums" && event?.category === "wedding" && (
           <button
             onClick={() => {
               if (allEvents.length === 1) {
@@ -3075,10 +3075,10 @@ const handleFileChange = (e) => {
               setUploadingState("idle");
             }
           }}
-          title="Fotoğraf Ekle"
+          title="Düğün Fotoğraflarını Ekle"
         >
           <div className="flex flex-col gap-5 text-left text-white select-none pb-6">
-            <p className="text-[10px] text-white/50 m-0 font-medium">Etkinlikte çektiğin fotoğrafları albüme ekle.</p>
+            <p className="text-[10px] text-white/50 m-0 font-medium">Etkinlikte çektiğin fotoğrafları düğün albümüne ekleyebilirsin.</p>
             
             {uploadingState === "idle" ? (
               <>
@@ -3108,7 +3108,7 @@ const handleFileChange = (e) => {
                 )}
 
                 {/* Upload Action Options */}
-                <div className="grid grid-cols-3 gap-2.5 mt-1">
+                <div className="grid grid-cols-2 gap-2.5 mt-1">
                   <button
                     onClick={() => document.getElementById("guest-upload-camera-input").click()}
                     className="flex flex-col items-center gap-2 p-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl active:scale-95 transition-transform cursor-pointer"
@@ -3116,7 +3116,7 @@ const handleFileChange = (e) => {
                     <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center">
                       <Camera size={18} />
                     </div>
-                    <span className="text-[9px] font-black text-white/80 uppercase tracking-wide">Kamera</span>
+                    <span className="text-[9px] font-black text-white/80 uppercase tracking-wide">Kamerayla Çek</span>
                   </button>
                   
                   <button
@@ -3126,17 +3126,7 @@ const handleFileChange = (e) => {
                     <div className="w-10 h-10 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
                       <ImageIcon size={18} />
                     </div>
-                    <span className="text-[9px] font-black text-white/80 uppercase tracking-wide font-sans">Galeri</span>
-                  </button>
-
-                  <button
-                    onClick={() => document.getElementById("guest-upload-bulk-input").click()}
-                    className="flex flex-col items-center gap-2 p-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl active:scale-95 transition-transform cursor-pointer"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                      <UploadCloud size={18} />
-                    </div>
-                    <span className="text-[9px] font-black text-white/80 uppercase tracking-wide">Çoklu</span>
+                    <span className="text-[9px] font-black text-white/80 uppercase tracking-wide font-sans">Galeriden Seç</span>
                   </button>
                 </div>
 
@@ -3152,13 +3142,6 @@ const handleFileChange = (e) => {
                 <input 
                   type="file" 
                   id="guest-upload-gallery-input" 
-                  accept="image/jpeg,image/png,image/webp" 
-                  className="hidden" 
-                  onChange={handleFilesAdded} 
-                />
-                <input 
-                  type="file" 
-                  id="guest-upload-bulk-input" 
                   accept="image/jpeg,image/png,image/webp" 
                   multiple 
                   className="hidden" 
@@ -3226,7 +3209,7 @@ const handleFileChange = (e) => {
                   <h3 className="text-sm font-black text-white m-0">
                     {uploadingState === "preparing" && "Fotoğraflar hazırlanıyor"}
                     {uploadingState === "optimizing" && "Görseller optimize ediliyor"}
-                    {uploadingState === "uploading" && `Firebase Storage'a yükleniyor (${uploadedCount}/${totalUploadCount})`}
+                    {uploadingState === "uploading" && "Yükleniyor"}
                     {uploadingState === "updating" && "Albüm güncelleniyor"}
                   </h3>
                   <span className="text-[10px] text-white/40 font-medium">Lütfen tarayıcıyı kapatmayın...</span>
