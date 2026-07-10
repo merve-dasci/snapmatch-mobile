@@ -2750,12 +2750,17 @@ const handleFileChange = (e) => {
                                 <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-blue-600/80 backdrop-blur-md border border-blue-500/20 text-[8px] font-black text-white uppercase tracking-wider animate-pulse z-10">
                                   İşleniyor
                                 </div>
-                              ) : isFav ? (
-                                /* favoriyse sağ üstte küçük kalp ikonu */
-                                <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-rose-500 z-10">
-                                  <Heart size={10} className="fill-rose-500 text-rose-500" />
-                                </div>
-                              ) : null}
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleFavorite(photo);
+                                  }}
+                                  className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-white z-20 cursor-pointer hover:bg-black/50 active:scale-90 transition-transform border-none animate-fade-in"
+                                >
+                                  <Heart size={11} className={isFav ? "fill-rose-500 text-rose-500" : "text-white/80"} />
+                                </button>
+                              )}
                             </div>
                           );
                         })}
