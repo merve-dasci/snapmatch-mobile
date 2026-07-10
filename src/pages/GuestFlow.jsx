@@ -311,15 +311,8 @@ export function GuestBottomNav({ activeTab, setActiveTab, onTabClick }) {
     <nav 
       className="guest-tab-bar"
       style={{
-        position: "fixed",
-        bottom: 0,
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: "100%",
-        maxWidth: "430px",
         paddingBottom: "env(safe-area-inset-bottom, 12px)",
         boxSizing: "border-box",
-        zIndex: 100,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-around"
@@ -336,8 +329,7 @@ export function GuestBottomNav({ activeTab, setActiveTab, onTabClick }) {
             }}
             className="flex flex-col items-center justify-center bg-transparent border-none cursor-pointer py-2 transition-all duration-200"
             style={{
-              flex: "1 1 0%",
-              width: "25%",
+              flex: 1,
               minWidth: 0,
               color: isActive ? "#34d399" : "rgba(255, 255, 255, 0.4)",
               fontWeight: isActive ? "800" : "normal",
