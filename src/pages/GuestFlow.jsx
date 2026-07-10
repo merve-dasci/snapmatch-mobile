@@ -1256,7 +1256,7 @@ const { showToast } = useToast();
         const onboardingData = localStorage.getItem("sm_guest_onboarding_" + urlToken);
         if (onboardingData) {
           const parsed = JSON.parse(onboardingData);
-          if (parsed.consentAccepted && parsed.selfieCaptured && parsed.guestName) {
+          if (parsed.consentAccepted && parsed.guestName) {
             return "albums";
           }
         }
@@ -1271,7 +1271,22 @@ const { showToast } = useToast();
 
   const [qrSubStep, setQrSubStep] = useState("scanning"); // scanning, verified
   const [kvkkChecked, setKvkkChecked] = useState(false);
-  const [activeTab, setActiveTab] = useState("albums"); // albums, photos, search, favorites, settings
+  const [activeTab, setActiveTab] = useState(() => {
+    const pathParts = window.location.pathname.split("/guest/");
+    const urlToken = pathParts[1] || "";
+    try {
+      if (urlToken) {
+        const onboardingData = localStorage.getItem("sm_guest_onboarding_" + urlToken);
+        if (onboardingData) {
+          const parsed = JSON.parse(onboardingData);
+          if (parsed.consentAccepted && parsed.guestName) {
+            return "photos";
+          }
+        }
+      }
+    } catch {}
+    return "albums";
+  }); // albums, photos, search, favorites, settings
   const [selectedEvent, setSelectedEvent] = useState(null); // active event for Screen 7
   const [selectedMemory, setSelectedMemory] = useState(null); // active AI Memory detail page
   const [photosViewMode, setPhotosViewMode] = useState("grid");
@@ -1468,6 +1483,7 @@ localStorage.setItem("sm_guest_favorites", JSON.stringify(favorites));
           clearInterval(interval);
           const timer = setTimeout(() => {
             setStep("albums");
+            setActiveTab("photos");
             showToast("Fotoğrafların başarıyla eşleştirildi!", "success");
           }, 400);
           return () => clearTimeout(timer);
@@ -2141,6 +2157,7 @@ const handleFileChange = (e) => {
                       
                       showToast("Selfie adımı atlandı, albümlere yönlendiriliyorsunuz.", "success");
                       setStep("albums");
+                      setActiveTab("photos");
                     }}
                     className="p-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 hover:text-white font-bold text-xs rounded-2xl flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-transform"
                   >
