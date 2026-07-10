@@ -2666,14 +2666,14 @@ const handleFileChange = (e) => {
                     <div className="flex justify-between items-center mt-2 w-full select-none">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <h2 className="text-lg font-black m-0 text-white font-sans">Zaman Tüneli</h2>
+                          <h2 className="text-lg font-black m-0 text-white font-sans">Fotoğraflarım</h2>
                           {allPhotos.length > 0 && (
                             <span className="text-[9px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
                               {allPhotos.length} Fotoğraf
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-white/50 m-0 font-medium">Etkinlik boyunca sana ait bulunan fotoğrafları dikey galeri şeklinde keşfet.</p>
+                        <p className="text-[10px] text-white/50 m-0 font-medium">Yapay zekânın seninle eşleştirdiği anılar.</p>
                       </div>
                     </div>
 
@@ -2688,12 +2688,14 @@ const handleFileChange = (e) => {
                         <p className="text-[10px] text-white/40 max-w-[240px] mt-1 font-medium">Yeni eşleşmeler tamamlandığında fotoğrafların dikey galeri şeklinde burada görünecek.</p>
                       </div>
                     ) : (
-                      /* Pinterest-like 2-column masonry grid */
-                      (() => {
-                        const leftColumn = allPhotos.filter((_, idx) => idx % 2 === 0);
-                        const rightColumn = allPhotos.filter((_, idx) => idx % 2 !== 0);
-
-                        const renderPhotoCard = (photo) => {
+                      /* iPhone-like 6-pattern asymmetric CSS Grid */
+                      <div 
+                        className="grid grid-cols-2 mt-2 w-full"
+                        style={{
+                          gap: "8px"
+                        }}
+                      >
+                        {allPhotos.map((photo, index) => {
                           const isFav = favorites.some(p => p.id === photo.id);
                           const photoUrl = photo.original_url || photo.thumbnail_url || photo.url || photo.previewUrl || FALLBACK_IMAGE;
 
@@ -2702,23 +2704,40 @@ const handleFileChange = (e) => {
                             e.target.src = FALLBACK_IMAGE;
                           };
 
+                          // Compute dimensions classes based on repeating 6-pattern cycle
+                          const mod = index % 6;
+                          let sizeClasses = "";
+                          if (mod === 0) {
+                            // 1. büyük yatay kart (2 kolon genişliğinde)
+                            sizeClasses = "col-span-2 h-[200px]";
+                          } else if (mod === 1) {
+                            // 2. sol uzun portre dikey kart (2 row span)
+                            sizeClasses = "col-span-1 row-span-2 h-[308px]";
+                          } else if (mod === 2 || mod === 3) {
+                            // 3 & 4. sağ iki küçük kare kart
+                            sizeClasses = "col-span-1 h-[150px]";
+                          } else if (mod === 4) {
+                            // 5. sol kare kart
+                            sizeClasses = "col-span-1 h-[150px]";
+                          } else {
+                            // 6. sağ dikey kart (daha uzun)
+                            sizeClasses = "col-span-1 h-[220px]";
+                          }
+
                           return (
                             <div 
                               key={photo.id}
-                              className="relative group cursor-pointer overflow-hidden rounded-[20px] bg-[#0A0D14] border border-white/10 select-none shadow-xl active:scale-[0.98] transition-all duration-200 w-full"
+                              className={`relative group cursor-pointer overflow-hidden rounded-[20px] bg-[#0A0D14] border border-white/10 select-none shadow-sm active:scale-[0.98] transition-all duration-200 w-full ${sizeClasses}`}
                               onClick={() => handlePhotoSelect(photo)}
                             >
                               <img 
                                 src={photoUrl} 
                                 alt="" 
                                 onError={handleImgError}
-                                className="w-full h-auto block object-cover"
-                                style={{ width: "100%", height: "auto", display: "block" }}
+                                className="w-full h-full block object-cover"
+                                style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }}
                                 loading="lazy"
                               />
-
-                              {/* Apple Style Dark Overlay at the bottom */}
-                              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-100 pointer-events-none" />
 
                               {/* Sol üst (top-left) glass AI badge */}
                               <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-[8px] font-black text-white select-none flex items-center gap-1 z-10">
@@ -2727,65 +2746,20 @@ const handleFileChange = (e) => {
                               </div>
 
                               {/* Right top processing status badge */}
-                              {photo.status === "processing" && (
+                              {photo.status === "processing" ? (
                                 <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-blue-600/80 backdrop-blur-md border border-blue-500/20 text-[8px] font-black text-white uppercase tracking-wider animate-pulse z-10">
                                   İşleniyor
                                 </div>
-                              )}
-
-                              {/* Bottom actions pill layout */}
-                              <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1 z-10">
-                                {/* Like / Favorite pill button */}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleToggleFavorite(photo);
-                                  }}
-                                  className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-[9px] font-extrabold text-white cursor-pointer active:scale-90 transition-transform hover:bg-black/50 border-none"
-                                >
-                                  <Heart size={10} className={isFav ? "fill-rose-500 text-rose-500" : "text-white"} />
-                                  <span>Beğen</span>
-                                </button>
-                                
-                                <div className="flex items-center gap-1">
-                                  {/* Download button */}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDownload(photo);
-                                    }}
-                                    className="w-6 h-6 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-white cursor-pointer active:scale-90 transition-transform hover:bg-black/50 border-none"
-                                  >
-                                    <Download size={10} />
-                                  </button>
-                                  
-                                  {/* Share button */}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleShare(photo);
-                                    }}
-                                    className="w-6 h-6 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-white cursor-pointer active:scale-90 transition-transform hover:bg-black/50 border-none"
-                                  >
-                                    <Share2 size={10} />
-                                  </button>
+                              ) : isFav ? (
+                                /* favoriyse sağ üstte küçük kalp ikonu */
+                                <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-rose-500 z-10">
+                                  <Heart size={10} className="fill-rose-500 text-rose-500" />
                                 </div>
-                              </div>
+                              ) : null}
                             </div>
                           );
-                        };
-
-                        return (
-                          <div className="flex items-start gap-2.5 mt-2 w-full">
-                            <div className="flex flex-1 min-w-0 flex-col gap-2.5">
-                              {leftColumn.map(renderPhotoCard)}
-                            </div>
-                            <div className="flex flex-1 min-w-0 flex-col gap-2.5">
-                              {rightColumn.map(renderPhotoCard)}
-                            </div>
-                          </div>
-                        );
-                      })()
+                        })}
+                      </div>
                     )}
                   </div>
                 );
