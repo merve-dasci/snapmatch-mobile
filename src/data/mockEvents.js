@@ -1,0 +1,62 @@
+export const mockEvents = [
+  {
+    id: "evt_1",
+    workspace_id: "ws_1",
+    title: "Ece & Mert Düğünü",
+    category: "wedding",
+    date: "2026-07-15",
+    location: "Sait Halim Paşa Yalısı, İstanbul",
+    status: "live",
+    access_type: "public",
+    cover_url: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&auto=format&fit=crop&q=80",
+    consent_text: "Yüz verilerimin bu etkinlik fotoğraflarında eşleştirme amacıyla KVKK kapsamında işlenmesini onaylıyorum.",
+    qr_token: "ece-mert-2026",
+    guest_upload_enabled: true,
+    created_at: "2026-06-01T10:00:00Z"
+  },
+  {
+    id: "evt_2",
+    workspace_id: "ws_1",
+    title: "İTÜ Mezuniyet Töreni 2026",
+    category: "graduation",
+    date: "2026-07-02",
+    location: "İTÜ Ayazağa Kampüsü Stadyumu",
+    status: "completed",
+    access_type: "closed",
+    cover_url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80",
+    consent_text: "Mezuniyet töreni kapsamında yüzümün tespit edilip bana ait fotoğrafların ayrıştırılmasına izin veriyorum.",
+    qr_token: "itu-grad-2026",
+    guest_upload_enabled: false,
+    created_at: "2026-05-15T09:00:00Z"
+  },
+  {
+    id: "evt_3",
+    workspace_id: "ws_1",
+    title: "AI & Future Tech Summit",
+    category: "corporate",
+    date: "2026-07-28",
+    location: "Wyndham Grand Levent, İstanbul",
+    status: "draft",
+    access_type: "public",
+    cover_url: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80",
+    consent_text: "Etkinlik süresince çekilen fotoğraflarımın AI yüz eşleştirme sistemiyle tarafıma sunulmasını onaylıyorum.",
+    qr_token: "tech-summit-2026",
+    guest_upload_enabled: false,
+    created_at: "2026-07-01T11:00:00Z"
+  },
+  {
+    id: "evt_4",
+    workspace_id: "ws_1",
+    title: "Summer Beat Music Festival",
+    category: "concert",
+    date: "2026-08-05",
+    location: "Kilyos Beach, İstanbul",
+    status: "live",
+    access_type: "public",
+    cover_url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&auto=format&fit=crop&q=80",
+    consent_text: "Festival alanında çekilen fotoğraflarımın AI tabanlı eşleştirilmesi için onay veriyorum.",
+    qr_token: "summer-beat-2026",
+    guest_upload_enabled: false,
+    created_at: "2026-07-05T14:00:00Z"
+  }
+];
