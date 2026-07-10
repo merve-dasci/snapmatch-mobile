@@ -1498,6 +1498,11 @@ const { showToast } = useToast();
       showToast("Lütfen yüklenecek etkinliği seçin.", "warning");
       return;
     }
+    const targetEvent = allEvents.find(e => e.id === selectedUploadEventId);
+    if (!targetEvent || targetEvent.category !== "wedding") {
+      showToast("Fotoğraf ekleme yalnızca düğün etkinliklerinde kullanılabilir.", "warning");
+      return;
+    }
     if (selectedUploadFiles.length === 0) {
       showToast("Lütfen en az bir fotoğraf seçin.", "warning");
       return;
@@ -3051,19 +3056,34 @@ const handleFileChange = (e) => {
         </BottomMobileSheet>
 
         {/* Floating Action Button (FAB) for Guest Photo Upload */}
-        {step === "albums" && event?.category === "wedding" && (
-          <button
-            onClick={() => {
-              if (allEvents.length === 1) {
-                setSelectedUploadEventId(allEvents[0].id);
-              }
-              setIsUploadSheetOpen(true);
-            }}
-            className="fixed bottom-[calc(84px+env(safe-area-inset-bottom,12px))] right-5 w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-2xl flex items-center justify-center cursor-pointer active:scale-90 transition-transform z-[90] border border-white/20"
-          >
-            <Plus size={24} strokeWidth={2.5} />
-          </button>
-        )}
+        {step === "albums" && event?.category === "wedding" && (() => {
+          const weddingEvents = allEvents.filter(e => e.category === "wedding");
+          if (weddingEvents.length === 0) return null;
+
+          return (
+            <button
+              onClick={() => {
+                if (weddingEvents.length === 1) {
+                  setSelectedUploadEventId(weddingEvents[0].id);
+                } else {
+                  if (event && event.category === "wedding") {
+                    setSelectedUploadEventId(event.id);
+                  } else {
+                    setSelectedUploadEventId(weddingEvents[0].id);
+                  }
+                }
+                setIsUploadSheetOpen(true);
+              }}
+              className="absolute w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-2xl flex items-center justify-center cursor-pointer active:scale-90 transition-transform z-[90] border border-white/20"
+              style={{
+                right: "16px",
+                bottom: "calc(76px + env(safe-area-inset-bottom, 12px))"
+              }}
+            >
+              <Plus size={24} strokeWidth={2.5} />
+            </button>
+          );
+        })()}
 
         {/* Guest Photo Upload Sheet */}
         <BottomMobileSheet
@@ -3082,30 +3102,35 @@ const handleFileChange = (e) => {
             
             {uploadingState === "idle" ? (
               <>
-                {/* Event Selector - if multiple events exist */}
-                {allEvents.length > 1 && (
-                  <div className="flex flex-col gap-2">
-                    <span className="text-[10px] font-black uppercase text-white/30 tracking-wider font-sans">Etkinlik Seçin</span>
-                    <div className="flex flex-col gap-2 max-h-[140px] overflow-y-auto scrollbar-none">
-                      {allEvents.map(evt => (
-                        <div 
-                          key={evt.id}
-                          onClick={() => setSelectedUploadEventId(evt.id)}
-                          className={`p-3 rounded-2xl border flex flex-col gap-1 cursor-pointer transition-all ${
-                            selectedUploadEventId === evt.id 
-                              ? "bg-blue-600/10 border-blue-500/50 text-white" 
-                              : "bg-white/5 border-white/5 text-white/70 hover:bg-white/10"
-                          }`}
-                        >
-                          <strong className="text-xs">{evt.title}</strong>
-                          <span className="text-[9px] opacity-60 font-medium">
-                            {new Date(evt.date).toLocaleDateString("tr-TR")} &bull; {evt.location || "İstanbul"}
-                          </span>
-                        </div>
-                      ))}
+                {/* Event Selector - if multiple wedding events exist */}
+                {(() => {
+                  const weddingEvents = allEvents.filter(e => e.category === "wedding");
+                  if (weddingEvents.length <= 1) return null;
+
+                  return (
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[10px] font-black uppercase text-white/30 tracking-wider font-sans">Etkinlik Seçin</span>
+                      <div className="flex flex-col gap-2 max-h-[140px] overflow-y-auto scrollbar-none">
+                        {weddingEvents.map(evt => (
+                          <div 
+                            key={evt.id}
+                            onClick={() => setSelectedUploadEventId(evt.id)}
+                            className={`p-3 rounded-2xl border flex flex-col gap-1 cursor-pointer transition-all ${
+                              selectedUploadEventId === evt.id 
+                                ? "bg-blue-600/10 border-blue-500/50 text-white" 
+                                : "bg-white/5 border-white/5 text-white/70 hover:bg-white/10"
+                            }`}
+                          >
+                            <strong className="text-xs">{evt.title}</strong>
+                            <span className="text-[9px] opacity-60 font-medium">
+                              {new Date(evt.date).toLocaleDateString("tr-TR")} &bull; {evt.location || "İstanbul"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Upload Action Options */}
                 <div className="grid grid-cols-2 gap-2.5 mt-1">
