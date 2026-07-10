@@ -2652,6 +2652,8 @@ const handleFileChange = (e) => {
                   groupedPhotos[groupKey].push(ph);
                 });
 
+                const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&auto=format&fit=crop";
+
                 const renderEditorialLayout = (items) => {
                   if (items.length === 0) return null;
 
@@ -2661,30 +2663,41 @@ const handleFileChange = (e) => {
                     setSelectedPhotoEvent(relatedEvent);
                   };
 
-                  const renderCard = (photo, sizeClass) => (
-                    <div 
-                      key={photo.id}
-                      onClick={() => handlePhotoSelect(photo)}
-                      className={`relative rounded-2xl overflow-hidden border border-white/10 bg-white/5 cursor-pointer shadow-lg active:scale-[0.98] transition-transform select-none ${sizeClass}`}
-                    >
-                      <img 
-                        src={photo.url} 
-                        alt={photo.filename} 
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                      {photo.matchConfidence && (
-                        <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
-                          %{photo.matchConfidence}
-                        </div>
-                      )}
-                    </div>
-                  );
+                  const renderCard = (photo, heightClass) => {
+                    const photoUrl = photo.original_url || photo.thumbnail_url || photo.url || photo.previewUrl || FALLBACK_IMAGE;
+
+                    const handleImgError = (e) => {
+                      e.target.onerror = null;
+                      e.target.src = FALLBACK_IMAGE;
+                    };
+
+                    return (
+                      <div 
+                        key={photo.id}
+                        onClick={() => handlePhotoSelect(photo)}
+                        className={`relative rounded-2xl overflow-hidden border border-white/10 bg-white/5 cursor-pointer shadow-lg active:scale-[0.98] transition-transform select-none w-full ${heightClass}`}
+                      >
+                        <img 
+                          src={photoUrl} 
+                          alt="" 
+                          onError={handleImgError}
+                          className="w-full h-full object-cover block"
+                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                          loading="lazy"
+                        />
+                        {photo.matchConfidence && (
+                          <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
+                            %{photo.matchConfidence}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  };
 
                   if (items.length === 1) {
                     return (
                       <div className="flex flex-col w-full">
-                        {renderCard(items[0], "w-full aspect-[4/3]")}
+                        {renderCard(items[0], "h-[240px] max-h-[240px]")}
                       </div>
                     );
                   }
@@ -2692,8 +2705,8 @@ const handleFileChange = (e) => {
                   if (items.length === 2) {
                     return (
                       <div className="flex flex-col gap-3 w-full">
-                        {renderCard(items[0], "w-full aspect-[4/3]")}
-                        {renderCard(items[1], "w-full aspect-[16/9]")}
+                        {renderCard(items[0], "h-[240px] max-h-[240px]")}
+                        {renderCard(items[1], "h-[150px] max-h-[150px]")}
                       </div>
                     );
                   }
@@ -2704,9 +2717,9 @@ const handleFileChange = (e) => {
 
                   return (
                     <div className="flex flex-col gap-3 w-full">
-                      {renderCard(largePhoto, "w-full aspect-[4/3]")}
+                      {renderCard(largePhoto, "h-[240px] max-h-[240px]")}
                       <div className="grid grid-cols-2 gap-3">
-                        {remainingPhotos.map(photo => renderCard(photo, "w-full aspect-square"))}
+                        {remainingPhotos.map(photo => renderCard(photo, "h-[150px] max-h-[150px]"))}
                       </div>
                     </div>
                   );
