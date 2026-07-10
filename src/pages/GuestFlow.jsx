@@ -52,6 +52,7 @@ import {
   Upload,
   Grid2X2,
   GalleryHorizontal,
+  UploadCloud,
   X
 } from "lucide-react";
 
@@ -1362,6 +1363,15 @@ const { showToast } = useToast();
   const [activeSharePhoto, setActiveSharePhoto] = useState(null);
   const [activeShareCardPhoto, setActiveShareCardPhoto] = useState(null);
 
+  // Guest photo upload states
+  const [isUploadSheetOpen, setIsUploadSheetOpen] = useState(false);
+  const [selectedUploadEventId, setSelectedUploadEventId] = useState("");
+  const [selectedUploadFiles, setSelectedUploadFiles] = useState([]);
+  const [uploadingState, setUploadingState] = useState("idle"); // idle, preparing, optimizing, uploading, updating, success, error
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadedCount, setUploadedCount] = useState(0);
+  const [totalUploadCount, setTotalUploadCount] = useState(0);
+
   // Pull-to-refresh state
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -1377,7 +1387,7 @@ const { showToast } = useToast();
 
   // Sync favorites with localStorage
   useEffect(() => {
-localStorage.setItem("sm_guest_favorites", JSON.stringify(favorites));
+    localStorage.setItem("sm_guest_favorites", JSON.stringify(favorites));
   }, [favorites]);
 
   // Initialize event and load other events for albums
@@ -1388,46 +1398,146 @@ localStorage.setItem("sm_guest_favorites", JSON.stringify(favorites));
     const matchedEvent = events.find(e => e.qr_token === token) || events[0];
     if (matchedEvent) {
       setEvent(matchedEvent);
+      setSelectedUploadEventId(matchedEvent.id);
     }
   }, [token]);
 
-  // Populate matched photos map on mount if onboarding completed
-  useEffect(() => {
-    const onboardingData = localStorage.getItem(`sm_guest_onboarding_${token}`);
-    if (onboardingData) {
-      try {
-        const parsed = JSON.parse(onboardingData);
-        if (parsed && parsed.selfieCaptured) {
-          const events = mockApi.getEvents();
-          const loadedMatches = {};
-          
-          // Re-create or find participant in mock DB
-          let part = mockApi.getParticipants(event?.id || events[0]?.id).find(p => p.name === parsed.guestName);
-          if (!part) {
-            part = mockApi.createParticipant(event?.id || events[0]?.id, parsed.guestName, parsed.selfieUrl);
-          }
-          setParticipant(part);
+  // Populate matched photos map helper
+  const refreshPhotos = () => {
+    try {
+      const onboardingData = localStorage.getItem(`sm_guest_onboarding_${token}`);
+      const events = mockApi.getEvents();
+      const loadedMatches = {};
 
-          events.forEach(evt => {
-            mockApi.simulateAiMatchingForParticipant(evt.id, part.id);
-            const allMatches = mockApi.getMatches(evt.id);
-            const participantMatches = allMatches.filter(m => m.participant_id === part.id);
-            const eventPhotos = mockApi.getPhotos(evt.id);
-            let matched = eventPhotos.filter(ph => 
-              participantMatches.some(m => m.photo_id === ph.id)
-            );
-            if (matched.length === 0 && eventPhotos.length > 0) {
-              matched = eventPhotos.slice(0, Math.min(3, eventPhotos.length));
+      if (onboardingData) {
+        const parsed = JSON.parse(onboardingData);
+        if (parsed.consentAccepted && parsed.guestName) {
+          if (parsed.selfieCaptured && parsed.selfieUrl) {
+            let part = mockApi.getParticipants(event?.id || events[0]?.id).find(p => p.name === parsed.guestName);
+            if (!part) {
+              part = mockApi.createParticipant(event?.id || events[0]?.id, parsed.guestName, parsed.selfieUrl);
             }
-            loadedMatches[evt.id] = matched;
-          });
+            setParticipant(part);
+
+            events.forEach(evt => {
+              mockApi.simulateAiMatchingForParticipant(evt.id, part.id);
+              const allMatches = mockApi.getMatches(evt.id);
+              const participantMatches = allMatches.filter(m => m.participant_id === part.id);
+              const eventPhotos = mockApi.getPhotos(evt.id);
+              let matched = eventPhotos.filter(ph => 
+                participantMatches.some(m => m.photo_id === ph.id)
+              );
+              if (matched.length === 0 && eventPhotos.length > 0) {
+                matched = eventPhotos.slice(0, Math.min(3, eventPhotos.length));
+              }
+              loadedMatches[evt.id] = matched;
+            });
+          } else {
+            // Skipped selfie, show all photos for the active events
+            events.forEach(evt => {
+              loadedMatches[evt.id] = mockApi.getPhotos(evt.id);
+            });
+          }
           setMatchedPhotosMap(loadedMatches);
         }
-      } catch (err) {
-        console.error("Error restoring matching photos on mount:", err);
       }
+    } catch (err) {
+      console.error("Error restoring matching photos on mount:", err);
     }
+  };
+
+  useEffect(() => {
+    refreshPhotos();
   }, [token, event]);
+
+  const handleFilesAdded = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const validFormats = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    const validatedFiles = [];
+
+    for (let file of files) {
+      if (!validFormats.includes(file.type.toLowerCase())) {
+        showToast("Yalnızca JPG, JPEG, PNG ve WebP formatları desteklenmektedir.", "warning");
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        showToast("Maksimum dosya boyutu 10 MB'dır. Lütfen daha küçük bir dosya seçin.", "warning");
+        return;
+      }
+      validatedFiles.push(file);
+    }
+
+    setSelectedUploadFiles(prev => [...prev, ...validatedFiles]);
+    e.target.value = "";
+  };
+
+  const startUploadFlow = async () => {
+    if (!selectedUploadEventId) {
+      showToast("Lütfen yüklenecek etkinliği seçin.", "warning");
+      return;
+    }
+    if (selectedUploadFiles.length === 0) {
+      showToast("Lütfen en az bir fotoğraf seçin.", "warning");
+      return;
+    }
+
+    setUploadingState("preparing");
+    setUploadProgress(10);
+    setTotalUploadCount(selectedUploadFiles.length);
+    setUploadedCount(0);
+
+    await new Promise(r => setTimeout(r, 600));
+
+    setUploadingState("optimizing");
+    setUploadProgress(30);
+
+    await new Promise(r => setTimeout(r, 600));
+
+    setUploadingState("uploading");
+    setUploadProgress(50);
+
+    const fileCount = selectedUploadFiles.length;
+    for (let i = 0; i < fileCount; i++) {
+      await new Promise(r => setTimeout(r, 400));
+      setUploadedCount(i + 1);
+      setUploadProgress(Math.round(50 + ((i + 1) / fileCount) * 40));
+    }
+
+    setUploadingState("updating");
+    setUploadProgress(95);
+    await new Promise(r => setTimeout(r, 400));
+
+    try {
+      const filesWithUrls = selectedUploadFiles.map(file => {
+        const objUrl = URL.createObjectURL(file);
+        return {
+          name: file.name,
+          size: file.size,
+          url: objUrl
+        };
+      });
+
+      mockApi.uploadPhotos(selectedUploadEventId, filesWithUrls, "guest");
+      
+      setUploadProgress(100);
+      setUploadingState("success");
+      
+      showToast("Fotoğrafların başarıyla yüklendi. Yapay zeka eşleştirme işlemi tamamlandığında zaman tünelinde güncellenecek.", "success");
+      
+      setIsUploadSheetOpen(false);
+      setSelectedUploadFiles([]);
+      setUploadingState("idle");
+      
+      refreshPhotos();
+      setActiveTab("photos");
+      
+    } catch (err) {
+      setUploadingState("error");
+      showToast("Fotoğraflar yüklenirken bir hata oluştu.", "error");
+    }
+  };
 
   // Auto-transition from QR scanning to QR verified to Welcome
   useEffect(() => {
@@ -2882,6 +2992,200 @@ const handleFileChange = (e) => {
               </div>
             </div>
           )}
+        </BottomMobileSheet>
+
+        {/* Floating Action Button (FAB) for Guest Photo Upload */}
+        {step === "albums" && (
+          <button
+            onClick={() => {
+              if (allEvents.length === 1) {
+                setSelectedUploadEventId(allEvents[0].id);
+              }
+              setIsUploadSheetOpen(true);
+            }}
+            className="fixed bottom-[calc(84px+env(safe-area-inset-bottom,12px))] right-5 w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-2xl flex items-center justify-center cursor-pointer active:scale-90 transition-transform z-[90] border border-white/20"
+          >
+            <Plus size={24} strokeWidth={2.5} />
+          </button>
+        )}
+
+        {/* Guest Photo Upload Sheet */}
+        <BottomMobileSheet
+          isOpen={isUploadSheetOpen}
+          onClose={() => {
+            if (uploadingState === "idle" || uploadingState === "success" || uploadingState === "error") {
+              setIsUploadSheetOpen(false);
+              setSelectedUploadFiles([]);
+              setUploadingState("idle");
+            }
+          }}
+          title="Fotoğraf Ekle"
+        >
+          <div className="flex flex-col gap-5 text-left text-white select-none pb-6">
+            <p className="text-[10px] text-white/50 m-0 font-medium">Etkinlikte çektiğin fotoğrafları albüme ekle.</p>
+            
+            {uploadingState === "idle" ? (
+              <>
+                {/* Event Selector - if multiple events exist */}
+                {allEvents.length > 1 && (
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[10px] font-black uppercase text-white/30 tracking-wider font-sans">Etkinlik Seçin</span>
+                    <div className="flex flex-col gap-2 max-h-[140px] overflow-y-auto scrollbar-none">
+                      {allEvents.map(evt => (
+                        <div 
+                          key={evt.id}
+                          onClick={() => setSelectedUploadEventId(evt.id)}
+                          className={`p-3 rounded-2xl border flex flex-col gap-1 cursor-pointer transition-all ${
+                            selectedUploadEventId === evt.id 
+                              ? "bg-blue-600/10 border-blue-500/50 text-white" 
+                              : "bg-white/5 border-white/5 text-white/70 hover:bg-white/10"
+                          }`}
+                        >
+                          <strong className="text-xs">{evt.title}</strong>
+                          <span className="text-[9px] opacity-60 font-medium">
+                            {new Date(evt.date).toLocaleDateString("tr-TR")} &bull; {evt.location || "İstanbul"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload Action Options */}
+                <div className="grid grid-cols-3 gap-2.5 mt-1">
+                  <button
+                    onClick={() => document.getElementById("guest-upload-camera-input").click()}
+                    className="flex flex-col items-center gap-2 p-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl active:scale-95 transition-transform cursor-pointer"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                      <Camera size={18} />
+                    </div>
+                    <span className="text-[9px] font-black text-white/80 uppercase tracking-wide">Kamera</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => document.getElementById("guest-upload-gallery-input").click()}
+                    className="flex flex-col items-center gap-2 p-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl active:scale-95 transition-transform cursor-pointer"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                      <ImageIcon size={18} />
+                    </div>
+                    <span className="text-[9px] font-black text-white/80 uppercase tracking-wide font-sans">Galeri</span>
+                  </button>
+
+                  <button
+                    onClick={() => document.getElementById("guest-upload-bulk-input").click()}
+                    className="flex flex-col items-center gap-2 p-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl active:scale-95 transition-transform cursor-pointer"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                      <UploadCloud size={18} />
+                    </div>
+                    <span className="text-[9px] font-black text-white/80 uppercase tracking-wide">Çoklu</span>
+                  </button>
+                </div>
+
+                {/* Hidden File Inputs */}
+                <input 
+                  type="file" 
+                  id="guest-upload-camera-input" 
+                  accept="image/jpeg,image/png,image/webp" 
+                  capture="environment" 
+                  className="hidden" 
+                  onChange={handleFilesAdded} 
+                />
+                <input 
+                  type="file" 
+                  id="guest-upload-gallery-input" 
+                  accept="image/jpeg,image/png,image/webp" 
+                  className="hidden" 
+                  onChange={handleFilesAdded} 
+                />
+                <input 
+                  type="file" 
+                  id="guest-upload-bulk-input" 
+                  accept="image/jpeg,image/png,image/webp" 
+                  multiple 
+                  className="hidden" 
+                  onChange={handleFilesAdded} 
+                />
+
+                {/* Upload Preview List */}
+                {selectedUploadFiles.length > 0 && (
+                  <div className="flex flex-col gap-2.5 border-t border-white/5 pt-4 mt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-black uppercase text-white/30 tracking-wider">Seçilen Fotoğraflar</span>
+                      <span className="text-[10px] font-extrabold text-emerald-400">{selectedUploadFiles.length} fotoğraf seçildi</span>
+                    </div>
+
+                    <div className="flex flex-col gap-2 max-h-[160px] overflow-y-auto scrollbar-none">
+                      {selectedUploadFiles.map((file, idx) => (
+                        <div 
+                          key={idx}
+                          className="flex items-center justify-between p-2 rounded-xl bg-white/[0.02] border border-white/5 gap-3"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 shrink-0 bg-white/5">
+                              <img 
+                                src={URL.createObjectURL(file)} 
+                                alt="preview" 
+                                className="w-full h-full object-cover" 
+                              />
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-[11px] font-bold text-white truncate max-w-[150px]">{file.name}</span>
+                              <span className="text-[9px] text-white/40 mt-0.5">{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setSelectedUploadFiles(prev => prev.filter((_, i) => i !== idx));
+                            }}
+                            className="w-7 h-7 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 active:scale-90 cursor-pointer transition-colors border-none"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Action button to execute upload */}
+                    <button
+                      onClick={startUploadFlow}
+                      className="w-full mt-2 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-xs rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all border-none shadow-lg"
+                    >
+                      <Plus size={14} />
+                      <span>Fotoğrafları Yükle</span>
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              /* UPLOADING STATE PANELS */
+              <div className="flex flex-col items-center gap-5 text-center py-6 w-full animate-fade-in">
+                <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center animate-spin">
+                  <RefreshCw size={20} />
+                </div>
+                
+                <div className="flex flex-col gap-1.5 items-center w-full">
+                  <h3 className="text-sm font-black text-white m-0">
+                    {uploadingState === "preparing" && "Fotoğraflar hazırlanıyor"}
+                    {uploadingState === "optimizing" && "Görseller optimize ediliyor"}
+                    {uploadingState === "uploading" && `Firebase Storage'a yükleniyor (${uploadedCount}/${totalUploadCount})`}
+                    {uploadingState === "updating" && "Albüm güncelleniyor"}
+                  </h3>
+                  <span className="text-[10px] text-white/40 font-medium">Lütfen tarayıcıyı kapatmayın...</span>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="w-full max-w-[280px] h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1">
+                  <div 
+                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </BottomMobileSheet>
 
       </div>
