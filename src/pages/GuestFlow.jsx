@@ -635,15 +635,24 @@ export function GuestPhotoGrid({
     const mockLikes = (1.0 + (charCodeSum % 9) / 10).toFixed(1) + "k";
     const mockShares = (100 + (charCodeSum % 400));
 
+    const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&auto=format&fit=crop";
+    const photoUrl = ph.original_url || ph.thumbnail_url || ph.url || ph.previewUrl || FALLBACK_IMAGE;
+
+    const handleImgError = (e) => {
+      e.target.onerror = null;
+      e.target.src = FALLBACK_IMAGE;
+    };
+
     return (
       <div 
         key={ph.id}
-        className="relative rounded-[28px] overflow-hidden bg-[#0A0D14] border border-white/10 group cursor-pointer active:scale-[0.98] transition-all duration-200 select-none shadow-xl"
+        className="relative rounded-[28px] overflow-hidden bg-[#0A0D14] border border-white/10 group cursor-pointer active:scale-[0.98] transition-all duration-200 select-none shadow-xl w-full"
       >
         <img 
-          src={ph.thumbnail_url || ph.url} 
+          src={photoUrl} 
           alt="matched photo" 
-          className="w-full h-auto object-cover block"
+          onError={handleImgError}
+          className="w-full min-h-[160px] object-cover block"
           onClick={() => onPhotoClick(globalIdx)}
         />
         
