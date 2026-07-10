@@ -2183,6 +2183,8 @@ body:has(.guest-app-root) #root {
   max-width: 430px !important;
   margin: 0 auto !important;
   min-height: 100dvh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
   padding: 20px !important;
   box-sizing: border-box !important;
   display: flex !important;
