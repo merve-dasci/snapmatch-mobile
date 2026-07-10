@@ -411,15 +411,17 @@ export function GuestMemoriesSection({ memories, onMemoryClick }) {
       </div>
 
       {/* Horizontal Carousel List */}
-      <div className="flex gap-4 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-5 px-5">
-        {memories.map(mem => (
-          <div key={mem.id} className="w-[88%] shrink-0">
-            <GuestMemoryCard 
-              memory={mem}
-              onClick={() => onMemoryClick(mem)}
-            />
-          </div>
-        ))}
+      <div className="w-full overflow-hidden">
+        <div className="flex gap-4 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-5 px-5 guest-horizontal-scroller">
+          {memories.map(mem => (
+            <div key={mem.id} className="w-[88%] shrink-0">
+              <GuestMemoryCard 
+                memory={mem}
+                onClick={() => onMemoryClick(mem)}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -975,40 +977,42 @@ export function GuestEventAlbumDetail({
           {/* Face filters row */}
           <div className="flex flex-col gap-2 mt-1">
             <span className="text-[10px] text-white/40 font-black uppercase tracking-wider px-1">Yüzlere Göre Filtrele</span>
-            <div className="flex items-center gap-3 overflow-x-auto scrollbar-none py-1.5 -mx-5 px-5">
-              <button 
-                onClick={() => setSelectedFace(null)}
-                className={`w-11 h-11 rounded-full flex items-center justify-center border shrink-0 active:scale-95 transition-all ${
-                  !selectedFace 
-                    ? "bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/20" 
-                    : "bg-white/5 border-white/10 text-white/60"
-                }`}
-              >
-                <Plus size={16} />
-              </button>
+            <div className="w-full overflow-hidden">
+              <div className="flex items-center gap-3 overflow-x-auto scrollbar-none py-1.5 -mx-5 px-5 guest-horizontal-scroller">
+                <button 
+                  onClick={() => setSelectedFace(null)}
+                  className={`w-11 h-11 rounded-full flex items-center justify-center border shrink-0 active:scale-95 transition-all ${
+                    !selectedFace 
+                      ? "bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/20" 
+                      : "bg-white/5 border-white/10 text-white/60"
+                  }`}
+                >
+                  <Plus size={16} />
+                </button>
 
-              {faces.map((f) => {
-                const isActive = selectedFace === f.name;
-                return (
-                  <div 
-                    key={f.name}
-                    onClick={() => setSelectedFace(isActive ? null : f.name)}
-                    className="flex flex-col items-center gap-1 cursor-pointer select-none shrink-0"
-                  >
-                    <div className={`relative w-11 h-11 rounded-full overflow-hidden border-2 transition-all active:scale-95 ${
-                      isActive ? "border-blue-500 scale-[1.08] shadow-lg shadow-blue-500/20" : "border-white/10"
-                    }`}>
-                      <img src={f.img} alt={f.name} className="w-full h-full object-cover" />
-                      {isActive && (
-                        <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
-                          <Check size={12} strokeWidth={4} className="text-white" />
-                        </div>
-                      )}
+                {faces.map((f) => {
+                  const isActive = selectedFace === f.name;
+                  return (
+                    <div 
+                      key={f.name}
+                      onClick={() => setSelectedFace(isActive ? null : f.name)}
+                      className="flex flex-col items-center gap-1 cursor-pointer select-none shrink-0"
+                    >
+                      <div className={`relative w-11 h-11 rounded-full overflow-hidden border-2 transition-all active:scale-95 ${
+                        isActive ? "border-blue-500 scale-[1.08] shadow-lg shadow-blue-500/20" : "border-white/10"
+                      }`}>
+                        <img src={f.img} alt={f.name} className="w-full h-full object-cover" />
+                        {isActive && (
+                          <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
+                            <Check size={12} strokeWidth={4} className="text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <span className={`text-[8.5px] font-bold ${isActive ? "text-blue-400 font-extrabold" : "text-white/40"}`}>{f.name}</span>
                     </div>
-                    <span className={`text-[8.5px] font-bold ${isActive ? "text-blue-400 font-extrabold" : "text-white/40"}`}>{f.name}</span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
 
