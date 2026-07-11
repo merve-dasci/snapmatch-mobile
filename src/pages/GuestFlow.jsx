@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { 
+  setGuestToken, 
+  setOnboardingStep, 
+  setActiveTab, 
+  setSelectedEventId, 
+  setSelectedPhoto as setSelectedPhotoAction, 
+  setAlbumViewMode as setAlbumViewModeAction 
+} from "../features/guest/guestSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "../components/ui/GlassCard";
 import { mockApi } from "../services/mockApi";
@@ -1266,50 +1275,50 @@ const { showToast } = useToast();
   const [selfiePreview, setSelfiePreview] = useState("");
   const fileInputRef = useRef(null);
   
-  // Persistence state resolver
-  const [step, setStep] = useState(() => {
-    const pathParts = window.location.pathname.split("/guest/");
-    const urlToken = pathParts[1] || "";
-    try {
-      if (urlToken) {
-        const onboardingData = localStorage.getItem("sm_guest_onboarding_" + urlToken);
+  const dispatch = useDispatch();
+
+  // URL'den gelen token değerini ve onboarding durumunu useEffect içinde Redux'a kaydet
+  useEffect(() => {
+    if (token) {
+      dispatch(setGuestToken(token));
+      try {
+        const onboardingData = localStorage.getItem("sm_guest_onboarding_" + token);
         if (onboardingData) {
           const parsed = JSON.parse(onboardingData);
           if (parsed.consentAccepted && parsed.guestName) {
-            return "albums";
+            dispatch(setOnboardingStep("albums"));
+            dispatch(setActiveTab("photos"));
+            return;
           }
         }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
+      dispatch(setOnboardingStep("qr"));
+      dispatch(setActiveTab("albums"));
     }
-    return "qr";
-  });
-  
+  }, [token, dispatch]);
+
+  // Redux guest state bindings
+  const step = useSelector((state) => state.guest.onboardingStep);
+  const setStep = (val) => dispatch(setOnboardingStep(val));
+
+  const activeTab = useSelector((state) => state.guest.activeTab);
+  const setActiveTab = (val) => dispatch(setActiveTab(val));
+
+  const selectedEventId = useSelector((state) => state.guest.selectedEventId);
+  const selectedEvent = allEvents.find(e => e.id === selectedEventId) || null;
+  const setSelectedEvent = (val) => dispatch(setSelectedEventId(val ? val.id : null));
+
+  const albumViewMode = useSelector((state) => state.guest.albumViewMode);
+  const setAlbumViewMode = (val) => dispatch(setAlbumViewModeAction(val));
+
   const currentIdx = STEPS.indexOf(step);
 
   const [qrSubStep, setQrSubStep] = useState("scanning"); // scanning, verified
   const [kvkkChecked, setKvkkChecked] = useState(false);
-  const [activeTab, setActiveTab] = useState(() => {
-    const pathParts = window.location.pathname.split("/guest/");
-    const urlToken = pathParts[1] || "";
-    try {
-      if (urlToken) {
-        const onboardingData = localStorage.getItem("sm_guest_onboarding_" + urlToken);
-        if (onboardingData) {
-          const parsed = JSON.parse(onboardingData);
-          if (parsed.consentAccepted && parsed.guestName) {
-            return "photos";
-          }
-        }
-      }
-    } catch {}
-    return "albums";
-  }); // albums, photos, search, favorites, settings
-  const [selectedEvent, setSelectedEvent] = useState(null); // active event for Screen 7
   const [selectedMemory, setSelectedMemory] = useState(null); // active AI Memory detail page
   const [photosViewMode, setPhotosViewMode] = useState("grid");
-  const [albumViewMode, setAlbumViewMode] = useState("grid"); // grid, slide
   
   // Form/Auth States
   const [guestName, setGuestName] = useState(() => {
@@ -1373,7 +1382,8 @@ const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   
   // Lightbox State
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const selectedPhoto = useSelector((state) => state.guest.selectedPhoto);
+  const setSelectedPhoto = (val) => dispatch(setSelectedPhotoAction(val));
   const [selectedPhotoEvent, setSelectedPhotoEvent] = useState(null);
   const [activeSlideshowPhotos, setActiveSlideshowPhotos] = useState(null);
   const [activeSharePhoto, setActiveSharePhoto] = useState(null);
@@ -1415,8 +1425,9 @@ const { showToast } = useToast();
     if (matchedEvent) {
       setEvent(matchedEvent);
       setSelectedUploadEventId(matchedEvent.id);
+      dispatch(setSelectedEventId(matchedEvent.id));
     }
-  }, [token]);
+  }, [token, dispatch]);
 
   // Populate matched photos map helper
   const refreshPhotos = () => {
