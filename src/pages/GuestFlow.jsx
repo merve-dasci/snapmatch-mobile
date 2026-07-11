@@ -7,7 +7,9 @@ import {
   setActiveTab, 
   setSelectedEventId, 
   setSelectedPhoto as setSelectedPhotoAction, 
-  setAlbumViewMode as setAlbumViewModeAction 
+  setAlbumViewMode as setAlbumViewModeAction,
+  setConsent,
+  setSelfie
 } from "../features/guest/guestSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "../components/ui/GlassCard";
@@ -1288,6 +1290,17 @@ const { showToast } = useToast();
           if (parsed.consentAccepted && parsed.guestName) {
             dispatch(setOnboardingStep("albums"));
             dispatch(setActiveTab("photos"));
+            if (parsed.selfieCaptured || parsed.selfieUrl) {
+              dispatch(setSelfie({
+                captured: parsed.selfieCaptured || false,
+                url: parsed.selfieUrl || ""
+              }));
+            }
+            dispatch(setConsent({
+              kvkk: parsed.consentAccepted || false,
+              faceRecognition: parsed.consentAccepted || false,
+              terms: parsed.consentAccepted || false
+            }));
             return;
           }
         }
@@ -1334,38 +1347,23 @@ const { showToast } = useToast();
     } catch {}
     return "";
   });
-  const [consent1, setConsent1] = useState(false);
-  const [consent2, setConsent2] = useState(false);
-  const [consent3, setConsent3] = useState(false);
+  const consent = useSelector((state) => state.guest.consent);
+  const consent1 = consent.kvkk;
+  const consent2 = consent.faceRecognition;
+  const consent3 = consent.terms;
+
+  const setConsent1 = (val) => dispatch(setConsent({ kvkk: val }));
+  const setConsent2 = (val) => dispatch(setConsent({ faceRecognition: val }));
+  const setConsent3 = (val) => dispatch(setConsent({ terms: val }));
   
   // Selfie States
   const [selfieStage, setSelfieStage] = useState(0);
-  const [selfieCaptured, setSelfieCaptured] = useState(() => {
-    const pathParts = window.location.pathname.split("/guest/");
-    const urlToken = pathParts[1] || "";
-    try {
-      if (urlToken) {
-        const onboardingData = localStorage.getItem(`sm_guest_onboarding_${urlToken}`);
-        if (onboardingData) {
-          return JSON.parse(onboardingData).selfieCaptured || false;
-        }
-      }
-    } catch {}
-    return false;
-  });
-  const [selfieUrl, setSelfieUrl] = useState(() => {
-    const pathParts = window.location.pathname.split("/guest/");
-    const urlToken = pathParts[1] || "";
-    try {
-      if (urlToken) {
-        const onboardingData = localStorage.getItem(`sm_guest_onboarding_${urlToken}`);
-        if (onboardingData) {
-          return JSON.parse(onboardingData).selfieUrl || "";
-        }
-      }
-    } catch {}
-    return "";
-  });
+  const selfie = useSelector((state) => state.guest.selfie);
+  const selfieCaptured = selfie.captured;
+  const selfieUrl = selfie.url;
+
+  const setSelfieCaptured = (val) => dispatch(setSelfie({ captured: val }));
+  const setSelfieUrl = (val) => dispatch(setSelfie({ url: val }));
   const [flashActive, setFlashActive] = useState(false);
   
   // Matches Data
@@ -1686,8 +1684,7 @@ const handleFileChange = (e) => {
     setTimeout(() => setFlashActive(false), 300);
 
     const mockSelfie = selfiePreview || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80";
-    setSelfieUrl(mockSelfie);
-    setSelfieCaptured(true);
+    dispatch(setSelfie({ captured: true, url: mockSelfie }));
 
     showToast("Selfie kaydedildi, yüz taranıyor...", "success");
 
@@ -1791,11 +1788,8 @@ const handleFileChange = (e) => {
     
     setParticipant(null);
     setGuestName("");
-    setConsent1(false);
-    setConsent2(false);
-    setConsent3(false);
-    setSelfieCaptured(false);
-    setSelfieUrl("");
+    dispatch(setConsent({ kvkk: false, faceRecognition: false, terms: false }));
+    dispatch(setSelfie({ captured: false, url: "" }));
     setMatchedPhotosMap({});
     setFavorites([]);
     localStorage.removeItem("sm_guest_favorites");
@@ -2277,8 +2271,7 @@ const handleFileChange = (e) => {
                       onClick={() => {
                         setGuestName("Ezgi Çelik");
                         const mockSelfie = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80";
-                        setSelfieUrl(mockSelfie);
-                        setSelfieCaptured(true);
+                        dispatch(setSelfie({ captured: true, url: mockSelfie }));
                         
                         // Directly trigger matches and advance to processing
                         const newPart = mockApi.createParticipant(event.id, "Ezgi Çelik", mockSelfie);
@@ -2321,8 +2314,7 @@ const handleFileChange = (e) => {
                   <button 
                     onClick={() => {
                       setGuestName("Misafir");
-                      setSelfieUrl(null);
-                      setSelfieCaptured(false);
+                      dispatch(setSelfie({ captured: false, url: null }));
                       
                       const loadedMatches = {};
                       const events = mockApi.getEvents();
