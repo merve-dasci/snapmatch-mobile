@@ -2163,19 +2163,22 @@ body:has(.guest-app-root) {
   margin: 0 !important;
   width: 100% !important;
   max-width: 100% !important;
-  overflow-x: hidden !important;
-  touch-action: pan-y !important;
-  overscroll-behavior-x: none !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  touch-action: none !important;
+  overscroll-behavior: none !important;
 }
 
 body:has(.guest-app-root) #root {
   display: block !important;
   width: 100% !important;
   max-width: 100% !important;
-  min-height: 100% !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
   padding: 0 !important;
   margin: 0 !important;
-  overflow-x: hidden !important;
 }
 
 .guest-app-wrapper {

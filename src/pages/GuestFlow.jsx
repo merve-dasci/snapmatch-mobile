@@ -1910,8 +1910,11 @@ const handleFileChange = (e) => {
       style={{
         width: "100%",
         maxWidth: "100%",
-        overflowX: "hidden",
-        position: "relative"
+        overflow: "hidden",
+        height: "100dvh",
+        position: "relative",
+        display: "flex",
+        flexDirection: "column"
       }}
     >
       {/* Visual gradients */}
@@ -2519,7 +2522,7 @@ const handleFileChange = (e) => {
                 return (
                   <div className="flex flex-col pb-36 animate-fade-in text-left">
                     {/* PROFILE HEADER BANNER - FULL BLEED EDGE TO EDGE */}
-                    <div className="relative w-full h-[180px] bg-cover bg-center shrink-0 border-b border-white/10" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507504038482-76210214dae1?w=800&q=80')" }}>
+                    <div className="relative h-[180px] bg-cover bg-center shrink-0 border-b border-white/10" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507504038482-76210214dae1?w=800&q=80')", marginLeft: "-20px", marginRight: "-20px", marginTop: "-20px", width: "calc(100% + 40px)" }}>
                       {/* Soft dark transparency overlay */}
                       <div className="absolute inset-0 bg-black/20" />
                       
