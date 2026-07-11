@@ -485,12 +485,21 @@ export function GuestSlideshow({ photos, onClose }) {
     if (!isPlaying || photos.length === 0) return;
     const interval = setInterval(() => {
       setCurrentIdx(prev => (prev + 1) % photos.length);
-    }, 2800);
+    }, 3200);
     return () => clearInterval(interval);
   }, [isPlaying, photos]);
 
   if (photos.length === 0) return null;
   const currentPhoto = photos[currentIdx];
+
+  const handleDragEnd = (event, info) => {
+    const swipeThreshold = 50;
+    if (info.offset.x < -swipeThreshold) {
+      setCurrentIdx(prev => (prev + 1) % photos.length);
+    } else if (info.offset.x > swipeThreshold) {
+      setCurrentIdx(prev => (prev - 1 + photos.length) % photos.length);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-[#06080C] z-[999999] flex flex-col justify-between p-5 select-none text-white animate-fade-in guest-slideshow max-w-[430px] mx-auto w-full">
@@ -507,26 +516,114 @@ export function GuestSlideshow({ photos, onClose }) {
         </span>
       </div>
 
-      {/* Centered Slideshow Image with soft cross-fade animation */}
-      <div className="relative flex-grow flex items-center justify-center overflow-hidden my-4 rounded-[28px] border border-white/5 bg-black/20">
-        <div key={currentIdx} className="absolute inset-0 flex items-center justify-center animate-fade-in">
-          
-          {/* Blurred Background Replica */}
-          <img 
-            src={currentPhoto.original_url || currentPhoto.thumbnail_url} 
-            alt="blurred background" 
-            className="absolute inset-0 w-full h-full object-cover filter blur-[32px] opacity-25 scale-110 pointer-events-none"
-          />
+      {/* 3D Coverflow Carousel Container */}
+      <div className="relative flex-grow flex items-center justify-center overflow-hidden my-4 rounded-[28px] border border-white/5 bg-black/20 py-8">
+        {/* Blurred Background Replica */}
+        <img 
+          src={currentPhoto.original_url || currentPhoto.thumbnail_url} 
+          alt="blurred background" 
+          className="absolute inset-0 w-full h-full object-cover filter blur-[32px] opacity-20 scale-110 pointer-events-none transition-all duration-700 ease-out"
+        />
 
-          {/* Main Focused Photo with Ken Burns slow zoom */}
-          <div className="relative w-full h-full flex items-center justify-center p-4 z-10 overflow-hidden">
-            <img 
-              src={currentPhoto.original_url || currentPhoto.thumbnail_url} 
-              alt="slideshow active" 
-              className="max-w-full max-h-[70vh] object-contain rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.6)] border border-white/15 animate-ken-burns" 
-            />
-          </div>
+        <div className="relative w-full h-full flex items-center justify-center overflow-hidden" style={{ perspective: 1000 }}>
+          <AnimatePresence initial={false}>
+            {photos.map((photo, idx) => {
+              let offset = idx - currentIdx;
+              
+              // Wrap around offset for infinite loop display
+              if (offset < -Math.floor(photos.length / 2)) {
+                offset += photos.length;
+              } else if (offset > Math.floor(photos.length / 2)) {
+                offset -= photos.length;
+              }
 
+              // Render only items in range
+              if (Math.abs(offset) > 2) return null;
+
+              const isActive = offset === 0;
+              
+              let rotateY = 0;
+              let scale = 0.85;
+              let zIndex = 5;
+              let opacity = 0.5;
+              let translateX = 0;
+
+              if (isActive) {
+                rotateY = 0;
+                scale = 1.0;
+                zIndex = 10;
+                opacity = 1;
+                translateX = 0;
+              } else if (offset === -1) {
+                rotateY = 32;
+                scale = 0.82;
+                zIndex = 8;
+                opacity = 0.65;
+                translateX = -105;
+              } else if (offset === 1) {
+                rotateY = -32;
+                scale = 0.82;
+                zIndex = 8;
+                opacity = 0.65;
+                translateX = 105;
+              } else if (offset === -2) {
+                rotateY = 40;
+                scale = 0.68;
+                zIndex = 6;
+                opacity = 0.3;
+                translateX = -175;
+              } else if (offset === 2) {
+                rotateY = -40;
+                scale = 0.68;
+                zIndex = 6;
+                opacity = 0.3;
+                translateX = 175;
+              }
+
+              return (
+                <motion.div
+                  key={photo.id}
+                  style={{
+                    position: "absolute",
+                    width: "200px",
+                    height: "300px",
+                    zIndex: zIndex,
+                    transformStyle: "preserve-3d"
+                  }}
+                  animate={{
+                    x: translateX,
+                    scale: scale,
+                    rotateY: rotateY,
+                    opacity: opacity,
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                  }}
+                  drag={isActive ? "x" : false}
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.4}
+                  onDragEnd={handleDragEnd}
+                  onClick={() => {
+                    if (!isActive) {
+                      setCurrentIdx(idx);
+                    }
+                  }}
+                  className="rounded-[24px] overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.5)] border border-white/10 bg-slate-900 cursor-grab active:cursor-grabbing flex items-center justify-center select-none"
+                >
+                  <img 
+                    src={photo.original_url || photo.thumbnail_url} 
+                    alt="carousel slide" 
+                    className="w-full h-full object-cover pointer-events-none"
+                  />
+                  {!isActive && (
+                    <div className="absolute inset-0 bg-black/40 transition-opacity duration-300 pointer-events-none" />
+                  )}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -534,7 +631,7 @@ export function GuestSlideshow({ photos, onClose }) {
       <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mb-6 relative">
         <div 
           key={`bar-${currentIdx}-${isPlaying}`}
-          className={`absolute left-0 top-0 bottom-0 bg-emerald-400 rounded-full ${isPlaying ? 'w-full transition-all duration-[2800ms] ease-linear' : 'w-0'}`} 
+          className={`absolute left-0 top-0 bottom-0 bg-emerald-400 rounded-full ${isPlaying ? 'w-full transition-all duration-[3200ms] ease-linear' : 'w-0'}`} 
           style={{ width: isPlaying ? '100%' : '0%' }}
         />
       </div>
