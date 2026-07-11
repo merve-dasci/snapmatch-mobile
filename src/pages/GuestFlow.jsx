@@ -1390,6 +1390,7 @@ const { showToast } = useToast();
   const [selfiePreview, setSelfiePreview] = useState("");
   const [isSessionRestored, setIsSessionRestored] = useState(false);
   const [isFavoritesLoaded, setIsFavoritesLoaded] = useState(false);
+  const [albumSlideIdx, setAlbumSlideIdx] = useState(0);
   const fileInputRef = useRef(null);
   
   const dispatch = useDispatch();
