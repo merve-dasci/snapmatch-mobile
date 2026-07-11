@@ -1291,6 +1291,8 @@ const { showToast } = useToast();
   const loading = useSelector((state) => state.guest.loading);
   const error = useSelector((state) => state.guest.error);
   const [selfiePreview, setSelfiePreview] = useState("");
+  const [isSessionRestored, setIsSessionRestored] = useState(false);
+  const [isFavoritesLoaded, setIsFavoritesLoaded] = useState(false);
   const fileInputRef = useRef(null);
   
   const dispatch = useDispatch();
@@ -1299,8 +1301,15 @@ const { showToast } = useToast();
   useEffect(() => {
     if (token) {
       dispatch(setGuestToken(token));
-      dispatch(restoreGuestSession(token));
-      dispatch(loadGuestFavorites());
+      
+      const init = async () => {
+        await dispatch(restoreGuestSession(token));
+        setIsSessionRestored(true);
+        await dispatch(loadGuestFavorites());
+        setIsFavoritesLoaded(true);
+      };
+      init();
+
       dispatch(fetchGuestEvent(token));
       dispatch(fetchGuestAlbums(token));
     }
@@ -1437,14 +1446,14 @@ const { showToast } = useToast();
 
   // Sync favorites with Redux persistGuestFavorites thunk
   useEffect(() => {
-    if (favorites) {
+    if (isFavoritesLoaded && favorites) {
       dispatch(persistGuestFavorites(favorites));
     }
-  }, [favorites, dispatch]);
+  }, [favorites, isFavoritesLoaded, dispatch]);
 
   // Sync onboarding session with Redux saveGuestSession thunk
   useEffect(() => {
-    if (token) {
+    if (token && isSessionRestored) {
       dispatch(saveGuestSession({
         token,
         payload: {
@@ -1456,7 +1465,7 @@ const { showToast } = useToast();
         }
       }));
     }
-  }, [token, step, activeTab, consent, selfie, guestName, dispatch]);
+  }, [token, step, activeTab, consent, selfie, guestName, isSessionRestored, dispatch]);
 
 
 
@@ -1822,6 +1831,8 @@ const handleFileChange = (e) => {
     setParticipant(null);
     setGuestName("");
     setMatchedPhotosMap({});
+    setIsSessionRestored(false);
+    setIsFavoritesLoaded(false);
     dispatch(clearGuestSession());
     localStorage.removeItem("sm_guest_favorites");
     localStorage.removeItem("sm_guest_onboarding_" + token);
