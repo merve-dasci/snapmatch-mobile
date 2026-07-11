@@ -2518,26 +2518,37 @@ const handleFileChange = (e) => {
 
                 return (
                   <div className="flex flex-col pb-36 animate-fade-in text-left">
-                    <div className="p-4 flex flex-col gap-4">
-                      {/* PROFILE HEADER BANNER */}
-                      <div className="relative w-full h-[150px] rounded-3xl overflow-hidden mb-12 bg-cover bg-center shrink-0 border border-white/10 shadow-lg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507504038482-76210214dae1?w=600&q=80')" }}>
-                        {/* Soft white blur overlay to make it look saydam/şeffaf floral */}
-                        <div className="absolute inset-0 bg-white/20 dark:bg-black/35 backdrop-blur-[1px]" />
-                        
-                        {/* Centered Profile Avatar at the bottom border */}
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2 z-10">
-                          <div className="w-[84px] h-[84px] rounded-full border-4 border-[#07090E] overflow-hidden shadow-lg bg-[#0A0D14] flex items-center justify-center">
-                            {selfieUrl ? (
-                              <img src={selfieUrl} alt="selfie" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-lg">
-                                {guestName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "M"}
-                              </div>
-                            )}
-                          </div>
+                    {/* PROFILE HEADER BANNER - FULL BLEED EDGE TO EDGE */}
+                    <div className="relative w-full h-[180px] bg-cover bg-center shrink-0 border-b border-white/10" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507504038482-76210214dae1?w=800&q=80')" }}>
+                      {/* Soft dark transparency overlay */}
+                      <div className="absolute inset-0 bg-black/20" />
+                      
+                      {/* Back Button (matching the user's screenshot) */}
+                      <button
+                        onClick={() => {
+                          setActiveTab("photos");
+                        }}
+                        className="absolute top-4 left-4 w-9 h-9 rounded-full bg-white flex items-center justify-center text-slate-800 shadow-md border-none cursor-pointer active:scale-95 transition-transform z-20"
+                      >
+                        <ChevronLeft size={18} strokeWidth={2.5} />
+                      </button>
+
+                      {/* Centered Profile Avatar at the bottom border */}
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2 z-10">
+                        <div className="w-[84px] h-[84px] rounded-full border-4 border-[#07090E] overflow-hidden shadow-lg bg-[#0A0D14] flex items-center justify-center">
+                          {selfieUrl ? (
+                            <img src={selfieUrl} alt="selfie" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-lg">
+                              {guestName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "M"}
+                            </div>
+                          )}
                         </div>
                       </div>
+                    </div>
 
+                    {/* Rest of the tab content wrapped in p-4 padding */}
+                    <div className="p-4 flex flex-col gap-4 mt-12">
                       {/* USER DETAILS */}
                       <div className="flex flex-col items-center gap-1 w-full select-none">
                         <h2 className="text-base font-black text-center text-white font-sans m-0 leading-tight">
