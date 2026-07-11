@@ -67,6 +67,50 @@ export const deleteGuestFaceData = createAsyncThunk(
   }
 );
 
+export const loadGuestFavorites = createAsyncThunk(
+  "guest/loadGuestFavorites",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await guestService.getGuestFavorites();
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const persistGuestFavorites = createAsyncThunk(
+  "guest/persistGuestFavorites",
+  async (favorites, { rejectWithValue }) => {
+    try {
+      return await guestService.saveGuestFavorites(favorites);
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const restoreGuestSession = createAsyncThunk(
+  "guest/restoreGuestSession",
+  async (token, { rejectWithValue }) => {
+    try {
+      return await guestService.restoreGuestSession(token);
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const saveGuestSession = createAsyncThunk(
+  "guest/saveGuestSession",
+  async ({ token, payload }, { rejectWithValue }) => {
+    try {
+      return await guestService.saveGuestSession(token, payload);
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
 const guestSlice = createSlice({
   name: "guest",
   initialState: {
@@ -232,6 +276,30 @@ const guestSlice = createSlice({
         state.participant = null;
         state.photos = [];
         state.favorites = [];
+      })
+      .addCase(loadGuestFavorites.fulfilled, (state, action) => {
+        state.favorites = action.payload || [];
+      })
+      .addCase(persistGuestFavorites.fulfilled, (state, action) => {
+        state.favorites = action.payload || [];
+      })
+      .addCase(restoreGuestSession.fulfilled, (state, action) => {
+        if (action.payload) {
+          const { onboardingStep, activeTab, consent, selfie } = action.payload;
+          state.onboardingStep = onboardingStep || "qr";
+          state.activeTab = activeTab || "albums";
+          state.consent = consent || { kvkk: false, faceRecognition: false, terms: false };
+          state.selfie = selfie || { captured: false, url: "" };
+        }
+      })
+      .addCase(saveGuestSession.fulfilled, (state, action) => {
+        if (action.payload) {
+          const { onboardingStep, activeTab, consent, selfie } = action.payload;
+          state.onboardingStep = onboardingStep || "qr";
+          state.activeTab = activeTab || "albums";
+          state.consent = consent || { kvkk: false, faceRecognition: false, terms: false };
+          state.selfie = selfie || { captured: false, url: "" };
+        }
       });
   },
 });

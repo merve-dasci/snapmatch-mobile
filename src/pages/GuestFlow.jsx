@@ -15,7 +15,13 @@ import {
   removeUploadFile,
   clearUploadFiles,
   setUploadProgress,
-  setUploadStatus
+  setUploadStatus,
+  loadGuestFavorites,
+  persistGuestFavorites,
+  restoreGuestSession,
+  saveGuestSession,
+  toggleFavorite,
+  clearGuestSession
 } from "../features/guest/guestSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "../components/ui/GlassCard";
@@ -1289,32 +1295,8 @@ const { showToast } = useToast();
   useEffect(() => {
     if (token) {
       dispatch(setGuestToken(token));
-      try {
-        const onboardingData = localStorage.getItem("sm_guest_onboarding_" + token);
-        if (onboardingData) {
-          const parsed = JSON.parse(onboardingData);
-          if (parsed.consentAccepted && parsed.guestName) {
-            dispatch(setOnboardingStep("albums"));
-            dispatch(setActiveTab("photos"));
-            if (parsed.selfieCaptured || parsed.selfieUrl) {
-              dispatch(setSelfie({
-                captured: parsed.selfieCaptured || false,
-                url: parsed.selfieUrl || ""
-              }));
-            }
-            dispatch(setConsent({
-              kvkk: parsed.consentAccepted || false,
-              faceRecognition: parsed.consentAccepted || false,
-              terms: parsed.consentAccepted || false
-            }));
-            return;
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
-      dispatch(setOnboardingStep("qr"));
-      dispatch(setActiveTab("albums"));
+      dispatch(restoreGuestSession(token));
+      dispatch(loadGuestFavorites());
     }
   }, [token, dispatch]);
 
@@ -1394,14 +1376,7 @@ const { showToast } = useToast();
       }
     }
   };
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const stored = localStorage.getItem("sm_guest_favorites");
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const favorites = useSelector((state) => state.guest.favorites);
   const [searchQuery, setSearchQuery] = useState("");
   
   // Lightbox State
@@ -1446,10 +1421,28 @@ const { showToast } = useToast();
   // Theme state
   const [guestTheme, setGuestTheme] = useState(() => localStorage.getItem("sm_guest_theme") || "beige");
 
-  // Sync favorites with localStorage
+  // Sync favorites with Redux persistGuestFavorites thunk
   useEffect(() => {
-    localStorage.setItem("sm_guest_favorites", JSON.stringify(favorites));
-  }, [favorites]);
+    if (favorites) {
+      dispatch(persistGuestFavorites(favorites));
+    }
+  }, [favorites, dispatch]);
+
+  // Sync onboarding session with Redux saveGuestSession thunk
+  useEffect(() => {
+    if (token) {
+      dispatch(saveGuestSession({
+        token,
+        payload: {
+          onboardingStep: step,
+          activeTab,
+          consent,
+          selfie,
+          guestName
+        }
+      }));
+    }
+  }, [token, step, activeTab, consent, selfie, guestName, dispatch]);
 
   // Initialize event and load other events for albums
   useEffect(() => {
@@ -1825,15 +1818,10 @@ const handleFileChange = (e) => {
     
     setParticipant(null);
     setGuestName("");
-    dispatch(setConsent({ kvkk: false, faceRecognition: false, terms: false }));
-    dispatch(setSelfie({ captured: false, url: "" }));
     setMatchedPhotosMap({});
-    setFavorites([]);
+    dispatch(clearGuestSession());
     localStorage.removeItem("sm_guest_favorites");
     localStorage.removeItem("sm_guest_onboarding_" + token);
-    setStep("qr");
-    setActiveTab("albums");
-    setSelectedEvent(null);
     setSelectedMemory(null);
   };
 
@@ -1860,16 +1848,13 @@ const handleFileChange = (e) => {
   };
 
   const handleToggleFavorite = (photo) => {
-    setFavorites(prev => {
-      const isFav = prev.some(p => p.id === photo.id);
-      if (isFav) {
-        showToast("Favorilerden kaldırıldı.", "info");
-        return prev.filter(p => p.id !== photo.id);
-      } else {
-        showToast("Favorilere eklendi!", "success");
-        return [...prev, photo];
-      }
-    });
+    const isFav = favorites.some(p => p.id === photo.id);
+    if (isFav) {
+      showToast("Favorilerden kaldırıldı.", "info");
+    } else {
+      showToast("Favorilere eklendi!", "success");
+    }
+    dispatch(toggleFavorite(photo));
   };
 
   const handleDownload = (photo) => {
