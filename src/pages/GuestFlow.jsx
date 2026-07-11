@@ -1545,6 +1545,14 @@ const { showToast } = useToast();
 
   // Theme state
   const [guestTheme, setGuestTheme] = useState(() => localStorage.getItem("sm_guest_theme") || "beige");
+  const activeAccent = {
+    beige: "#C39C70",
+    pink: "#E06C7F",
+    blue: "#4B85CC",
+    lavender: "#825AF6",
+    dark: "#3B82F6",
+    purple: "#7C3AED"
+  }[guestTheme] || "#C39C70";
 
   // Sync favorites with Redux persistGuestFavorites thunk
   useEffect(() => {
@@ -2267,110 +2275,197 @@ const handleFileChange = (e) => {
 
         {/* STEP 3: KVKK Privacy / Consent screen */}
         {step === "consent" && (
-          <div className="flex-1 flex flex-col justify-between overflow-y-auto scrollbar-none min-h-0 w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb">
-            <div className="flex flex-col gap-3 mt-4 text-left">
+          <div 
+            className="flex-1 flex flex-col justify-between overflow-y-auto scrollbar-none min-h-0 w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb px-5"
+            style={{ boxSizing: "border-box", overflowX: "hidden" }}
+          >
+            {/* Header Area */}
+            <div className="flex flex-col gap-2.5 mt-4 text-left w-full">
               <button 
                 onClick={() => setStep("welcome")}
                 className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer text-white/75 active:scale-90"
               >
                 <ArrowLeft size={16} />
               </button>
-              <h2 className="text-xl font-black m-0 mt-3 text-white">Gizliliğiniz Önceliğimiz</h2>
+              <h2 className="text-xl font-black m-0 mt-2 text-white">Gizliliğiniz Önceliğimiz</h2>
               <p className="text-white/50 text-xs m-0 leading-relaxed">
                 Kişisel verilerinizin korunması ve güvenliği bizim için en önemli unsurdur.
               </p>
             </div>
 
             {/* Privacy list items */}
-            <div className="flex flex-col gap-3.5 my-6 justify-center flex-grow">
+            <div className="flex flex-col gap-2.5 my-5 justify-center flex-grow w-full">
+              {/* Card 1 */}
               <div 
-                className="glass-panel p-4 text-left flex gap-3.5 items-start"
+                className="text-left flex gap-3 items-center"
                 style={{
-                  marginLeft: "-20px",
-                  marginRight: "-20px",
-                  paddingLeft: "20px",
-                  paddingRight: "20px",
-                  borderRadius: "0px",
-                  borderLeft: "none",
-                  borderRight: "none",
-                  background: "rgba(255, 255, 255, 0.03)",
-                  backdropFilter: "blur(20px)",
-                  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-                  boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.15)"
+                  width: "100%",
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
+                  borderRadius: "18px",
+                  padding: "14px 16px",
+                  background: "rgba(255, 255, 255, 0.38)",
+                  backdropFilter: "blur(18px)",
+                  WebkitBackdropFilter: "blur(18px)",
+                  border: "1px solid rgba(255, 255, 255, 0.7)",
+                  minWidth: 0
                 }}
               >
-                <ShieldCheck size={16} className="text-blue-400 shrink-0 mt-0.5" />
-                <span className="text-[11px] text-white/70 leading-relaxed font-medium">Selfie yalnızca bu etkinlikte fotoğraflarınızı bulmak için kullanılır.</span>
+                {/* Icon Wrapper Circle */}
+                <div 
+                  className="shrink-0"
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "rgba(255, 255, 255, 0.25)",
+                    border: "1px solid rgba(255, 255, 255, 0.4)"
+                  }}
+                >
+                  <ShieldCheck size={16} className="text-blue-600 shrink-0" />
+                </div>
+                <span className="text-[11px] text-[#1e2631] leading-relaxed font-bold flex-1 min-w-0">
+                  Selfie yalnızca bu etkinlikte fotoğraflarınızı bulmak için kullanılır.
+                </span>
               </div>
 
+              {/* Card 2 */}
               <div 
-                className="glass-panel p-4 text-left flex gap-3.5 items-start"
+                className="text-left flex gap-3 items-center"
                 style={{
-                  marginLeft: "-20px",
-                  marginRight: "-20px",
-                  paddingLeft: "20px",
-                  paddingRight: "20px",
-                  borderRadius: "0px",
-                  borderLeft: "none",
-                  borderRight: "none",
-                  background: "rgba(255, 255, 255, 0.03)",
-                  backdropFilter: "blur(20px)",
-                  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-                  boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.15)"
+                  width: "100%",
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
+                  borderRadius: "18px",
+                  padding: "14px 16px",
+                  background: "rgba(255, 255, 255, 0.38)",
+                  backdropFilter: "blur(18px)",
+                  WebkitBackdropFilter: "blur(18px)",
+                  border: "1px solid rgba(255, 255, 255, 0.7)",
+                  minWidth: 0
                 }}
               >
-                <ShieldCheck size={16} className="text-emerald-400 shrink-0 mt-0.5" />
-                <span className="text-[11px] text-white/70 leading-relaxed font-medium">Fotoğraflarınız başka katılımcılarla paylaşılmaz.</span>
+                {/* Icon Wrapper Circle */}
+                <div 
+                  className="shrink-0"
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "rgba(255, 255, 255, 0.25)",
+                    border: "1px solid rgba(255, 255, 255, 0.4)"
+                  }}
+                >
+                  <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
+                </div>
+                <span className="text-[11px] text-[#1e2631] leading-relaxed font-bold flex-1 min-w-0">
+                  Fotoğraflarınız başka katılımcılarla paylaşılmaz.
+                </span>
               </div>
 
+              {/* Card 3 */}
               <div 
-                className="glass-panel p-4 text-left flex gap-3.5 items-start"
+                className="text-left flex gap-3 items-center"
                 style={{
-                  marginLeft: "-20px",
-                  marginRight: "-20px",
-                  paddingLeft: "20px",
-                  paddingRight: "20px",
-                  borderRadius: "0px",
-                  borderLeft: "none",
-                  borderRight: "none",
-                  background: "rgba(255, 255, 255, 0.03)",
-                  backdropFilter: "blur(20px)",
-                  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-                  boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.15)"
+                  width: "100%",
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
+                  borderRadius: "18px",
+                  padding: "14px 16px",
+                  background: "rgba(255, 255, 255, 0.38)",
+                  backdropFilter: "blur(18px)",
+                  WebkitBackdropFilter: "blur(18px)",
+                  border: "1px solid rgba(255, 255, 255, 0.7)",
+                  minWidth: 0
                 }}
               >
-                <ShieldCheck size={16} className="text-purple-400 shrink-0 mt-0.5" />
-                <span className="text-[11px] text-white/70 leading-relaxed font-medium">İstediğiniz zaman yüz verinizi silebilirsiniz.</span>
+                {/* Icon Wrapper Circle */}
+                <div 
+                  className="shrink-0"
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "rgba(255, 255, 255, 0.25)",
+                    border: "1px solid rgba(255, 255, 255, 0.4)"
+                  }}
+                >
+                  <ShieldCheck size={16} className="text-purple-600 shrink-0" />
+                </div>
+                <span className="text-[11px] text-[#1e2631] leading-relaxed font-bold flex-1 min-w-0">
+                  İstediğiniz zaman yüz verinizi silebilirsiniz.
+                </span>
               </div>
             </div>
 
-            {/* KVKK Checkbox & CTA */}
-            <div className="flex flex-col gap-4 mt-auto">
+            {/* KVKK Checkbox & CTA Card */}
+            <div className="flex flex-col gap-3 mt-auto w-full">
+              {/* Glass Checkbox Container Card */}
               <div 
                 onClick={() => setKvkkChecked(!kvkkChecked)}
-                className={`flex items-center gap-3 text-left p-4.5 rounded-2xl border transition-all duration-300 cursor-pointer select-none shadow-md ${
-                  kvkkChecked 
-                    ? "bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.05)]" 
-                    : "bg-white/10 border-white/20 hover:bg-white/15"
-                }`}
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  background: "rgba(255, 255, 255, 0.45)",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                  border: "1px solid rgba(255, 255, 255, 0.75)",
+                  borderRadius: "18px",
+                  padding: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  minWidth: 0
+                }}
               >
-                <div className={`w-5.5 h-5.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                  kvkkChecked 
-                    ? 'bg-emerald-500 border-emerald-500 text-white scale-[1.05]' 
-                    : 'border-white/60 bg-white/10 text-transparent'
-                }`}>
+                {/* Checkbox Circle */}
+                <div 
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: "50%",
+                    border: kvkkChecked ? `2px solid ${activeAccent}` : "2px solid rgba(58, 75, 92, 0.55)",
+                    background: kvkkChecked ? activeAccent : "rgba(255, 255, 255, 0.5)",
+                    boxShadow: kvkkChecked ? `0 0 10px ${activeAccent}66` : "inset 0 1px 3px rgba(0,0,0,0.1)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transform: kvkkChecked ? "scale(1.05)" : "scale(1)",
+                    transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                    shrink: 0
+                  }}
+                  className="shrink-0"
+                >
                   {kvkkChecked && <Check size={12} strokeWidth={3.5} className="text-white" />}
                 </div>
-                <span className={`text-[11px] transition-colors ${
-                  kvkkChecked ? 'text-white font-extrabold' : 'text-white/80 font-bold'
-                }`}>
+                
+                {/* Checkbox Text */}
+                <span 
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: "600",
+                    lineHeight: "1.4",
+                    color: "#1e2631",
+                    transition: "colors 0.3s"
+                  }}
+                  className="flex-1 min-w-0"
+                >
                   KVKK metnini okudum ve kabul ediyorum.
                 </span>
               </div>
 
+              {/* Devam Et Button */}
               <button 
                 onClick={() => {
                   setConsent1(true);
@@ -2379,11 +2474,24 @@ const handleFileChange = (e) => {
                   setStep("selfie");
                 }}
                 disabled={!kvkkChecked}
-                className={`w-full py-4 text-xs font-black rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all ${
-                  kvkkChecked
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "bg-white/10 text-white/30 cursor-not-allowed"
-                }`}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  fontSize: "12px",
+                  fontWeight: "900",
+                  borderRadius: "18px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  cursor: kvkkChecked ? "pointer" : "not-allowed",
+                  transition: "all 0.3s ease",
+                  border: "none",
+                  boxShadow: kvkkChecked ? `0 8px 20px ${activeAccent}33` : "none",
+                  background: kvkkChecked ? `linear-gradient(135deg, ${activeAccent}, ${activeAccent}dd)` : "rgba(255, 255, 255, 0.2)",
+                  color: kvkkChecked ? "#ffffff" : "rgba(58, 75, 92, 0.4)",
+                  opacity: kvkkChecked ? 1 : 0.7
+                }}
               >
                 <span>Devam Et</span>
                 <ChevronRight size={14} />
