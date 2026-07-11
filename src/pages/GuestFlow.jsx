@@ -2505,16 +2505,69 @@ const handleFileChange = (e) => {
               {/* TAB 1: Albums (Albums Grid) */}
               {activeTab === "albums" && (() => {
                 const allGuestPhotos = Object.values(matchedPhotosMap).flat();
+                const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&auto=format&fit=crop";
+                
+                const activeAccent = {
+                  beige: "#C39C70",
+                  pink: "#E06C7F",
+                  blue: "#4B85CC",
+                  lavender: "#825AF6",
+                  dark: "#3B82F6",
+                  purple: "#7C3AED"
+                }[guestTheme] || "#C39C70";
+
                 return (
                   <div className="flex flex-col pb-36 animate-fade-in text-left">
                     <div className="p-4 flex flex-col gap-4">
-                      {/* HEADER AREA */}
-                      <div className="flex justify-between items-start mt-2 w-full">
-                        <div className="flex flex-col gap-1">
-                          <h2 className="text-lg font-black m-0 text-white font-sans">Fotoğraf Albümüm</h2>
-                          <p className="text-[10px] text-white/50 m-0">Sana ait bulunan tüm fotoğrafları görüntüle.</p>
+                      {/* PROFILE HEADER BANNER */}
+                      <div className="relative w-full h-[150px] rounded-3xl overflow-hidden mb-12 bg-cover bg-center shrink-0 border border-white/10 shadow-lg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507504038482-76210214dae1?w=600&q=80')" }}>
+                        {/* Soft white blur overlay to make it look saydam/şeffaf floral */}
+                        <div className="absolute inset-0 bg-white/20 dark:bg-black/35 backdrop-blur-[1px]" />
+                        
+                        {/* Centered Profile Avatar at the bottom border */}
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2 z-10">
+                          <div className="w-[84px] h-[84px] rounded-full border-4 border-[#07090E] overflow-hidden shadow-lg bg-[#0A0D14] flex items-center justify-center">
+                            {selfieUrl ? (
+                              <img src={selfieUrl} alt="selfie" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-lg">
+                                {guestName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "M"}
+                              </div>
+                            )}
+                          </div>
                         </div>
+                      </div>
 
+                      {/* USER DETAILS */}
+                      <div className="flex flex-col items-center gap-1 w-full select-none">
+                        <h2 className="text-base font-black text-center text-white font-sans m-0 leading-tight">
+                          {guestName}
+                        </h2>
+                        <span className="text-[10px] text-center text-white/40 block font-medium">
+                          @{guestName.toLowerCase().replace(/\s+/g, "")}
+                        </span>
+
+                        {/* Tümünü İndir Button (in place of Follow button) */}
+                        <div className="w-full max-w-[280px] mt-3">
+                          <button
+                            onClick={() => handleBulkDownload(allGuestPhotos)}
+                            className="w-full py-3 rounded-full text-xs font-black text-white flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all select-none border-none cursor-pointer"
+                            style={{
+                              backgroundColor: activeAccent
+                            }}
+                          >
+                            <Download size={14} />
+                            <span>Tümünü İndir</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* VIEW MODE SELECTOR */}
+                      <div className="flex justify-between items-center mt-6 w-full">
+                        <span className="text-[10px] font-black uppercase text-white/45 tracking-wider">
+                          Görünüm Modu
+                        </span>
+                        
                         {/* Apple style Glass Pill Selector for albumViewMode */}
                         <div className="flex bg-white/5 border border-white/10 rounded-full p-0.5 select-none shrink-0 shadow-inner">
                           <button
@@ -2555,29 +2608,37 @@ const handleFileChange = (e) => {
                       ) : albumViewMode === "grid" ? (
                         /* GRID VIEW */
                         <div className="grid grid-cols-2 gap-3 mt-2">
-                          {allGuestPhotos.map((photo) => (
-                            <div 
-                              key={photo.id}
-                              onClick={() => {
-                                setSelectedPhoto(photo);
-                                const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
-                                setSelectedPhotoEvent(relatedEvent);
-                              }}
-                              className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-white/5 cursor-pointer shadow-md active:scale-[0.98] transition-transform"
-                            >
-                              <img 
-                                src={photo.url} 
-                                alt={photo.filename} 
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                              />
-                              {photo.matchConfidence && (
-                                <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
-                                  %{photo.matchConfidence}
-                                </div>
-                              )}
-                            </div>
-                          ))}
+                          {allGuestPhotos.map((photo) => {
+                            const photoUrl = photo.original_url || photo.thumbnail_url || photo.url || photo.previewUrl || FALLBACK_IMAGE;
+                            const handleImgError = (e) => {
+                              e.target.onerror = null;
+                              e.target.src = FALLBACK_IMAGE;
+                            };
+                            return (
+                              <div 
+                                key={photo.id}
+                                onClick={() => {
+                                  setSelectedPhoto(photo);
+                                  const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
+                                  setSelectedPhotoEvent(relatedEvent);
+                                }}
+                                className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-white/5 cursor-pointer shadow-md active:scale-[0.98] transition-transform"
+                              >
+                                <img 
+                                  src={photoUrl} 
+                                  alt={photo.filename} 
+                                  onError={handleImgError}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                />
+                                {photo.matchConfidence && (
+                                  <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
+                                    %{photo.matchConfidence}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         /* SLIDE VIEW */
@@ -2592,41 +2653,49 @@ const handleFileChange = (e) => {
                               scrollSnapType: "x mandatory"
                             }}
                           >
-                            {allGuestPhotos.map((photo, idx) => (
-                              <div 
-                                key={photo.id}
-                                className="snap-start shrink-0 w-[82%] flex flex-col items-center"
-                                style={{
-                                  scrollSnapAlign: "start"
-                                }}
-                              >
+                            {allGuestPhotos.map((photo, idx) => {
+                              const photoUrl = photo.original_url || photo.thumbnail_url || photo.url || photo.previewUrl || FALLBACK_IMAGE;
+                              const handleImgError = (e) => {
+                                e.target.onerror = null;
+                                e.target.src = FALLBACK_IMAGE;
+                              };
+                              return (
                                 <div 
-                                  onClick={() => {
-                                    setSelectedPhoto(photo);
-                                    const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
-                                    setSelectedPhotoEvent(relatedEvent);
+                                  key={photo.id}
+                                  className="snap-start shrink-0 w-[82%] flex flex-col items-center"
+                                  style={{
+                                    scrollSnapAlign: "start"
                                   }}
-                                  className="w-full aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-white/5 shadow-2xl relative cursor-pointer active:scale-[0.98] transition-transform"
                                 >
-                                  <img 
-                                    src={photo.url} 
-                                    alt={photo.filename} 
-                                    className="w-full h-full object-cover"
-                                    style={{ maxWidth: "100%" }}
-                                  />
-                                  {photo.matchConfidence && (
-                                    <div className="absolute top-3 right-3 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
-                                      %{photo.matchConfidence}
-                                    </div>
-                                  )}
+                                  <div 
+                                    onClick={() => {
+                                      setSelectedPhoto(photo);
+                                      const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
+                                      setSelectedPhotoEvent(relatedEvent);
+                                    }}
+                                    className="w-full aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-white/5 shadow-2xl relative cursor-pointer active:scale-[0.98] transition-transform"
+                                  >
+                                    <img 
+                                      src={photoUrl} 
+                                      alt={photo.filename} 
+                                      onError={handleImgError}
+                                      className="w-full h-full object-cover"
+                                      style={{ maxWidth: "100%" }}
+                                    />
+                                    {photo.matchConfidence && (
+                                      <div className="absolute top-3 right-3 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
+                                        %{photo.matchConfidence}
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Counter below the image card */}
+                                  <div className="text-[10px] font-extrabold text-white/40 mt-2 select-none tracking-wider">
+                                    {idx + 1} / {allGuestPhotos.length}
+                                  </div>
                                 </div>
-                                
-                                {/* Counter below the image card */}
-                                <div className="text-[10px] font-extrabold text-white/40 mt-2 select-none tracking-wider">
-                                  {idx + 1} / {allGuestPhotos.length}
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       )}
