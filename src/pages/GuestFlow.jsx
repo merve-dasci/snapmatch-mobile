@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { 
   setGuestToken, 
   setOnboardingStep, 
-  setActiveTab, 
+  setActiveTab as setActiveTabAction, 
   setSelectedEventId, 
   setSelectedPhoto as setSelectedPhotoAction, 
   setAlbumViewMode as setAlbumViewModeAction,
@@ -14,7 +14,7 @@ import {
   setUploadFiles,
   removeUploadFile,
   clearUploadFiles,
-  setUploadProgress,
+  setUploadProgress as setUploadProgressAction,
   setUploadStatus,
   loadGuestFavorites,
   persistGuestFavorites,
@@ -1426,7 +1426,7 @@ const { showToast } = useToast();
   const setStep = (val) => dispatch(setOnboardingStep(val));
 
   const activeTab = useSelector((state) => state.guest.activeTab);
-  const setActiveTab = (val) => dispatch(setActiveTab(val));
+  const setActiveTab = (val) => dispatch(setActiveTabAction(val));
 
   const selectedEventId = useSelector((state) => state.guest.selectedEventId);
   const selectedEvent = allEvents.find(e => e.id === selectedEventId) || null;
@@ -1524,7 +1524,7 @@ const { showToast } = useToast();
     }
   };
   const setUploadingState = (val) => dispatch(setUploadStatus(val));
-  const setUploadProgress = (val) => dispatch(setUploadProgress(val));
+  const setUploadProgress = (val) => dispatch(setUploadProgressAction(val));
   const [uploadedCount, setUploadedCount] = useState(0);
   const [totalUploadCount, setTotalUploadCount] = useState(0);
 
