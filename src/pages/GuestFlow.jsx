@@ -2282,18 +2282,66 @@ const handleFileChange = (e) => {
             </div>
 
             {/* Privacy list items */}
-            <div className="flex flex-col gap-3 my-6 justify-center flex-grow">
-              <div className="glass-panel p-4 rounded-2xl border border-white/5 bg-white/5 text-left flex gap-3.5 items-start">
+            <div className="flex flex-col gap-3.5 my-6 justify-center flex-grow">
+              <div 
+                className="glass-panel p-4 text-left flex gap-3.5 items-start"
+                style={{
+                  marginLeft: "-20px",
+                  marginRight: "-20px",
+                  paddingLeft: "20px",
+                  paddingRight: "20px",
+                  borderRadius: "0px",
+                  borderLeft: "none",
+                  borderRight: "none",
+                  background: "rgba(255, 255, 255, 0.03)",
+                  backdropFilter: "blur(20px)",
+                  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                  boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.15)"
+                }}
+              >
                 <ShieldCheck size={16} className="text-blue-400 shrink-0 mt-0.5" />
                 <span className="text-[11px] text-white/70 leading-relaxed font-medium">Selfie yalnızca bu etkinlikte fotoğraflarınızı bulmak için kullanılır.</span>
               </div>
 
-              <div className="glass-panel p-4 rounded-2xl border border-white/5 bg-white/5 text-left flex gap-3.5 items-start">
+              <div 
+                className="glass-panel p-4 text-left flex gap-3.5 items-start"
+                style={{
+                  marginLeft: "-20px",
+                  marginRight: "-20px",
+                  paddingLeft: "20px",
+                  paddingRight: "20px",
+                  borderRadius: "0px",
+                  borderLeft: "none",
+                  borderRight: "none",
+                  background: "rgba(255, 255, 255, 0.03)",
+                  backdropFilter: "blur(20px)",
+                  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                  boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.15)"
+                }}
+              >
                 <ShieldCheck size={16} className="text-emerald-400 shrink-0 mt-0.5" />
                 <span className="text-[11px] text-white/70 leading-relaxed font-medium">Fotoğraflarınız başka katılımcılarla paylaşılmaz.</span>
               </div>
 
-              <div className="glass-panel p-4 rounded-2xl border border-white/5 bg-white/5 text-left flex gap-3.5 items-start">
+              <div 
+                className="glass-panel p-4 text-left flex gap-3.5 items-start"
+                style={{
+                  marginLeft: "-20px",
+                  marginRight: "-20px",
+                  paddingLeft: "20px",
+                  paddingRight: "20px",
+                  borderRadius: "0px",
+                  borderLeft: "none",
+                  borderRight: "none",
+                  background: "rgba(255, 255, 255, 0.03)",
+                  backdropFilter: "blur(20px)",
+                  borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                  boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.15)"
+                }}
+              >
                 <ShieldCheck size={16} className="text-purple-400 shrink-0 mt-0.5" />
                 <span className="text-[11px] text-white/70 leading-relaxed font-medium">İstediğiniz zaman yüz verinizi silebilirsiniz.</span>
               </div>
@@ -2309,10 +2357,10 @@ const handleFileChange = (e) => {
                     : "bg-white/10 border-white/20 hover:bg-white/15"
                 }`}
               >
-                <div className={`w-5.5 h-5.5 rounded-lg border flex items-center justify-center shrink-0 transition-all ${
+                <div className={`w-5.5 h-5.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                   kvkkChecked 
                     ? 'bg-emerald-500 border-emerald-500 text-white scale-[1.05]' 
-                    : 'border-white/40 bg-white/5 text-transparent'
+                    : 'border-white/60 bg-white/10 text-transparent'
                 }`}>
                   {kvkkChecked && <Check size={12} strokeWidth={3.5} className="text-white" />}
                 </div>
