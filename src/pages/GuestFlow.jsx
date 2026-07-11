@@ -21,7 +21,10 @@ import {
   restoreGuestSession,
   saveGuestSession,
   toggleFavorite,
-  clearGuestSession
+  clearGuestSession,
+  fetchGuestEvent,
+  fetchGuestAlbums,
+  fetchGuestEventPhotos
 } from "../features/guest/guestSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "../components/ui/GlassCard";
@@ -1283,8 +1286,10 @@ const { showToast } = useToast();
   const { login } = useAuth();
   
   // App States
-  const [event, setEvent] = useState(null);
-  const [allEvents, setAllEvents] = useState([]);
+  const event = useSelector((state) => state.guest.event);
+  const allEvents = useSelector((state) => state.guest.albums) || [];
+  const loading = useSelector((state) => state.guest.loading);
+  const error = useSelector((state) => state.guest.error);
   const [consentChecked, setConsentChecked] = useState(false);
   const [selfiePreview, setSelfiePreview] = useState("");
   const fileInputRef = useRef(null);
@@ -1297,8 +1302,19 @@ const { showToast } = useToast();
       dispatch(setGuestToken(token));
       dispatch(restoreGuestSession(token));
       dispatch(loadGuestFavorites());
+      dispatch(fetchGuestEvent(token));
+      dispatch(fetchGuestAlbums(token));
     }
   }, [token, dispatch]);
+
+  // Event yüklendiğinde veya değiştiğinde gerekli aksiyonları çalıştır
+  useEffect(() => {
+    if (token && event?.id) {
+      dispatch(fetchGuestEventPhotos({ token, eventId: event.id }));
+      setSelectedUploadEventId(event.id);
+      dispatch(setSelectedEventId(event.id));
+    }
+  }, [token, event?.id, dispatch]);
 
   // Redux guest state bindings
   const step = useSelector((state) => state.guest.onboardingStep);
@@ -1444,24 +1460,13 @@ const { showToast } = useToast();
     }
   }, [token, step, activeTab, consent, selfie, guestName, dispatch]);
 
-  // Initialize event and load other events for albums
-  useEffect(() => {
-    const events = mockApi.getEvents();
-    setAllEvents(events);
-    
-    const matchedEvent = events.find(e => e.qr_token === token) || events[0];
-    if (matchedEvent) {
-      setEvent(matchedEvent);
-      setSelectedUploadEventId(matchedEvent.id);
-      dispatch(setSelectedEventId(matchedEvent.id));
-    }
-  }, [token, dispatch]);
+
 
   // Populate matched photos map helper
   const refreshPhotos = () => {
     try {
       const onboardingData = localStorage.getItem(`sm_guest_onboarding_${token}`);
-      const events = mockApi.getEvents();
+      const events = allEvents;
       const loadedMatches = {};
 
       if (onboardingData) {
@@ -1515,7 +1520,7 @@ const { showToast } = useToast();
 
   useEffect(() => {
     refreshPhotos();
-  }, [token, event]);
+  }, [token, event, allEvents]);
 
   const handleFilesAdded = (e) => {
     const files = Array.from(e.target.files || []);
@@ -1746,7 +1751,7 @@ const handleFileChange = (e) => {
 
     // Simulate matches across ALL events in the DB so other albums have pictures
     const loadedMatches = {};
-    const events = mockApi.getEvents();
+    const events = allEvents;
     
     events.forEach(evt => {
       mockApi.simulateAiMatchingForParticipant(evt.id, newPart.id);
@@ -1944,6 +1949,39 @@ const handleFileChange = (e) => {
         flexDirection: "column"
       }}
     >
+      {/* Redux Data Loading Indicator */}
+      {loading === "loading" && !event && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-md z-50 animate-fade-in">
+          <div className="w-10 h-10 rounded-full border-3 border-emerald-500/20 border-t-emerald-500 animate-spin" />
+          <span className="text-[11px] font-bold text-white/50 tracking-wider uppercase mt-4">Yükleniyor...</span>
+        </div>
+      )}
+
+      {/* Redux Data Error Banner */}
+      {error && !event && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md z-50 p-6 animate-fade-in">
+          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-4">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.1} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 className="text-sm font-black text-white">Etkinlik bilgileri yüklenemedi.</h3>
+          <p className="text-[11px] text-white/40 mt-1 max-w-[220px] text-center leading-relaxed">
+            Bağlantınızı kontrol edip lütfen tekrar deneyin.
+          </p>
+          <button 
+            onClick={() => {
+              if (token) {
+                dispatch(fetchGuestEvent(token));
+                dispatch(fetchGuestAlbums(token));
+              }
+            }}
+            className="mt-5 px-5 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 active:scale-95 text-white text-xs font-black rounded-xl transition-all"
+          >
+            Yeniden Dene
+          </button>
+        </div>
+      )}
       {/* Visual gradients */}
       <div className="absolute top-[-10%] left-[-20%] w-[70%] h-[50%] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none z-0 guest-bg-blob-1" />
       <div className="absolute bottom-[-10%] right-[-20%] w-[70%] h-[50%] rounded-full bg-emerald-500/8 blur-[100px] pointer-events-none z-0 guest-bg-blob-2" />
@@ -2299,7 +2337,7 @@ const handleFileChange = (e) => {
                         const newPart = mockApi.createParticipant(event.id, "Ezgi Çelik", mockSelfie);
                         setParticipant(newPart);
                         const loadedMatches = {};
-                        const events = mockApi.getEvents();
+                        const events = allEvents;
                         events.forEach(evt => {
                           mockApi.simulateAiMatchingForParticipant(evt.id, newPart.id);
                           const allMatches = mockApi.getMatches(evt.id);
@@ -2339,7 +2377,7 @@ const handleFileChange = (e) => {
                       dispatch(setSelfie({ captured: false, url: null }));
                       
                       const loadedMatches = {};
-                      const events = mockApi.getEvents();
+                      const events = allEvents;
                       events.forEach(evt => {
                         const eventPhotos = mockApi.getPhotos(evt.id);
                         loadedMatches[evt.id] = eventPhotos;
