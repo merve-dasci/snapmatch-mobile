@@ -346,7 +346,11 @@ export function GuestBottomNav({ activeTab, setActiveTab, onTabClick }) {
         backdropFilter: "blur(22px)",
         WebkitBackdropFilter: "blur(22px)",
         borderTop: "1px solid rgba(255, 255, 255, 0.65)",
-        boxShadow: "0 -8px 24px rgba(30, 38, 49, 0.08)"
+        boxShadow: "0 -8px 24px rgba(30, 38, 49, 0.08)",
+        marginLeft: "-20px",
+        marginRight: "-20px",
+        width: "calc(100% + 40px)",
+        flexShrink: 0
       }}
     >
       {tabs.map((tab) => {
