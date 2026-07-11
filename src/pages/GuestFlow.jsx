@@ -9,7 +9,13 @@ import {
   setSelectedPhoto as setSelectedPhotoAction, 
   setAlbumViewMode as setAlbumViewModeAction,
   setConsent,
-  setSelfie
+  setSelfie,
+  setMatchedPhotosForEvent,
+  setUploadFiles,
+  removeUploadFile,
+  clearUploadFiles,
+  setUploadProgress,
+  setUploadStatus
 } from "../features/guest/guestSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "../components/ui/GlassCard";
@@ -1368,7 +1374,26 @@ const { showToast } = useToast();
   
   // Matches Data
   const [participant, setParticipant] = useState(null);
-  const [matchedPhotosMap, setMatchedPhotosMap] = useState({}); // eventId -> photos array
+  const matchedPhotosMap = useSelector((state) => state.guest.matchedPhotosByEvent);
+  const setMatchedPhotosMap = (loadedMatches) => {
+    if (typeof loadedMatches === "function") {
+      const prev = matchedPhotosMap;
+      const next = loadedMatches(prev);
+      Object.entries(next).forEach(([eventId, photos]) => {
+        dispatch(setMatchedPhotosForEvent({ eventId, photos }));
+      });
+    } else {
+      if (Object.keys(loadedMatches).length === 0) {
+        allEvents.forEach(evt => {
+          dispatch(setMatchedPhotosForEvent({ eventId: evt.id, photos: [] }));
+        });
+      } else {
+        Object.entries(loadedMatches).forEach(([eventId, photos]) => {
+          dispatch(setMatchedPhotosForEvent({ eventId, photos }));
+        });
+      }
+    }
+  };
   const [favorites, setFavorites] = useState(() => {
     try {
       const stored = localStorage.getItem("sm_guest_favorites");
@@ -1390,9 +1415,21 @@ const { showToast } = useToast();
   // Guest photo upload states
   const [isUploadSheetOpen, setIsUploadSheetOpen] = useState(false);
   const [selectedUploadEventId, setSelectedUploadEventId] = useState("");
-  const [selectedUploadFiles, setSelectedUploadFiles] = useState([]);
-  const [uploadingState, setUploadingState] = useState("idle"); // idle, preparing, optimizing, uploading, updating, success, error
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const uploadState = useSelector((state) => state.guest.upload);
+  const selectedUploadFiles = uploadState.files;
+  const uploadingState = uploadState.status;
+  const uploadProgress = uploadState.progress;
+
+  const setSelectedUploadFiles = (val) => {
+    if (typeof val === "function") {
+      const next = val(selectedUploadFiles);
+      dispatch(setUploadFiles(next));
+    } else {
+      dispatch(setUploadFiles(val));
+    }
+  };
+  const setUploadingState = (val) => dispatch(setUploadStatus(val));
+  const setUploadProgress = (val) => dispatch(setUploadProgress(val));
   const [uploadedCount, setUploadedCount] = useState(0);
   const [totalUploadCount, setTotalUploadCount] = useState(0);
 
@@ -3244,7 +3281,7 @@ const handleFileChange = (e) => {
                           </div>
                           <button
                             onClick={() => {
-                              setSelectedUploadFiles(prev => prev.filter((_, i) => i !== idx));
+                              dispatch(removeUploadFile(idx));
                             }}
                             className="w-7 h-7 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 active:scale-90 cursor-pointer transition-colors border-none"
                           >
