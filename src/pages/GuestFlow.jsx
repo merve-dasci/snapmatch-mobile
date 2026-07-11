@@ -1290,7 +1290,6 @@ const { showToast } = useToast();
   const allEvents = useSelector((state) => state.guest.albums) || [];
   const loading = useSelector((state) => state.guest.loading);
   const error = useSelector((state) => state.guest.error);
-  const [consentChecked, setConsentChecked] = useState(false);
   const [selfiePreview, setSelfiePreview] = useState("");
   const fileInputRef = useRef(null);
   
@@ -1335,7 +1334,6 @@ const { showToast } = useToast();
   const [qrSubStep, setQrSubStep] = useState("scanning"); // scanning, verified
   const [kvkkChecked, setKvkkChecked] = useState(false);
   const [selectedMemory, setSelectedMemory] = useState(null); // active AI Memory detail page
-  const [photosViewMode, setPhotosViewMode] = useState("grid");
   
   // Form/Auth States
   const [guestName, setGuestName] = useState(() => {
