@@ -2824,61 +2824,143 @@ const handleFileChange = (e) => {
                           })}
                         </div>
                       ) : (
-                        /* SLIDE VIEW */
-                        <div className="flex flex-col gap-4 mt-2 w-full relative">
-                          <div 
-                            className="flex gap-4 w-full overflow-x-auto scrollbar-none snap-x snap-mandatory py-2"
-                            style={{
-                              scrollBehavior: "smooth",
-                              overscrollBehaviorX: "contain",
-                              WebkitOverflowScrolling: "touch",
-                              overflowX: "auto",
-                              scrollSnapType: "x mandatory"
-                            }}
-                          >
-                            {allGuestPhotos.map((photo, idx) => {
-                              const photoUrl = photo.original_url || photo.thumbnail_url || photo.url || photo.previewUrl || FALLBACK_IMAGE;
-                              const handleImgError = (e) => {
-                                e.target.onerror = null;
-                                e.target.src = FALLBACK_IMAGE;
-                              };
-                              return (
-                                <div 
-                                  key={photo.id}
-                                  className="snap-start shrink-0 w-[82%] flex flex-col items-center"
-                                  style={{
-                                    scrollSnapAlign: "start"
-                                  }}
-                                >
-                                  <div 
-                                    onClick={() => {
-                                      setSelectedPhoto(photo);
-                                      const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
-                                      setSelectedPhotoEvent(relatedEvent);
-                                    }}
-                                    className="w-full aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-white/5 shadow-2xl relative cursor-pointer active:scale-[0.98] transition-transform"
-                                  >
-                                    <img 
-                                      src={photoUrl} 
-                                      alt={photo.filename} 
-                                      onError={handleImgError}
-                                      className="w-full h-full object-cover"
-                                      style={{ maxWidth: "100%" }}
-                                    />
-                                    {photo.matchConfidence && (
-                                      <div className="absolute top-3 right-3 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
-                                        %{photo.matchConfidence}
-                                      </div>
-                                    )}
-                                  </div>
+                        /* 3D COVERFLOW CAROUSEL SLIDE VIEW */
+                        <div 
+                          className="relative w-full overflow-hidden my-4 py-6 flex flex-col items-center justify-center select-none"
+                          style={{ touchAction: "pan-y" }}
+                        >
+                          <div className="relative w-full h-[320px] flex items-center justify-center overflow-hidden" style={{ perspective: 1000 }}>
+                            <AnimatePresence initial={false}>
+                              {(() => {
+                                const currentIdx = Math.min(Math.max(0, albumSlideIdx), allGuestPhotos.length - 1);
+                                return allGuestPhotos.map((photo, idx) => {
+                                  let offset = idx - currentIdx;
                                   
-                                  {/* Counter below the image card */}
-                                  <div className="text-[10px] font-extrabold text-white/40 mt-2 select-none tracking-wider">
-                                    {idx + 1} / {allGuestPhotos.length}
-                                  </div>
-                                </div>
-                              );
-                            })}
+                                  // Wrap around offset for infinite loop display
+                                  if (offset < -Math.floor(allGuestPhotos.length / 2)) {
+                                    offset += allGuestPhotos.length;
+                                  } else if (offset > Math.floor(allGuestPhotos.length / 2)) {
+                                    offset -= allGuestPhotos.length;
+                                  }
+
+                                  // Only show close slides
+                                  if (Math.abs(offset) > 2) return null;
+
+                                  const isActive = offset === 0;
+                                  const photoUrl = photo.original_url || photo.thumbnail_url || photo.url || photo.previewUrl || FALLBACK_IMAGE;
+
+                                  let rotateY = 0;
+                                  let scale = 0.85;
+                                  let zIndex = 5;
+                                  let opacity = 0.5;
+                                  let translateX = 0;
+
+                                  if (isActive) {
+                                    rotateY = 0;
+                                    scale = 1.0;
+                                    zIndex = 10;
+                                    opacity = 1;
+                                    translateX = 0;
+                                  } else if (offset === -1) {
+                                    rotateY = 32;
+                                    scale = 0.82;
+                                    zIndex = 8;
+                                    opacity = 0.65;
+                                    translateX = -105;
+                                  } else if (offset === 1) {
+                                    rotateY = -32;
+                                    scale = 0.82;
+                                    zIndex = 8;
+                                    opacity = 0.65;
+                                    translateX = 105;
+                                  } else if (offset === -2) {
+                                    rotateY = 40;
+                                    scale = 0.68;
+                                    zIndex = 6;
+                                    opacity = 0.3;
+                                    translateX = -170;
+                                  } else if (offset === 2) {
+                                    rotateY = -40;
+                                    scale = 0.68;
+                                    zIndex = 6;
+                                    opacity = 0.3;
+                                    translateX = 170;
+                                  }
+
+                                  const handleImgError = (e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = FALLBACK_IMAGE;
+                                  };
+
+                                  const handleAlbumDragEnd = (event, info) => {
+                                    const swipeThreshold = 50;
+                                    if (info.offset.x < -swipeThreshold) {
+                                      setAlbumSlideIdx(prev => (prev + 1) % allGuestPhotos.length);
+                                    } else if (info.offset.x > swipeThreshold) {
+                                      setAlbumSlideIdx(prev => (prev - 1 + allGuestPhotos.length) % allGuestPhotos.length);
+                                    }
+                                  };
+
+                                  return (
+                                    <motion.div
+                                      key={photo.id}
+                                      style={{
+                                        position: "absolute",
+                                        width: "190px",
+                                        height: "260px",
+                                        zIndex: zIndex,
+                                        transformStyle: "preserve-3d"
+                                      }}
+                                      animate={{
+                                        x: translateX,
+                                        scale: scale,
+                                        rotateY: rotateY,
+                                        opacity: opacity,
+                                      }}
+                                      transition={{
+                                        type: "spring",
+                                        stiffness: 300,
+                                        damping: 30,
+                                      }}
+                                      drag={isActive ? "x" : false}
+                                      dragConstraints={{ left: 0, right: 0 }}
+                                      dragElastic={0.3}
+                                      onDragEnd={handleAlbumDragEnd}
+                                      onClick={() => {
+                                        if (isActive) {
+                                          setSelectedPhoto(photo);
+                                          const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
+                                          setSelectedPhotoEvent(relatedEvent);
+                                        } else {
+                                          setAlbumSlideIdx(idx);
+                                        }
+                                      }}
+                                      className="rounded-[22px] overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.4)] border border-white/10 bg-slate-900 cursor-grab active:cursor-grabbing flex items-center justify-center select-none"
+                                    >
+                                      <img 
+                                        src={photoUrl} 
+                                        alt={photo.filename} 
+                                        onError={handleImgError}
+                                        className="w-full h-full object-cover pointer-events-none"
+                                      />
+                                      {photo.matchConfidence && isActive && (
+                                        <div className="absolute top-3 right-3 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[8px] font-black text-emerald-400">
+                                          %{photo.matchConfidence}
+                                        </div>
+                                      )}
+                                      {!isActive && (
+                                        <div className="absolute inset-0 bg-black/40 transition-opacity duration-300 pointer-events-none" />
+                                      )}
+                                    </motion.div>
+                                  );
+                                });
+                              })()}
+                            </AnimatePresence>
+                          </div>
+                          
+                          {/* Counter below the image card */}
+                          <div className="text-[10px] font-extrabold text-white/40 mt-4 select-none tracking-wider bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                            {allGuestPhotos.length > 0 ? (Math.min(Math.max(0, albumSlideIdx), allGuestPhotos.length - 1) + 1) : 0} / {allGuestPhotos.length}
                           </div>
                         </div>
                       )}
