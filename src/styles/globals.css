@@ -2399,9 +2399,7 @@ input:checked+.ios-slider:before {
 
 .guest-app-root {
   width: 100% !important;
-  height: calc(var(--vh, 1vh) * 100) !important;
   min-height: calc(var(--vh, 1vh) * 100) !important;
-  max-height: calc(var(--vh, 1vh) * 100) !important;
   background: #080A0F !important;
   color: #FFFFFF !important;
   display: flex !important;
@@ -2409,27 +2407,26 @@ input:checked+.ios-slider:before {
   justify-content: flex-start !important;
   align-items: center !important;
   position: relative !important;
-  overflow: hidden !important;
+  overflow-x: hidden !important;
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
   z-index: 1000 !important;
 }
 
-/* Base resets to prevent horizontal overflow and scroll bouncing for GuestFlow only */
+/* Base resets to prevent horizontal overflow and allow natural scrolling */
 html:has(.guest-app-root),
 body:has(.guest-app-root),
 body:has(.guest-app-root) #root {
   width: 100% !important;
   max-width: 100% !important;
-  height: 100% !important;
-  height: calc(var(--vh, 1vh) * 100) !important;
-  max-height: calc(var(--vh, 1vh) * 100) !important;
+  min-height: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
-  overflow: hidden !important;
-  overscroll-behavior: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
   background: #080A0F !important;
+  overscroll-behavior-y: none !important;
 }
 
 body:has(.guest-app-root) {
@@ -2443,14 +2440,11 @@ body:has(.guest-app-root) {
 .guest-app-wrapper {
   width: 100% !important;
   max-width: 430px !important;
-  height: 100% !important;
-  height: calc(var(--vh, 1vh) * 100) !important;
   min-height: calc(var(--vh, 1vh) * 100) !important;
-  max-height: calc(var(--vh, 1vh) * 100) !important;
   margin: 0 auto !important;
   position: relative !important;
   overflow-x: hidden !important;
-  overflow-y: auto !important;
+  overflow-y: visible !important;
   -webkit-overflow-scrolling: touch !important;
   touch-action: pan-y !important;
   padding: 20px 20px 0 20px !important;
@@ -2460,7 +2454,6 @@ body:has(.guest-app-root) {
   justify-content: flex-start !important;
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.6) !important;
   padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
-  overscroll-behavior-y: contain !important;
 }
 
 /* Scoped flex/grid children min-width/max-width and images styling rules */

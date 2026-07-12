@@ -1634,6 +1634,13 @@ const { showToast } = useToast();
     }
   }, [token, step, activeTab, consent, selfie, guestName, isSessionRestored, dispatch]);
 
+  // Hide splash screen if onboarding was already completed in a restored session
+  useEffect(() => {
+    if (isSessionRestored && step === "albums") {
+      setShowSplash(false);
+    }
+  }, [isSessionRestored, step]);
+
 
 
   // Populate matched photos map helper
@@ -3438,7 +3445,7 @@ const handleFileChange = (e) => {
         )}
 
         {/* STEP 6: Guest App Dashboard */}
-        {step === "albums" && (
+        {!showSplash && step === "albums" && (
           <div className="flex-1 flex flex-col justify-between h-full min-h-0 w-full relative overflow-hidden">
             
 
