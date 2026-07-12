@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { 
-  setGuestToken, 
-  setOnboardingStep, 
-  setActiveTab as setActiveTabAction, 
-  setSelectedEventId, 
-  setSelectedPhoto as setSelectedPhotoAction, 
+import {
+  setGuestToken,
+  setOnboardingStep,
+  setActiveTab as setActiveTabAction,
+  setSelectedEventId,
+  setSelectedPhoto as setSelectedPhotoAction,
   setAlbumViewMode as setAlbumViewModeAction,
   setConsent,
   setSelfie,
@@ -41,15 +41,15 @@ import {
   QrCode,
   Play,
   Pause,
-  Camera, 
-  UserCheck, 
-  Shield, 
-  Sparkles, 
-  Download, 
-  ArrowLeft, 
-  RefreshCw, 
-  AlertCircle, 
-  Share2, 
+  Camera,
+  UserCheck,
+  Shield,
+  Sparkles,
+  Download,
+  ArrowLeft,
+  RefreshCw,
+  AlertCircle,
+  Share2,
   Grid,
   CheckCircle,
   Eye,
@@ -109,7 +109,7 @@ export function GuestHeader({ guestName, totalEvents, totalPhotos }) {
             </h1>
           </div>
         </div>
-        
+
         <span className="text-[9px] text-emerald-400 font-black uppercase tracking-wider bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
           Match Active
         </span>
@@ -120,7 +120,7 @@ export function GuestHeader({ guestName, totalEvents, totalPhotos }) {
           <span className="text-[9px] text-white/40 font-black uppercase tracking-wider">Durum</span>
           <strong className="text-xs text-white">Anıların Hazır!</strong>
         </div>
-        
+
         <div className="flex gap-4 border-l border-white/10 pl-4">
           <div className="flex flex-col items-center">
             <span className="text-[17px] font-black text-white">{totalEvents}</span>
@@ -143,21 +143,21 @@ export function GuestAlbumCard({ event, photos = [], matchedPhotosCount, onClick
   const rightImg = photos[2]?.thumbnail_url || photos[0]?.thumbnail_url || event.cover_url;
 
   return (
-    <div 
+    <div
       onClick={onClick}
       className="flex flex-col gap-2 cursor-pointer active:scale-[0.97] transition-transform select-none group"
     >
       {/* 3D Stack Container Plate */}
       <div className="relative aspect-square w-full rounded-[28px] border border-white/5 bg-white/5 flex items-center justify-center overflow-hidden shadow-inner p-4 group-hover:bg-white/10 transition-all duration-300">
-        
+
         {/* Soft radial overlay glow */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
 
         {/* 3D STACK LAYOUT */}
         <div className="relative w-[85%] h-[80%] flex items-center justify-center">
-          
+
           {/* Left Stacked Photo Card */}
-          <div 
+          <div
             className="absolute w-[45%] h-[75%] rounded-xl overflow-hidden border-2 border-white shadow-lg bg-white/5 transition-all duration-300 origin-bottom scale-90 translate-x-[-14px] rotate-[-10deg] group-hover:translate-x-[-18px] group-hover:rotate-[-14deg]"
             style={{ zIndex: 1 }}
           >
@@ -165,7 +165,7 @@ export function GuestAlbumCard({ event, photos = [], matchedPhotosCount, onClick
           </div>
 
           {/* Right Stacked Photo Card */}
-          <div 
+          <div
             className="absolute w-[45%] h-[75%] rounded-xl overflow-hidden border-2 border-white shadow-lg bg-white/5 transition-all duration-300 origin-bottom scale-90 translate-x-[14px] rotate-[10deg] group-hover:translate-x-[18px] group-hover:rotate-[14deg]"
             style={{ zIndex: 1 }}
           >
@@ -173,7 +173,7 @@ export function GuestAlbumCard({ event, photos = [], matchedPhotosCount, onClick
           </div>
 
           {/* Center/Top Photo Card */}
-          <div 
+          <div
             className="absolute w-[48%] h-[82%] rounded-xl overflow-hidden border-2 border-white shadow-xl bg-white/5 transition-all duration-300 origin-bottom scale-100 rotate-0 group-hover:scale-[1.04]"
             style={{ zIndex: 2 }}
           >
@@ -214,13 +214,13 @@ export function GuestAlbumCard({ event, photos = [], matchedPhotosCount, onClick
   );
 }
 
-export function GuestThemeSettings({ 
-  guestTheme, 
-  setGuestTheme, 
-  showToast, 
-  handleDeleteFaceData, 
-  guestName, 
-  selfieUrl 
+export function GuestThemeSettings({
+  guestTheme,
+  setGuestTheme,
+  showToast,
+  handleDeleteFaceData,
+  guestName,
+  selfieUrl
 }) {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
 
@@ -286,10 +286,10 @@ export function GuestThemeSettings({
 
       {/* Profil details & Self Deletion inside Settings */}
       <div className="h-[1px] bg-white/5 my-3" />
-      
+
       <div className="flex flex-col gap-4">
         <h3 className="text-xs font-black text-white uppercase tracking-wider m-0">Güvenlik ve Profil</h3>
-        
+
         {/* User Card */}
         <div className="glass-panel p-4 rounded-2xl flex items-center gap-3.5">
           <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-emerald-400 bg-white/5 shrink-0">
@@ -305,7 +305,7 @@ export function GuestThemeSettings({
           </div>
         </div>
 
-        <button 
+        <button
           onClick={() => {
             if (!confirmDelete) {
               setConfirmDelete(true);
@@ -314,11 +314,10 @@ export function GuestThemeSettings({
               setConfirmDelete(false);
             }
           }}
-          className={`w-full p-4 text-xs font-black rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all mb-24 shadow-lg ${
-            confirmDelete 
-              ? "bg-red-800 text-white animate-pulse" 
+          className={`w-full p-4 text-xs font-black rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all mb-24 shadow-lg ${confirmDelete
+              ? "bg-red-800 text-white animate-pulse"
               : "bg-red-600 hover:bg-red-500 text-white shadow-red-600/10"
-          }`}
+            }`}
           style={{ border: "none" }}
         >
           <Trash2 size={14} />
@@ -375,31 +374,31 @@ export function GuestBottomNav({ activeTab, setActiveTab, onTabClick }) {
 export function GuestMemoryCard({ memory, onClick }) {
   const categoryBadge = () => {
     switch (memory.category) {
-      case "wedding": 
+      case "wedding":
         return (
           <span className="flex items-center gap-1 text-white">
             <Heart size={10} className="fill-current text-white" /> Wedding
           </span>
         );
-      case "graduation": 
+      case "graduation":
         return (
           <span className="flex items-center gap-1 text-white">
             <Library size={10} className="text-white" /> Graduation
           </span>
         );
-      case "birthday": 
+      case "birthday":
         return (
           <span className="flex items-center gap-1 text-white">
             <Sparkles size={10} className="text-white" /> Birthday
           </span>
         );
-      case "corporate": 
+      case "corporate":
         return (
           <span className="flex items-center gap-1 text-white">
             <UserCheck size={10} className="text-white" /> Corporate
           </span>
         );
-      default: 
+      default:
         return (
           <span className="flex items-center gap-1 text-white">
             <Sparkles size={10} className="text-white" /> Etkinlik
@@ -409,33 +408,18 @@ export function GuestMemoryCard({ memory, onClick }) {
   };
 
   return (
-    <div 
+    <div
       onClick={onClick}
       className="relative w-full aspect-[16/10] rounded-[24px] overflow-hidden border border-white/10 shadow-2xl cursor-pointer active:scale-[0.97] transition-all group shrink-0"
     >
-      <img 
-        src={memory.cover_url} 
-        alt={memory.title} 
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.7]" 
+      <img
+        src={memory.cover_url}
+        alt={memory.title}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.7]"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
-      
-      {/* Category badge */}
-      <span className="absolute top-4 left-4 bg-black/45 backdrop-blur-md text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider text-white border border-white/10 flex items-center justify-center">
-        {categoryBadge()}
-      </span>
 
-      {/* AI badge */}
-      <span className="absolute top-4 right-4 bg-emerald-500/85 backdrop-blur-md text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider text-white shadow-lg flex items-center gap-1">
-        <Sparkles size={8} className="text-white" /> AI
-      </span>
 
-      {/* Text overlays */}
-      <div className="absolute bottom-4 left-4 right-4 text-left flex flex-col gap-0.5">
-        <span className="text-[9px] text-white/50 font-bold uppercase tracking-wider">{memory.date} &bull; {memory.count}</span>
-        <h3 className="text-sm font-black text-white m-0 tracking-tight leading-tight">{memory.title}</h3>
-        <p className="text-[10px] text-white/70 font-medium m-0 mt-1 line-clamp-1 italic">{memory.description}</p>
-      </div>
     </div>
   );
 }
@@ -456,7 +440,7 @@ export function GuestMemoriesSection({ memories, onMemoryClick }) {
         <div className="flex gap-4 overflow-x-auto scrollbar-none pb-2 pt-1 -mx-5 px-5 guest-horizontal-scroller">
           {memories.map(mem => (
             <div key={mem.id} className="w-[88%] shrink-0">
-              <GuestMemoryCard 
+              <GuestMemoryCard
                 memory={mem}
                 onClick={() => onMemoryClick(mem)}
               />
@@ -496,7 +480,7 @@ export function GuestSlideshow({ photos, onClose }) {
     <div className="fixed inset-0 bg-[#06080C] z-[999999] flex flex-col justify-between p-5 select-none text-white animate-fade-in guest-slideshow max-w-[430px] mx-auto w-full">
       {/* Top action header */}
       <div className="flex items-center justify-between z-10 pt-4">
-        <button 
+        <button
           onClick={onClose}
           className="w-9 h-9 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/10 text-white cursor-pointer active:scale-90"
         >
@@ -510,9 +494,9 @@ export function GuestSlideshow({ photos, onClose }) {
       {/* 3D Coverflow Carousel Container */}
       <div className="relative flex-grow flex items-center justify-center overflow-hidden my-4 rounded-[28px] border border-white/5 bg-black/20 py-8">
         {/* Blurred Background Replica */}
-        <img 
-          src={currentPhoto.original_url || currentPhoto.thumbnail_url} 
-          alt="blurred background" 
+        <img
+          src={currentPhoto.original_url || currentPhoto.thumbnail_url}
+          alt="blurred background"
           className="absolute inset-0 w-full h-full object-cover filter blur-[32px] opacity-20 scale-110 pointer-events-none transition-all duration-700 ease-out"
         />
 
@@ -520,7 +504,7 @@ export function GuestSlideshow({ photos, onClose }) {
           <AnimatePresence initial={false}>
             {photos.map((photo, idx) => {
               let offset = idx - currentIdx;
-              
+
               // Wrap around offset for infinite loop display
               if (offset < -Math.floor(photos.length / 2)) {
                 offset += photos.length;
@@ -532,7 +516,7 @@ export function GuestSlideshow({ photos, onClose }) {
               if (Math.abs(offset) > 2) return null;
 
               const isActive = offset === 0;
-              
+
               let rotateY = 0;
               let scale = 0.85;
               let zIndex = 5;
@@ -603,9 +587,9 @@ export function GuestSlideshow({ photos, onClose }) {
                   }}
                   className="rounded-[24px] overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.5)] border border-white/10 bg-slate-900 cursor-grab active:cursor-grabbing flex items-center justify-center select-none"
                 >
-                  <img 
-                    src={photo.original_url || photo.thumbnail_url} 
-                    alt="carousel slide" 
+                  <img
+                    src={photo.original_url || photo.thumbnail_url}
+                    alt="carousel slide"
                     className="w-full h-full object-cover pointer-events-none"
                   />
                   {!isActive && (
@@ -620,16 +604,16 @@ export function GuestSlideshow({ photos, onClose }) {
 
       {/* Timing indicator progress bar */}
       <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mb-6 relative">
-        <div 
+        <div
           key={`bar-${currentIdx}-${isPlaying}`}
-          className={`absolute left-0 top-0 bottom-0 bg-emerald-400 rounded-full ${isPlaying ? 'w-full transition-all duration-[3200ms] ease-linear' : 'w-0'}`} 
+          className={`absolute left-0 top-0 bottom-0 bg-emerald-400 rounded-full ${isPlaying ? 'w-full transition-all duration-[3200ms] ease-linear' : 'w-0'}`}
           style={{ width: isPlaying ? '100%' : '0%' }}
         />
       </div>
 
       {/* Control Actions bar */}
       <div className="glass-panel border border-white/10 bg-black/60 backdrop-blur-md p-4.5 rounded-[24px] flex items-center justify-center gap-6 shadow-2xl mb-2">
-        <button 
+        <button
           onClick={() => setIsPlaying(!isPlaying)}
           className="bg-emerald-500 text-white font-extrabold text-xs px-6 py-3 rounded-full shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 justify-center"
         >
@@ -655,15 +639,15 @@ export function GuestMemoryScreen({ memory, photos, onBack, onPhotoClick, onPlay
     <div className="flex-1 flex flex-col justify-between animate-fade-in py-1 select-none">
       {/* Top Header cover image */}
       <div className="relative w-full aspect-[16/10] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shrink-0">
-        <img 
-          src={memory.cover_url} 
-          alt={memory.title} 
+        <img
+          src={memory.cover_url}
+          alt={memory.title}
           className="w-full h-full object-cover brightness-[0.65]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0E121E] via-transparent to-transparent" />
-        
+
         {/* Back navigation button */}
-        <button 
+        <button
           onClick={onBack}
           className="absolute top-4 left-4 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/15 flex items-center justify-center cursor-pointer text-white active:scale-90 z-20"
         >
@@ -689,7 +673,7 @@ export function GuestMemoryScreen({ memory, photos, onBack, onPhotoClick, onPlay
           </p>
 
           {/* Slideshow button */}
-          <button 
+          <button
             onClick={() => onPlaySlideshow(photos)}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-full shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform"
           >
@@ -701,7 +685,7 @@ export function GuestMemoryScreen({ memory, photos, onBack, onPhotoClick, onPlay
         {/* Photos Grid below */}
         <div className="flex flex-col gap-2 mt-2">
           <span className="text-[9px] font-black uppercase text-white/40 tracking-wider">Fotoğraflar ({photos.length})</span>
-          <GuestPhotoGrid 
+          <GuestPhotoGrid
             photos={photos}
             onPhotoClick={onPhotoClick}
             favorites={favorites}
@@ -715,13 +699,13 @@ export function GuestMemoryScreen({ memory, photos, onBack, onPhotoClick, onPlay
   );
 }
 
-export function GuestPhotoGrid({ 
-  photos, 
-  onPhotoClick, 
-  favorites = [], 
+export function GuestPhotoGrid({
+  photos,
+  onPhotoClick,
+  favorites = [],
   onToggleFavorite,
   onDownload,
-  onShare 
+  onShare
 }) {
   if (!photos || photos.length === 0) {
     return (
@@ -743,7 +727,7 @@ export function GuestPhotoGrid({
 
   const renderPhotoCard = (ph, globalIdx) => {
     const isFav = favorites.some(p => p.id === ph.id);
-    
+
     // Stable pseudo-random likes & shares based on photo id hash
     const charCodeSum = ph.id.toString().split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const mockLikes = (1.0 + (charCodeSum % 9) / 10).toFixed(1) + "k";
@@ -758,27 +742,27 @@ export function GuestPhotoGrid({
     };
 
     return (
-      <div 
+      <div
         key={ph.id}
         className="relative rounded-[28px] overflow-hidden bg-[#0A0D14] border border-white/10 group cursor-pointer active:scale-[0.98] transition-all duration-200 select-none shadow-xl w-full"
       >
-        <img 
-          src={photoUrl} 
-          alt="matched photo" 
+        <img
+          src={photoUrl}
+          alt="matched photo"
           onError={handleImgError}
           className="w-full min-h-[160px] object-cover block"
           onClick={() => onPhotoClick(globalIdx)}
         />
-        
+
         {/* Apple Style Dark Overlay at the bottom */}
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-100 pointer-events-none" />
-        
+
         {/* Top-left match confidence score tag */}
         <span className="absolute top-3 left-3 backdrop-blur-md bg-black/30 border border-white/10 text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 text-white select-none">
           <Sparkles size={9} className="text-emerald-400 fill-emerald-400 shrink-0" />
           <span>%{ph.matchConfidence || (94 + (charCodeSum % 6))}</span>
         </span>
-        
+
         {/* Bottom actions pill layout matching the reference design */}
         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-start gap-1">
           {/* Like / Favorite pill button */}
@@ -802,7 +786,7 @@ export function GuestPhotoGrid({
       <div className="flex flex-col gap-3 flex-1 min-w-0">
         {leftColumn.map((ph, idx) => renderPhotoCard(ph, idx * 2))}
       </div>
-      
+
       {/* Right Column */}
       <div className="flex flex-col gap-3 flex-1 min-w-0">
         {rightColumn.map((ph, idx) => renderPhotoCard(ph, idx * 2 + 1))}
@@ -811,13 +795,13 @@ export function GuestPhotoGrid({
   );
 }
 
-export function GuestPhotoTimeline({ 
-  photos, 
-  onPhotoClick, 
-  favorites = [], 
-  onToggleFavorite, 
-  onDownload, 
-  onShare 
+export function GuestPhotoTimeline({
+  photos,
+  onPhotoClick,
+  favorites = [],
+  onToggleFavorite,
+  onDownload,
+  onShare
 }) {
   if (!photos || photos.length === 0) {
     return (
@@ -837,21 +821,21 @@ export function GuestPhotoTimeline({
         const charCodeSum = ph.id.toString().split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
         return (
-          <div 
+          <div
             key={ph.id}
             className="w-full glass-panel border border-white/10 bg-white/5 rounded-[24px] overflow-hidden p-3 flex flex-col gap-2.5 relative shadow-lg hover:bg-white/10 active:scale-95 transition-all duration-200"
           >
             {/* Photo container */}
-            <div 
+            <div
               onClick={() => onPhotoClick(idx)}
               className="relative aspect-[3/4] w-full rounded-[18px] overflow-hidden cursor-pointer bg-[#0A0D14]"
             >
-              <img 
-                src={ph.thumbnail_url || ph.url} 
-                alt="timeline moment photo" 
+              <img
+                src={ph.thumbnail_url || ph.url}
+                alt="timeline moment photo"
                 className="w-full h-full object-cover"
               />
-              
+
               {/* Top-left match tag */}
               <span className="absolute top-2.5 left-2.5 backdrop-blur-md bg-black/40 border border-white/10 text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 text-white">
                 <Sparkles size={10} className="text-emerald-400 fill-emerald-400 shrink-0" />
@@ -862,7 +846,7 @@ export function GuestPhotoTimeline({
             {/* Actions row */}
             <div className="flex justify-between items-center px-1">
               {/* Favorite check */}
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onToggleFavorite) onToggleFavorite(ph);
@@ -872,7 +856,7 @@ export function GuestPhotoTimeline({
                 <Heart size={15} className={isFav ? "fill-rose-500 text-rose-500" : ""} />
               </button>
 
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onDownload) onDownload(ph);
@@ -891,14 +875,14 @@ export function GuestPhotoTimeline({
 
 
 
-export function GuestEventAlbumDetail({ 
-  event, 
-  photos, 
-  onBack, 
-  onPhotoClick, 
-  favorites = [], 
-  onToggleFavorite, 
-  onDownload, 
+export function GuestEventAlbumDetail({
+  event,
+  photos,
+  onBack,
+  onPhotoClick,
+  favorites = [],
+  onToggleFavorite,
+  onDownload,
   onShare,
   onBulkDownload,
   onPhotoUpload
@@ -923,7 +907,7 @@ export function GuestEventAlbumDetail({
       {/* Back button & Action Header */}
       <div className="flex items-center justify-between z-10 w-full">
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={onBack}
             className="flex items-center gap-1 bg-transparent border-none text-xs font-black cursor-pointer p-0 active:opacity-75 transition-opacity"
             style={{ color: "var(--guest-accent)" }}
@@ -944,11 +928,11 @@ export function GuestEventAlbumDetail({
                 <Upload size={10} />
                 <span>Fotoğraf Yükle</span>
               </button>
-              <input 
-                type="file" 
-                id="guest-album-photo-upload" 
-                accept="image/*" 
-                className="hidden" 
+              <input
+                type="file"
+                id="guest-album-photo-upload"
+                accept="image/*"
+                className="hidden"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
                     const file = e.target.files[0];
@@ -969,38 +953,35 @@ export function GuestEventAlbumDetail({
             </>
           )}
         </div>
-        
+
         {/* Apple style Glass Pill Selector for viewMode */}
         <div className="flex bg-white/5 border border-white/10 rounded-full p-0.5 select-none shrink-0 shadow-inner">
           <button
             onClick={() => setViewMode("swipe")}
-            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${
-              viewMode === "swipe" 
-                ? "bg-white/10 text-white shadow-md" 
+            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${viewMode === "swipe"
+                ? "bg-white/10 text-white shadow-md"
                 : "bg-transparent text-white/40"
-            }`}
+              }`}
           >
             <Library size={10} />
             <span>Kaydır</span>
           </button>
           <button
             onClick={() => setViewMode("grid")}
-            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${
-              viewMode === "grid" 
-                ? "bg-white/10 text-white shadow-md" 
+            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${viewMode === "grid"
+                ? "bg-white/10 text-white shadow-md"
                 : "bg-transparent text-white/40"
-            }`}
+              }`}
           >
             <Grid size={10} />
             <span>Izgara</span>
           </button>
           <button
             onClick={() => setViewMode("timeline")}
-            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${
-              viewMode === "timeline" 
-                ? "bg-white/10 text-white shadow-md" 
+            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${viewMode === "timeline"
+                ? "bg-white/10 text-white shadow-md"
                 : "bg-transparent text-white/40"
-            }`}
+              }`}
           >
             <Clock size={10} />
             <span>Zaman</span>
@@ -1011,7 +992,7 @@ export function GuestEventAlbumDetail({
       {viewMode === "swipe" ? (
         /* Cinematic Swipe View */
         <div className="flex flex-col gap-4 w-full select-none animate-fade-in pb-16">
-          
+
           <div className="flex flex-col text-left px-1 mt-1">
             <h1 className="text-xl font-black text-white m-0 tracking-tight leading-tight">{event.title}</h1>
             <span className="text-[9px] text-white/50 font-bold block mt-1">
@@ -1045,12 +1026,12 @@ export function GuestEventAlbumDetail({
                   transition={{ type: "spring", stiffness: 260, damping: 26 }}
                   className="w-full h-full cursor-grab active:cursor-grabbing absolute inset-0 select-none touch-none"
                 >
-                  <img 
-                    src={currentPhoto.original_url || currentPhoto.thumbnail_url} 
-                    alt="swipe photo" 
+                  <img
+                    src={currentPhoto.original_url || currentPhoto.thumbnail_url}
+                    alt="swipe photo"
                     className="w-full h-full object-cover pointer-events-none"
                   />
-                  
+
                   {/* Bottom blur gradient */}
                   <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 via-black/25 to-transparent pointer-events-none" />
 
@@ -1079,25 +1060,24 @@ export function GuestEventAlbumDetail({
           {/* Bottom Actions Tray */}
           {filteredPhotos.length > 0 && (
             <div className="flex items-center justify-between gap-3 mt-2 px-1 z-10 shrink-0">
-              <button 
+              <button
                 onClick={() => onToggleFavorite(currentPhoto)}
-                className={`w-12 h-12 rounded-full border flex items-center justify-center cursor-pointer active:scale-90 transition-transform ${
-                  isFav 
-                    ? "bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/20" 
+                className={`w-12 h-12 rounded-full border flex items-center justify-center cursor-pointer active:scale-90 transition-transform ${isFav
+                    ? "bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/20"
                     : "bg-white/5 border-white/10 text-white"
-                }`}
+                  }`}
               >
                 <Heart size={16} className={isFav ? "fill-white" : ""} />
               </button>
 
-              <button 
+              <button
                 onClick={() => onBulkDownload(filteredPhotos)}
                 className="flex-1 h-12 bg-white text-black font-black text-xs rounded-full flex items-center justify-center shadow-xl active:scale-98 transition-transform cursor-pointer"
               >
                 <span>Tümünü İndir ({filteredPhotos.length})</span>
               </button>
 
-              <button 
+              <button
                 onClick={() => onDownload(currentPhoto)}
                 className="w-12 h-12 rounded-full bg-white/5 border border-white/10 text-white flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
               >
@@ -1111,13 +1091,13 @@ export function GuestEventAlbumDetail({
         /* Standard Grid & Timeline Views */
         <>
           <div className="relative w-full aspect-[2/1] rounded-[28px] overflow-hidden border border-white/10 shadow-2xl">
-            <img 
-              src={event.cover_url} 
-              alt={event.title} 
-              className="w-full h-full object-cover brightness-[0.7]" 
+            <img
+              src={event.cover_url}
+              alt={event.title}
+              className="w-full h-full object-cover brightness-[0.7]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            
+
             <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-0.5">
               <strong className="text-sm font-black text-white leading-tight truncate">{event.title}</strong>
               <span className="text-[10px] text-white/60 leading-none truncate">{event.location} &bull; {new Date(event.date).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}</span>
@@ -1127,7 +1107,7 @@ export function GuestEventAlbumDetail({
           <div className="flex justify-between items-baseline mt-2 px-1">
             <h3 className="text-base font-black m-0 text-white">Senin Anıların</h3>
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={() => onBulkDownload(photos)}
                 className="text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 active:scale-95 transition-transform"
               >
@@ -1139,8 +1119,8 @@ export function GuestEventAlbumDetail({
 
           <div className="px-1">
             {viewMode === "grid" ? (
-              <GuestPhotoGrid 
-                photos={photos} 
+              <GuestPhotoGrid
+                photos={photos}
                 onPhotoClick={onPhotoClick}
                 favorites={favorites}
                 onToggleFavorite={onToggleFavorite}
@@ -1148,8 +1128,8 @@ export function GuestEventAlbumDetail({
                 onShare={onShare}
               />
             ) : (
-              <GuestPhotoTimeline 
-                photos={photos} 
+              <GuestPhotoTimeline
+                photos={photos}
                 onPhotoClick={onPhotoClick}
                 favorites={favorites}
                 onToggleFavorite={onToggleFavorite}
@@ -1169,10 +1149,10 @@ export function GuestPhotoInfoSheet({ photo, event, onClose }) {
     <div className="absolute inset-x-0 bottom-0 bg-[#0E121E]/95 backdrop-blur-2xl border-t border-white/10 rounded-t-[32px] p-5 z-[100000] text-left animate-slide-up shadow-[0_-12px_40px_rgba(0,0,0,0.6)]">
       {/* Notch handle */}
       <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4 cursor-pointer" onClick={onClose} />
-      
+
       <div className="flex justify-between items-center mb-3">
         <h4 className="text-sm font-black text-white m-0">Fotoğraf Bilgileri</h4>
-        <button 
+        <button
           onClick={onClose}
           className="text-[10px] font-black uppercase text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 cursor-pointer active:scale-95"
         >
@@ -1217,14 +1197,14 @@ export function GuestPhotoInfoSheet({ photo, event, onClose }) {
   );
 }
 
-export function GuestPhotoLightbox({ 
-  photo, 
-  event, 
-  onClose, 
-  isFavorite, 
-  onToggleFavorite, 
-  onDownload, 
-  onShare 
+export function GuestPhotoLightbox({
+  photo,
+  event,
+  onClose,
+  isFavorite,
+  onToggleFavorite,
+  onDownload,
+  onShare
 }) {
   const [zoomVal, setZoomVal] = useState(1);
   const [showInfoSheet, setShowInfoSheet] = useState(false);
@@ -1253,7 +1233,7 @@ export function GuestPhotoLightbox({
     <div className="fixed inset-0 bg-[#06080C] z-[9000] flex flex-col justify-between p-5 select-none text-white animate-fade-in guest-lightbox max-w-[430px] mx-auto w-full">
       {/* Header action bar */}
       <div className="flex items-center justify-between z-10 pt-4">
-        <button 
+        <button
           onClick={onClose}
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center border border-white/5 text-white cursor-pointer active:scale-90"
         >
@@ -1266,14 +1246,14 @@ export function GuestPhotoLightbox({
 
       {/* Centered Image */}
       <div className="relative flex-grow flex items-center justify-center overflow-hidden my-4">
-        <div 
-          className="transition-transform duration-200 ease-out max-w-full max-h-full flex items-center justify-center relative" 
+        <div
+          className="transition-transform duration-200 ease-out max-w-full max-h-full flex items-center justify-center relative"
           style={{ transform: `scale(${zoomVal})` }}
         >
-          <img 
-            src={photo.original_url || photo.thumbnail_url} 
-            alt="lightbox preview" 
-            className="max-w-full max-h-[66vh] object-contain rounded-2xl shadow-2xl border border-white/10 cursor-zoom-in active:scale-[0.98] transition-transform" 
+          <img
+            src={photo.original_url || photo.thumbnail_url}
+            alt="lightbox preview"
+            className="max-w-full max-h-[66vh] object-contain rounded-2xl shadow-2xl border border-white/10 cursor-zoom-in active:scale-[0.98] transition-transform"
             onDoubleClick={handleDoubleClick}
             onTouchEnd={handleDoubleTap}
           />
@@ -1281,7 +1261,7 @@ export function GuestPhotoLightbox({
           {/* Floating Pulsing Heart Overlay */}
           <AnimatePresence>
             {showHeart && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.3 }}
                 animate={{ opacity: 1, scale: [1, 1.25, 0.95, 1.1, 1] }}
                 exit={{ opacity: 0, scale: 1.6, y: -60 }}
@@ -1298,12 +1278,12 @@ export function GuestPhotoLightbox({
       {/* Zoom scale slider */}
       <div className="flex flex-col gap-1.5 items-center bg-black/40 p-2.5 rounded-2xl border border-white/5 mx-auto max-w-[200px] w-full mb-3 shrink-0">
         <span className="text-[8px] font-black uppercase text-white/50 tracking-wider">Yakınlaştırma: {Math.round(zoomVal * 100)}%</span>
-        <input 
-          type="range" 
-          min="1" 
-          max="3" 
-          step="0.1" 
-          value={zoomVal} 
+        <input
+          type="range"
+          min="1"
+          max="3"
+          step="0.1"
+          value={zoomVal}
           onChange={(e) => setZoomVal(parseFloat(e.target.value))}
           className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-emerald-400"
         />
@@ -1311,7 +1291,7 @@ export function GuestPhotoLightbox({
 
       {/* Bottom action icons bar */}
       <div className="glass-panel border border-white/5 bg-[#0E121E]/90 p-4 rounded-[24px] flex items-center justify-around shadow-2xl shrink-0 z-10">
-        <button 
+        <button
           onClick={onToggleFavorite}
           className="flex flex-col items-center justify-center bg-transparent border-none gap-1 cursor-pointer active:scale-95 transition-transform"
         >
@@ -1319,7 +1299,7 @@ export function GuestPhotoLightbox({
           <span className="text-[8px] font-black text-white/50 uppercase tracking-widest">Favori</span>
         </button>
 
-        <button 
+        <button
           onClick={onDownload}
           className="flex flex-col items-center justify-center bg-transparent border-none gap-1 cursor-pointer active:scale-95 transition-transform"
         >
@@ -1327,7 +1307,7 @@ export function GuestPhotoLightbox({
           <span className="text-[8px] font-black text-white/50 uppercase tracking-widest">İndir</span>
         </button>
 
-        <button 
+        <button
           onClick={onShare}
           className="flex flex-col items-center justify-center bg-transparent border-none gap-1 cursor-pointer active:scale-95 transition-transform"
         >
@@ -1335,7 +1315,7 @@ export function GuestPhotoLightbox({
           <span className="text-[8px] font-black text-white/50 uppercase tracking-widest">Paylaş</span>
         </button>
 
-        <button 
+        <button
           onClick={() => setShowInfoSheet(true)}
           className="flex flex-col items-center justify-center bg-transparent border-none gap-1 cursor-pointer active:scale-95 transition-transform"
         >
@@ -1346,10 +1326,10 @@ export function GuestPhotoLightbox({
 
       {/* Slide up info bottom sheet */}
       {showInfoSheet && (
-        <GuestPhotoInfoSheet 
-          photo={photo} 
-          event={event} 
-          onClose={() => setShowInfoSheet(false)} 
+        <GuestPhotoInfoSheet
+          photo={photo}
+          event={event}
+          onClose={() => setShowInfoSheet(false)}
         />
       )}
     </div>
@@ -1396,9 +1376,9 @@ const MOCK_MEMORIES = [
 export default function GuestFlow() {
   const { token } = useParams();
   const navigate = useNavigate();
-const { showToast } = useToast();
+  const { showToast } = useToast();
   const { login } = useAuth();
-  
+
   // App States
   const event = useSelector((state) => state.guest.event);
   const allEvents = useSelector((state) => state.guest.albums) || [];
@@ -1427,7 +1407,7 @@ const { showToast } = useToast();
     };
     setChatMessages([...chatMessages, newMessage]);
     setChatInput("");
-    
+
     setTimeout(() => {
       setChatMessages(prev => [...prev, {
         id: Date.now() + 1,
@@ -1437,18 +1417,18 @@ const { showToast } = useToast();
       }]);
     }, 1000);
   };
-  
+
   // Window Resizer: Mobil tarayıcılarda viewport yüksekliğini (--vh) dinamik hesapla
   useEffect(() => {
     const handleResize = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
-    
+
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
     handleResize();
-    
+
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
@@ -1459,7 +1439,7 @@ const { showToast } = useToast();
   useEffect(() => {
     if (token) {
       dispatch(setGuestToken(token));
-      
+
       const init = async () => {
         await dispatch(restoreGuestSession(token));
         setIsSessionRestored(true);
@@ -1501,7 +1481,7 @@ const { showToast } = useToast();
   const [qrSubStep, setQrSubStep] = useState("scanning"); // scanning, verified
   const [kvkkChecked, setKvkkChecked] = useState(false);
   const [selectedMemory, setSelectedMemory] = useState(null); // active AI Memory detail page
-  
+
   // Form/Auth States
   const [guestName, setGuestName] = useState(() => {
     const pathParts = window.location.pathname.split("/guest/");
@@ -1513,7 +1493,7 @@ const { showToast } = useToast();
           return JSON.parse(onboardingData).guestName || "";
         }
       }
-    } catch {}
+    } catch { }
     return "";
   });
   const consent = useSelector((state) => state.guest.consent);
@@ -1524,7 +1504,7 @@ const { showToast } = useToast();
   const setConsent1 = (val) => dispatch(setConsent({ kvkk: val }));
   const setConsent2 = (val) => dispatch(setConsent({ faceRecognition: val }));
   const setConsent3 = (val) => dispatch(setConsent({ terms: val }));
-  
+
   // Selfie States
   const [selfieStage, setSelfieStage] = useState(0);
   const selfie = useSelector((state) => state.guest.selfie);
@@ -1534,7 +1514,7 @@ const { showToast } = useToast();
   const setSelfieCaptured = (val) => dispatch(setSelfie({ captured: val }));
   const setSelfieUrl = (val) => dispatch(setSelfie({ url: val }));
   const [flashActive, setFlashActive] = useState(false);
-  
+
   // Matches Data
   const [participant, setParticipant] = useState(null);
   const matchedPhotosMap = useSelector((state) => state.guest.matchedPhotosByEvent);
@@ -1559,7 +1539,7 @@ const { showToast } = useToast();
   };
   const favorites = useSelector((state) => state.guest.favorites);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Lightbox State
   const selectedPhoto = useSelector((state) => state.guest.selectedPhoto);
   const setSelectedPhoto = (val) => dispatch(setSelectedPhotoAction(val));
@@ -1666,13 +1646,13 @@ const { showToast } = useToast();
               const allMatches = mockApi.getMatches(evt.id);
               const participantMatches = allMatches.filter(m => m.participant_id === part.id);
               const eventPhotos = mockApi.getPhotos(evt.id);
-              
-              const matched = eventPhotos.filter(ph => 
+
+              const matched = eventPhotos.filter(ph =>
                 participantMatches.some(m => m.photo_id === ph.id)
               );
-              
+
               const guestUploaded = eventPhotos.filter(ph => ph.source === "guest");
-              
+
               let combined = [...guestUploaded, ...matched];
               const seen = new Set();
               combined = combined.filter(p => {
@@ -1779,16 +1759,16 @@ const { showToast } = useToast();
       });
 
       const newUploadedPhotos = mockApi.uploadPhotos(selectedUploadEventId, filesWithUrls, "guest") || [];
-      
+
       setUploadProgress(100);
       setUploadingState("success");
-      
+
       showToast("Fotoğrafların başarıyla yüklendi. Yapay zeka eşleştirme işlemi tamamlandığında zaman tünelinde güncellenecek.", "success");
-      
+
       setIsUploadSheetOpen(false);
       setSelectedUploadFiles([]);
       setUploadingState("idle");
-      
+
       setMatchedPhotosMap(prev => {
         const oldList = prev[selectedUploadEventId] || [];
         const filteredOld = oldList.filter(oldPhoto => !newUploadedPhotos.some(newPhoto => newPhoto.id === oldPhoto.id));
@@ -1799,7 +1779,7 @@ const { showToast } = useToast();
       });
 
       setActiveTab("photos");
-      
+
     } catch (err) {
       setUploadingState("error");
       showToast("Fotoğraflar yüklenirken bir hata oluştu.", "error");
@@ -1875,14 +1855,14 @@ const { showToast } = useToast();
   }, [step]);
 
   const handleConsentSubmit = () => {
-if (!consent1 || !consent2 || !consent3) {
+    if (!consent1 || !consent2 || !consent3) {
       showToast("Lütfen tüm onayları işaretleyin.", "warning");
       return;
     }
     setStep("selfie");
   };
 
-const handleFileChange = (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -1895,7 +1875,7 @@ const handleFileChange = (e) => {
       showToast("Lütfen adınızı soyadınızı girin.", "warning");
       return;
     }
-    
+
     // Simulate flash
     setFlashActive(true);
     setTimeout(() => setFlashActive(false), 300);
@@ -1934,15 +1914,15 @@ const handleFileChange = (e) => {
     // Simulate matches across ALL events in the DB so other albums have pictures
     const loadedMatches = {};
     const events = allEvents;
-    
+
     events.forEach(evt => {
       mockApi.simulateAiMatchingForParticipant(evt.id, newPart.id);
-      
+
       const allMatches = mockApi.getMatches(evt.id);
       const participantMatches = allMatches.filter(m => m.participant_id === newPart.id);
       const eventPhotos = mockApi.getPhotos(evt.id);
-      
-      let matched = eventPhotos.filter(ph => 
+
+      let matched = eventPhotos.filter(ph =>
         participantMatches.some(m => m.photo_id === ph.id)
       );
 
@@ -1985,7 +1965,7 @@ const handleFileChange = (e) => {
       setIsRefreshing(true);
       setPullDistance(40);
       showToast("Yeni fotoğraflar kontrol ediliyor...", "success");
-      
+
       setTimeout(() => {
         setIsRefreshing(false);
         setPullDistance(0);
@@ -2002,7 +1982,7 @@ const handleFileChange = (e) => {
       mockApi.deleteParticipantFaceData(participant.id);
     }
     showToast("Tüm verileriniz kalıcı olarak silindi.", "success");
-    
+
     setParticipant(null);
     setGuestName("");
     setMatchedPhotosMap({});
@@ -2061,7 +2041,7 @@ const handleFileChange = (e) => {
     ctx.quadraticCurveTo(x, y, x + r, y);
     ctx.closePath();
     ctx.clip();
-    
+
     const imgRatio = img.width / img.height;
     const targetRatio = w / h;
     let sx, sy, sw, sh;
@@ -2083,30 +2063,30 @@ const handleFileChange = (e) => {
   const drawMockQrCode = (ctx, x, y, w, h, themeColor) => {
     ctx.fillStyle = "rgba(255, 255, 255, 0.98)";
     ctx.fillRect(x, y, w, h);
-    
+
     ctx.fillStyle = "#0F172A";
     const border = 8;
     const qrSize = w - (border * 2);
     const boxSize = qrSize / 8;
-    
+
     // Top-Left marker
     ctx.fillRect(x + border, y + border, boxSize * 3, boxSize * 3);
     ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(x + border + boxSize, y + border + boxSize, boxSize, boxSize);
     ctx.fillStyle = "#0F172A";
-    
+
     // Top-Right marker
     ctx.fillRect(x + border + boxSize * 5, y + border, boxSize * 3, boxSize * 3);
     ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(x + border + boxSize * 6, y + border + boxSize, boxSize, boxSize);
     ctx.fillStyle = "#0F172A";
-    
+
     // Bottom-Left marker
     ctx.fillRect(x + border, y + border + boxSize * 5, boxSize * 3, boxSize * 3);
     ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(x + border + boxSize, y + border + boxSize * 6, boxSize, boxSize);
     ctx.fillStyle = "#0F172A";
-    
+
     // Random dots
     for (let col = 0; col < 8; col++) {
       for (let row = 0; row < 8; row++) {
@@ -2129,32 +2109,32 @@ const handleFileChange = (e) => {
       for (let i = 0; i < bufferSize; i++) {
         data[i] = Math.random() * 2 - 1;
       }
-      
+
       const noise = audioCtx.createBufferSource();
       noise.buffer = buffer;
-      
+
       const filter = audioCtx.createBiquadFilter();
       filter.type = "bandpass";
       filter.frequency.value = 1000;
       filter.Q.value = 2.0;
-      
+
       const gain = audioCtx.createGain();
       gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
-      
+
       noise.connect(filter);
       filter.connect(gain);
       gain.connect(audioCtx.destination);
-      
+
       noise.start();
-      
+
       const osc = audioCtx.createOscillator();
       const oscGain = audioCtx.createGain();
       osc.type = "sine";
       osc.frequency.setValueAtTime(2000, audioCtx.currentTime);
       oscGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
       oscGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-      
+
       osc.connect(oscGain);
       oscGain.connect(audioCtx.destination);
       osc.start();
@@ -2170,17 +2150,17 @@ const handleFileChange = (e) => {
       canvas.width = 1080;
       canvas.height = 1920;
       const ctx = canvas.getContext("2d");
-      
+
       const photoImg = new Image();
       photoImg.crossOrigin = "anonymous";
       photoImg.src = photo.original_url || photo.thumbnail_url || photo.url;
-      
+
       photoImg.onload = () => {
         if (templateType === "polaroid") {
           // Polaroid background
           ctx.fillStyle = "#FAF8F5";
           ctx.fillRect(0, 0, 1080, 1920);
-          
+
           // Photo white base
           ctx.fillStyle = "#FFFFFF";
           ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
@@ -2188,34 +2168,34 @@ const handleFileChange = (e) => {
           ctx.shadowOffsetY = 15;
           ctx.fillRect(90, 160, 900, 1220);
           ctx.shadowColor = "transparent";
-          
+
           // Draw actual photo
           drawCoverImage(ctx, photoImg, 130, 200, 820, 1020);
-          
+
           // Text
           ctx.fillStyle = "#2C201F";
           ctx.font = "italic 44px Georgia, serif";
           ctx.textAlign = "center";
           ctx.fillText(event?.title || "Snapmatch Anıları", 1080 / 2, 1320);
-          
+
           // QR label
           ctx.fillStyle = "rgba(44, 32, 31, 0.6)";
           ctx.font = "bold 20px system-ui";
           ctx.fillText("ANILARINI BULMAK İÇİN QR KODU OKUT", 1080 / 2, 1440);
-          
+
           // Draw QR Code
           drawMockQrCode(ctx, 1080 / 2 - 80, 1470, 160, 160, "#2C201F");
-          
+
           // Logo footer
           ctx.fillStyle = "#C39C70";
           ctx.font = "black 28px system-ui";
           ctx.fillText("📸 SNAPMATCH", 1080 / 2, 1720);
-          
+
         } else if (templateType === "neon") {
           // Cyber Neon
           ctx.fillStyle = "#090D16";
           ctx.fillRect(0, 0, 1080, 1920);
-          
+
           // Draw a glowing gradient line border
           ctx.strokeStyle = "#3B82F6";
           ctx.lineWidth = 10;
@@ -2223,70 +2203,70 @@ const handleFileChange = (e) => {
           ctx.shadowBlur = 40;
           ctx.strokeRect(100, 160, 880, 1180);
           ctx.shadowColor = "transparent";
-          
+
           // Draw photo
           drawCoverImage(ctx, photoImg, 105, 165, 870, 1170);
-          
+
           // Header title
           ctx.fillStyle = "#FFFFFF";
           ctx.font = "900 56px system-ui";
           ctx.textAlign = "center";
           ctx.fillText(event?.title?.toUpperCase() || "SNAPMATCH", 1080 / 2, 1430);
-          
+
           ctx.fillStyle = "#10B981";
           ctx.font = "bold 26px monospace";
           ctx.fillText("[ AI MATCH VERIFIED: %98 ]", 1080 / 2, 1490);
-          
+
           // Draw QR
           drawMockQrCode(ctx, 1080 / 2 - 70, 1530, 140, 140, "#3B82F6");
-          
+
           // Logo footer
           ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
           ctx.font = "bold 26px system-ui";
           ctx.fillText("SNAPMATCH MOMENTS", 1080 / 2, 1760);
-          
+
         } else {
           // Elegant Glass
           ctx.drawImage(photoImg, 0, 0, 1080, 1920);
           ctx.fillStyle = "rgba(10, 8, 16, 0.78)";
           ctx.fillRect(0, 0, 1080, 1920);
-          
+
           // Glass plate
           ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
           ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
           ctx.lineWidth = 4;
           ctx.fillRect(100, 160, 880, 1560);
           ctx.strokeRect(100, 160, 880, 1560);
-          
+
           // Photo
           drawCoverImage(ctx, photoImg, 140, 220, 800, 1000);
-          
+
           // Gold thin border
           ctx.strokeStyle = "rgba(212, 175, 55, 0.4)";
           ctx.lineWidth = 3;
           ctx.strokeRect(140, 220, 800, 1000);
-          
+
           // Title
           ctx.fillStyle = "#D4AF37";
           ctx.font = "bold 56px system-ui";
           ctx.textAlign = "center";
           ctx.fillText(event?.title || "Özel Etkinlik", 1080 / 2, 1340);
-          
+
           ctx.fillStyle = "#FFFFFF";
           ctx.font = "300 28px system-ui";
           ctx.fillText("Bu anı ölümsüzleştirdik.", 1080 / 2, 1390);
-          
+
           // Draw QR
           drawMockQrCode(ctx, 1080 / 2 - 80, 1460, 160, 160, "#D4AF37");
-          
+
           ctx.fillStyle = "rgba(212, 175, 55, 0.8)";
           ctx.font = "900 24px system-ui";
           ctx.fillText("📸 SNAPMATCH EXCLUSIVE", 1080 / 2, 1680);
         }
-        
+
         resolve(canvas.toDataURL("image/png"));
       };
-      
+
       photoImg.onerror = (e) => {
         reject(e);
       };
@@ -2318,9 +2298,9 @@ const handleFileChange = (e) => {
       showToast("İndirilecek fotoğraf bulunamadı.", "warning");
       return;
     }
-    
+
     showToast(`${photosToDownload.length} fotoğraf sırayla indiriliyor...`, "info");
-    
+
     for (let i = 0; i < photosToDownload.length; i++) {
       const photo = photosToDownload[i];
       try {
@@ -2348,7 +2328,7 @@ const handleFileChange = (e) => {
 
   if (!event) {
     return (
-<div className="guest-flow-container flex justify-center items-center min-h-screen p-5">
+      <div className="guest-flow-container flex justify-center items-center min-h-screen p-5">
         <GlassCard className="glass-panel max-w-[420px] text-center p-7.5">
           <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
           <h3 className="text-lg font-bold mb-2">Geçersiz QR Kod</h3>
@@ -2389,7 +2369,7 @@ const handleFileChange = (e) => {
           <p className="text-[11px] text-white/40 mt-1 max-w-[220px] text-center leading-relaxed">
             Bağlantınızı kontrol edip lütfen tekrar deneyin.
           </p>
-          <button 
+          <button
             onClick={() => {
               if (token) {
                 dispatch(fetchGuestEvent(token));
@@ -2409,7 +2389,7 @@ const handleFileChange = (e) => {
 
       {/* Main Wrapper */}
       <div className={`guest-app-wrapper guest-theme-${guestTheme}`}>
-        
+
         {/* Instagram Story Style Step Progress Lines */}
         {/* BYPASSED: Biyometrik onboarding adımları es geçildiği için gizlendi */}
         {false && ["welcome", "consent", "selfie"].includes(step) && (
@@ -2429,7 +2409,7 @@ const handleFileChange = (e) => {
             })}
           </div>
         )}
-        
+
         {/* 3-PAGE PREMIUM SPLASH / ONBOARDING SCREEN */}
         {showSplash && (
           <div className="flex-grow flex flex-col justify-between w-full animate-fade-in py-4 select-none pb-8 guest-safe-area-pb px-5 text-center">
@@ -2444,7 +2424,7 @@ const handleFileChange = (e) => {
             <div className="flex-grow flex flex-col items-center justify-center my-4 overflow-hidden relative min-h-[380px]">
               <AnimatePresence mode="wait">
                 {splashPage === 1 && (
-                  <motion.div 
+                  <motion.div
                     key="splash1"
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -2463,7 +2443,7 @@ const handleFileChange = (e) => {
                 )}
 
                 {splashPage === 2 && (
-                  <motion.div 
+                  <motion.div
                     key="splash2"
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -2482,7 +2462,7 @@ const handleFileChange = (e) => {
                 )}
 
                 {splashPage === 3 && (
-                  <motion.div 
+                  <motion.div
                     key="splash3"
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -2507,14 +2487,13 @@ const handleFileChange = (e) => {
               {/* Pagination Dots */}
               <div className="flex justify-center gap-2">
                 {[1, 2, 3].map((page) => (
-                  <button 
+                  <button
                     key={page}
                     onClick={() => setSplashPage(page)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      splashPage === page 
-                        ? "w-6 bg-blue-400" 
+                    className={`h-2 rounded-full transition-all duration-300 ${splashPage === page
+                        ? "w-6 bg-blue-400"
                         : "w-2 bg-white/20"
-                    }`}
+                      }`}
                   />
                 ))}
               </div>
@@ -2523,7 +2502,7 @@ const handleFileChange = (e) => {
               <div className="flex items-center justify-between gap-4 px-2">
                 {splashPage < 3 ? (
                   <>
-                    <button 
+                    <button
                       onClick={() => {
                         setShowSplash(false);
                         setStep("qr");
@@ -2532,7 +2511,7 @@ const handleFileChange = (e) => {
                     >
                       Geç
                     </button>
-                    <button 
+                    <button
                       onClick={() => setSplashPage(prev => prev + 1)}
                       className="px-6 py-3 bg-white/10 border border-white/10 hover:bg-white/15 active:scale-95 text-white text-xs font-black rounded-xl transition-all"
                     >
@@ -2540,7 +2519,7 @@ const handleFileChange = (e) => {
                     </button>
                   </>
                 ) : (
-                  <button 
+                  <button
                     onClick={() => {
                       setShowSplash(false);
                       setStep("qr");
@@ -2569,7 +2548,7 @@ const handleFileChange = (e) => {
                 </div>
                 <h2 className="text-xl font-black text-white m-0 tracking-tight">QR Kod Algılanıyor</h2>
                 <strong className="text-[10px] text-white/40 block mt-2 font-mono uppercase tracking-widest">{token}</strong>
-                
+
                 <div className="flex flex-col gap-1.5 items-center mt-12 w-full">
                   <span className="text-[9px] font-black uppercase text-blue-400 tracking-wider">Kamera ve sinyal aranıyor...</span>
                   <div className="w-28 h-1 bg-white/10 rounded-full overflow-hidden mt-2 relative">
@@ -2584,7 +2563,7 @@ const handleFileChange = (e) => {
                 </div>
                 <h2 className="text-xl font-black text-white m-0 tracking-tight">QR Kod Doğrulandı</h2>
                 <strong className="text-xs text-white/50 block mt-2 font-medium">{event.title}</strong>
-                
+
                 <div className="flex flex-col gap-1.5 items-center mt-12 w-full">
                   <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">Etkinliğe bağlanıyorsunuz...</span>
                   <div className="w-28 h-1 bg-white/10 rounded-full overflow-hidden mt-2 relative">
@@ -2600,7 +2579,7 @@ const handleFileChange = (e) => {
         {step === "welcome" && (
           <div className="flex-1 flex flex-col justify-between w-full animate-fade-in py-4 select-none pb-8 guest-safe-area-pb px-5">
             <div className="flex flex-col gap-3 mt-4 text-left">
-              <button 
+              <button
                 onClick={() => {
                   setShowSplash(true);
                   setStep("qr");
@@ -2630,8 +2609,8 @@ const handleFileChange = (e) => {
               {/* Name Surname Input */}
               <div className="flex flex-col gap-2.5 text-left">
                 <span className="text-[10px] font-black uppercase text-white/40 tracking-wider">Adınız Soyadınız</span>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="Örn: Ezgi Çelik"
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
@@ -2641,7 +2620,7 @@ const handleFileChange = (e) => {
             </div>
 
             {/* Devam Et Button */}
-            <button 
+            <button
               onClick={() => {
                 setConsent1(true);
                 setConsent2(true);
@@ -2649,11 +2628,10 @@ const handleFileChange = (e) => {
                 setStep("selfie");
               }}
               disabled={!guestName.trim()}
-              className={`w-full py-4 text-xs font-black rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all ${
-                guestName.trim()
-                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20" 
+              className={`w-full py-4 text-xs font-black rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all ${guestName.trim()
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20"
                   : "bg-white/10 text-white/30 cursor-not-allowed"
-              }`}
+                }`}
             >
               <span>Onayla ve Devam Et</span>
               <ChevronRight size={14} />
@@ -2666,21 +2644,21 @@ const handleFileChange = (e) => {
           <div className="flex-1 flex flex-col justify-between w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb">
             {/* Top part cover card */}
             <div className="relative w-full aspect-[4/3] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shrink-0">
-              <img 
-                src={event.cover_url || "https://images.unsplash.com/photo-1519741497674-611481863552?w=500"} 
-                alt={event.title} 
+              <img
+                src={event.cover_url || "https://images.unsplash.com/photo-1519741497674-611481863552?w=500"}
+                alt={event.title}
                 className="w-full h-full object-cover brightness-[0.65]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0E121E] via-transparent to-transparent" />
-              
+
               {/* Back navigation to QR page */}
-              <button 
+              <button
                 onClick={() => setStep("qr")}
                 className="absolute top-4 left-4 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/15 flex items-center justify-center cursor-pointer text-white z-10 active:scale-90"
               >
                 <ArrowLeft size={16} />
               </button>
-              
+
               <div className="absolute bottom-6 left-6 right-6 flex flex-col gap-1 text-left">
                 <span className="text-[9px] text-white/50 font-black bg-white/10 border border-white/10 px-2.5 py-1 rounded-full uppercase tracking-wider w-fit mb-1.5 flex items-center gap-1.5">
                   {event.category === "wedding" ? (
@@ -2749,7 +2727,7 @@ const handleFileChange = (e) => {
               </div>
 
               {/* Devam Et Button */}
-              <button 
+              <button
                 onClick={() => setStep("consent")}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs py-4 px-6 rounded-2xl shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all mt-4 shrink-0"
               >
@@ -2763,13 +2741,13 @@ const handleFileChange = (e) => {
         {/* STEP 3: KVKK Privacy / Consent screen */}
         {/* SIMULATION BYPASSED: Splash ekranları kullanıldığı için bu adım es geçildi */}
         {false && step === "consent" && (
-          <div 
+          <div
             className="flex-1 flex flex-col justify-between w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb px-5"
             style={{ boxSizing: "border-box" }}
           >
             {/* Header Area */}
             <div className="flex flex-col gap-2.5 mt-4 text-left w-full">
-              <button 
+              <button
                 onClick={() => setStep("welcome")}
                 className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer text-white/75 active:scale-90"
               >
@@ -2784,7 +2762,7 @@ const handleFileChange = (e) => {
             {/* Privacy list items */}
             <div className="flex flex-col gap-2.5 mt-2 mb-4 w-full">
               {/* Card 1 */}
-              <div 
+              <div
                 className="text-left flex gap-3 items-center"
                 style={{
                   width: "100%",
@@ -2800,7 +2778,7 @@ const handleFileChange = (e) => {
                 }}
               >
                 {/* Icon Wrapper Circle */}
-                <div 
+                <div
                   className="shrink-0"
                   style={{
                     width: "30px",
@@ -2821,7 +2799,7 @@ const handleFileChange = (e) => {
               </div>
 
               {/* Card 2 */}
-              <div 
+              <div
                 className="text-left flex gap-3 items-center"
                 style={{
                   width: "100%",
@@ -2837,7 +2815,7 @@ const handleFileChange = (e) => {
                 }}
               >
                 {/* Icon Wrapper Circle */}
-                <div 
+                <div
                   className="shrink-0"
                   style={{
                     width: "30px",
@@ -2858,7 +2836,7 @@ const handleFileChange = (e) => {
               </div>
 
               {/* Card 3 */}
-              <div 
+              <div
                 className="text-left flex gap-3 items-center"
                 style={{
                   width: "100%",
@@ -2873,7 +2851,7 @@ const handleFileChange = (e) => {
                   minWidth: 0
                 }}
               >
-                <div 
+                <div
                   className="shrink-0"
                   style={{
                     width: "30px",
@@ -2897,7 +2875,7 @@ const handleFileChange = (e) => {
             {/* Bottom Group (KVKK Text + Checkbox + CTA Card) */}
             <div className="flex flex-col gap-3 mt-auto w-full">
               {/* Scrollable KVKK Metni */}
-              <div 
+              <div
                 className="glass-subpanel scrollbar-thin"
                 style={{
                   width: "100%",
@@ -2921,7 +2899,7 @@ const handleFileChange = (e) => {
               </div>
 
               {/* Glass Checkbox Container Card */}
-              <div 
+              <div
                 onClick={() => setKvkkChecked(!kvkkChecked)}
                 style={{
                   width: "100%",
@@ -2941,7 +2919,7 @@ const handleFileChange = (e) => {
                 }}
               >
                 {/* Checkbox Circle */}
-                <div 
+                <div
                   style={{
                     width: "24px",
                     height: "24px",
@@ -2960,9 +2938,9 @@ const handleFileChange = (e) => {
                 >
                   {kvkkChecked && <Check size={12} strokeWidth={3.5} className="text-white" />}
                 </div>
-                
+
                 {/* Checkbox Text */}
-                <span 
+                <span
                   style={{
                     fontSize: "11px",
                     fontWeight: "600",
@@ -2977,7 +2955,7 @@ const handleFileChange = (e) => {
               </div>
 
               {/* Devam Et Button */}
-              <button 
+              <button
                 onClick={() => {
                   setConsent1(true);
                   setConsent2(true);
@@ -3020,7 +2998,7 @@ const handleFileChange = (e) => {
             )}
 
             <div className="flex flex-col gap-3 mt-4 text-left">
-              <button 
+              <button
                 onClick={() => setStep("consent")}
                 className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer text-white/75 active:scale-90"
               >
@@ -3045,7 +3023,7 @@ const handleFileChange = (e) => {
                 }
               `}</style>
 
-              <div 
+              <div
                 className="absolute inset-0 bg-cover bg-center transition-all duration-300"
                 style={{
                   backgroundImage: selfieCaptured ? 'url("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80")' : 'none',
@@ -3100,11 +3078,10 @@ const handleFileChange = (e) => {
                       setCameraFilter(f.id);
                       if (navigator.vibrate) navigator.vibrate(12);
                     }}
-                    className={`px-3 py-1 rounded-full text-[9px] font-black border transition-all duration-200 cursor-pointer active:scale-95 ${
-                      cameraFilter === f.id 
-                        ? "bg-blue-500 border-blue-400 text-white shadow-md shadow-blue-500/20" 
+                    className={`px-3 py-1 rounded-full text-[9px] font-black border transition-all duration-200 cursor-pointer active:scale-95 ${cameraFilter === f.id
+                        ? "bg-blue-500 border-blue-400 text-white shadow-md shadow-blue-500/20"
                         : "bg-white/5 border-white/10 text-white/50"
-                    }`}
+                      }`}
                   >
                     {f.name}
                   </button>
@@ -3129,7 +3106,7 @@ const handleFileChange = (e) => {
               {!selfieCaptured ? (
                 <div className="flex flex-col gap-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <button 
+                    <button
                       onClick={() => {
                         setFlashActive(true);
                         playShutterSound();
@@ -3144,14 +3121,14 @@ const handleFileChange = (e) => {
                       <span>Fotoğraf Çek</span>
                     </button>
 
-                    <button 
+                    <button
                       onClick={() => {
                         setGuestName("Ezgi Çelik");
                         playShutterSound();
                         if (navigator.vibrate) navigator.vibrate([80]);
                         const mockSelfie = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80";
                         dispatch(setSelfie({ captured: true, url: mockSelfie }));
-                        
+
                         // Directly trigger matches and advance to processing
                         const newPart = mockApi.createParticipant(event.id, "Ezgi Çelik", mockSelfie);
                         setParticipant(newPart);
@@ -3162,7 +3139,7 @@ const handleFileChange = (e) => {
                           const allMatches = mockApi.getMatches(evt.id);
                           const participantMatches = allMatches.filter(m => m.participant_id === newPart.id);
                           const eventPhotos = mockApi.getPhotos(evt.id);
-                          let matched = eventPhotos.filter(ph => 
+                          let matched = eventPhotos.filter(ph =>
                             participantMatches.some(m => m.photo_id === ph.id)
                           );
                           if (matched.length === 0 && eventPhotos.length > 0) {
@@ -3171,7 +3148,7 @@ const handleFileChange = (e) => {
                           loadedMatches[evt.id] = matched;
                         });
                         setMatchedPhotosMap(loadedMatches);
-                        
+
                         const onboardingObj = {
                           consentAccepted: true,
                           selfieCaptured: true,
@@ -3179,7 +3156,7 @@ const handleFileChange = (e) => {
                           selfieUrl: mockSelfie
                         };
                         localStorage.setItem(`sm_guest_onboarding_${token}`, JSON.stringify(onboardingObj));
-                        
+
                         showToast("Demo selfie kullanıldı, analiz ediliyor.", "success");
                         setStep("processing");
                       }}
@@ -3190,11 +3167,11 @@ const handleFileChange = (e) => {
                     </button>
                   </div>
 
-                  <button 
+                  <button
                     onClick={() => {
                       setGuestName("Misafir");
                       dispatch(setSelfie({ captured: false, url: null }));
-                      
+
                       const loadedMatches = {};
                       const events = allEvents;
                       events.forEach(evt => {
@@ -3202,7 +3179,7 @@ const handleFileChange = (e) => {
                         loadedMatches[evt.id] = eventPhotos;
                       });
                       setMatchedPhotosMap(loadedMatches);
-                      
+
                       const onboardingObj = {
                         consentAccepted: true,
                         selfieCaptured: false,
@@ -3210,7 +3187,7 @@ const handleFileChange = (e) => {
                         selfieUrl: null
                       };
                       localStorage.setItem(`sm_guest_onboarding_${token}`, JSON.stringify(onboardingObj));
-                      
+
                       showToast("Selfie adımı atlandı, albümlere yönlendiriliyorsunuz.", "success");
                       setStep("albums");
                       setActiveTab("photos");
@@ -3289,14 +3266,13 @@ const handleFileChange = (e) => {
                   </div>
                   */}
 
-                  <button 
+                  <button
                     onClick={handleUploadSelfie}
                     disabled={!guestName.trim()}
-                    className={`w-full py-4 text-xs font-black rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all ${
-                      guestName.trim()
-                        ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg" 
+                    className={`w-full py-4 text-xs font-black rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all ${guestName.trim()
+                        ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg"
                         : "bg-white/10 text-white/30 cursor-not-allowed"
-                    }`}
+                      }`}
                   >
                     <span>Onayla ve Eşleştir</span>
                     <ChevronRight size={14} />
@@ -3312,7 +3288,7 @@ const handleFileChange = (e) => {
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-fade-in relative bg-transparent select-none">
             {/* Ambient glows */}
             <div className="absolute w-44 h-44 rounded-full bg-emerald-500/10 blur-[80px] animate-pulse z-0" />
-            
+
             <div className="glass-panel w-full max-w-[340px] p-6 flex flex-col items-center gap-5 border border-white/5 rounded-[32px] z-10 shadow-2xl relative text-left">
               <div className="flex flex-col items-center gap-1.5 text-center w-full">
                 <BrainCircuit size={28} className="text-emerald-400 animate-pulse shrink-0" />
@@ -3326,9 +3302,9 @@ const handleFileChange = (e) => {
 
               {/* High-Tech Biometric Scanner Preview Container */}
               <div className="relative aspect-square w-full max-w-[180px] mx-auto rounded-full overflow-hidden border-2 border-emerald-500/40 bg-black/40 flex items-center justify-center shadow-lg">
-                
+
                 {/* User Selfie Backdrop */}
-                <div 
+                <div
                   className="absolute inset-0 bg-cover bg-center"
                   style={{
                     backgroundImage: `url(${selfieUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80"})`,
@@ -3343,17 +3319,17 @@ const handleFileChange = (e) => {
                   <line x1="0" y1="120" x2="240" y2="120" stroke="rgba(16, 185, 129, 0.15)" strokeWidth="1" strokeDasharray="4 4" />
 
                   {/* Connected Mesh Lines */}
-                  <polygon 
-                    points="60,80 180,80 190,140 120,200 50,140" 
-                    fill="rgba(16, 185, 129, 0.04)" 
-                    stroke="rgba(16, 185, 129, 0.25)" 
-                    strokeWidth="1" 
+                  <polygon
+                    points="60,80 180,80 190,140 120,200 50,140"
+                    fill="rgba(16, 185, 129, 0.04)"
+                    stroke="rgba(16, 185, 129, 0.25)"
+                    strokeWidth="1"
                   />
                   <line x1="85" y1="100" x2="155" y2="100" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="0.8" />
                   <line x1="85" y1="100" x2="120" y2="135" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="0.8" />
                   <line x1="155" y1="100" x2="120" y2="135" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="0.8" />
                   <line x1="120" y1="135" x2="120" y2="200" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="0.8" />
-                  
+
                   {/* Blinking nodes */}
                   {[
                     { cx: 85, cy: 100, label: "L_EYE" },
@@ -3368,21 +3344,21 @@ const handleFileChange = (e) => {
                     { cx: 180, cy: 80, label: "TEMP_R" }
                   ].map((node, i) => (
                     <g key={node.label}>
-                      <circle 
-                        cx={node.cx} 
-                        cy={node.cy} 
-                        r="3" 
-                        fill="#10B981" 
+                      <circle
+                        cx={node.cx}
+                        cy={node.cy}
+                        r="3"
+                        fill="#10B981"
                         className={i % 2 === 0 ? "animate-pulse" : ""}
                         style={{ animationDuration: `${0.8 + (i * 0.15)}s` }}
                       />
-                      <circle 
-                        cx={node.cx} 
-                        cy={node.cy} 
-                        r="6" 
-                        fill="transparent" 
-                        stroke="#10B981" 
-                        strokeWidth="0.5" 
+                      <circle
+                        cx={node.cx}
+                        cy={node.cy}
+                        r="6"
+                        fill="transparent"
+                        stroke="#10B981"
+                        strokeWidth="0.5"
                         className="animate-ping"
                         style={{ animationDuration: "1.8s", animationDelay: `${i * 0.2}s` }}
                       />
@@ -3392,7 +3368,7 @@ const handleFileChange = (e) => {
 
                 {/* Sweeping Green Laser Line */}
                 <div className="absolute left-0 right-0 h-[3px] bg-emerald-400 shadow-[0_0_12px_#10B981] animate-scanner-sweep z-20" />
-                
+
                 {/* Scan Overlay Vignette */}
                 <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/20 via-transparent to-transparent pointer-events-none z-20" />
               </div>
@@ -3447,12 +3423,12 @@ const handleFileChange = (e) => {
 
         {/* STEP 6: Guest App Dashboard */}
         {!showSplash && step === "albums" && (
-          <div className="flex-1 flex flex-col justify-between h-full min-h-0 w-full relative overflow-hidden">
-            
+          <div className="flex-grow flex flex-col w-full relative">
+
 
 
             {/* TAB VIEW CONTAINER */}
-            <div 
+            <div
               ref={containerRef}
               /* onTouchStart={handleTouchStart} */
               /* onTouchMove={handleTouchMove} */
@@ -3460,12 +3436,12 @@ const handleFileChange = (e) => {
               className="flex-1 w-full relative"
             >
               {/* Pull-to-refresh spinner kaldırıldı (sadece resimler sayfasındaki buton kullanılacak) */}
-              
+
               {/* TAB 1: Albums (Albums Grid) */}
               {activeTab === "albums" && (() => {
                 const allGuestPhotos = Object.values(matchedPhotosMap).flat();
                 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&auto=format&fit=crop";
-                
+
                 const activeAccent = {
                   beige: "#C39C70",
                   pink: "#E06C7F",
@@ -3481,7 +3457,7 @@ const handleFileChange = (e) => {
                     <div className="relative h-[180px] bg-cover bg-center shrink-0 border-b border-white/10" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507504038482-76210214dae1?w=800&q=80')", marginLeft: "-20px", marginRight: "-20px", marginTop: "-20px", width: "calc(100% + 40px)" }}>
                       {/* Soft dark transparency overlay */}
                       <div className="absolute inset-0 bg-black/20" />
-                      
+
                       {/* Back Button (matching the user's screenshot) */}
                       <button
                         onClick={() => {
@@ -3537,27 +3513,25 @@ const handleFileChange = (e) => {
                         <span className="text-[10px] font-black uppercase text-white/45 tracking-wider">
                           Görünüm Modu
                         </span>
-                        
+
                         {/* Apple style Glass Pill Selector for albumViewMode */}
                         <div className="flex bg-white/5 border border-white/10 rounded-full p-0.5 select-none shrink-0 shadow-inner">
                           <button
                             onClick={() => setAlbumViewMode("grid")}
-                            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${
-                              albumViewMode === "grid" 
-                                ? "bg-white/10 text-white shadow-md" 
+                            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${albumViewMode === "grid"
+                                ? "bg-white/10 text-white shadow-md"
                                 : "bg-transparent text-white/40"
-                            }`}
+                              }`}
                           >
                             <Grid2X2 size={10} />
                             <span>Izgara</span>
                           </button>
                           <button
                             onClick={() => setAlbumViewMode("slide")}
-                            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${
-                              albumViewMode === "slide" 
-                                ? "bg-white/10 text-white shadow-md" 
+                            className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border-none flex items-center gap-1 ${albumViewMode === "slide"
+                                ? "bg-white/10 text-white shadow-md"
                                 : "bg-transparent text-white/40"
-                            }`}
+                              }`}
                           >
                             <GalleryHorizontal size={10} />
                             <span>Slide</span>
@@ -3585,7 +3559,7 @@ const handleFileChange = (e) => {
                               e.target.src = FALLBACK_IMAGE;
                             };
                             return (
-                              <div 
+                              <div
                                 key={photo.id}
                                 onClick={() => {
                                   setSelectedPhoto(photo);
@@ -3594,9 +3568,9 @@ const handleFileChange = (e) => {
                                 }}
                                 className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-white/5 cursor-pointer shadow-md active:scale-[0.98] transition-transform"
                               >
-                                <img 
-                                  src={photoUrl} 
-                                  alt={photo.filename} 
+                                <img
+                                  src={photoUrl}
+                                  alt={photo.filename}
                                   onError={handleImgError}
                                   className="w-full h-full object-cover"
                                   loading="lazy"
@@ -3612,7 +3586,7 @@ const handleFileChange = (e) => {
                         </div>
                       ) : (
                         /* 3D COVERFLOW CAROUSEL SLIDE VIEW */
-                        <div 
+                        <div
                           className="relative w-full overflow-hidden my-4 py-6 flex flex-col items-center justify-center select-none"
                           style={{ touchAction: "pan-y" }}
                         >
@@ -3622,7 +3596,7 @@ const handleFileChange = (e) => {
                                 const currentIdx = Math.min(Math.max(0, albumSlideIdx), allGuestPhotos.length - 1);
                                 return allGuestPhotos.map((photo, idx) => {
                                   let offset = idx - currentIdx;
-                                  
+
                                   // Wrap around offset for infinite loop display
                                   if (offset < -Math.floor(allGuestPhotos.length / 2)) {
                                     offset += allGuestPhotos.length;
@@ -3724,9 +3698,9 @@ const handleFileChange = (e) => {
                                       }}
                                       className="rounded-[22px] overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.4)] border border-white/10 bg-slate-900 cursor-grab active:cursor-grabbing flex items-center justify-center select-none"
                                     >
-                                      <img 
-                                        src={photoUrl} 
-                                        alt={photo.filename} 
+                                      <img
+                                        src={photoUrl}
+                                        alt={photo.filename}
                                         onError={handleImgError}
                                         className="w-full h-full object-cover pointer-events-none"
                                       />
@@ -3744,7 +3718,7 @@ const handleFileChange = (e) => {
                               })()}
                             </AnimatePresence>
                           </div>
-                          
+
                           {/* Counter below the image card */}
                           <div className="text-[10px] font-extrabold text-white/40 mt-4 select-none tracking-wider bg-white/5 border border-white/10 px-3 py-1 rounded-full">
                             {allGuestPhotos.length > 0 ? (Math.min(Math.max(0, albumSlideIdx), allGuestPhotos.length - 1) + 1) : 0} / {allGuestPhotos.length}
@@ -3814,7 +3788,7 @@ const handleFileChange = (e) => {
                       </div>
                     ) : (
                       /* iPhone-like 6-pattern asymmetric CSS Grid */
-                      <div 
+                      <div
                         className="grid grid-cols-2 mt-2 w-full"
                         style={{
                           gap: "8px"
@@ -3850,14 +3824,14 @@ const handleFileChange = (e) => {
                           }
 
                           return (
-                            <div 
+                            <div
                               key={photo.id}
                               className={`relative group cursor-pointer overflow-hidden rounded-[20px] bg-[#0A0D14] border border-white/10 select-none shadow-sm active:scale-[0.98] transition-all duration-200 w-full ${sizeClasses}`}
                               onClick={() => handlePhotoSelect(photo)}
                             >
-                              <img 
-                                src={photoUrl} 
-                                alt="" 
+                              <img
+                                src={photoUrl}
+                                alt=""
                                 onError={handleImgError}
                                 className="w-full h-full block object-cover"
                                 style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }}
@@ -3913,7 +3887,7 @@ const handleFileChange = (e) => {
                         <span>Henüz favorilere fotoğraf eklemediniz.</span>
                       </div>
                     ) : (
-                      <GuestPhotoGrid 
+                      <GuestPhotoGrid
                         photos={favorites}
                         onPhotoClick={(idx) => {
                           setSelectedPhoto(favorites[idx]);
@@ -3935,7 +3909,7 @@ const handleFileChange = (e) => {
                 <div className="flex flex-col min-h-full relative">
                   {/* Chat Header */}
                   <div className="sticky top-0 z-20 p-4 border-b border-white/10 shrink-0 bg-black/40 backdrop-blur-md flex items-center gap-3">
-                    <div 
+                    <div
                       className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border"
                       style={{ backgroundColor: `${activeAccent}33`, borderColor: `${activeAccent}80` }}
                     >
@@ -3946,17 +3920,16 @@ const handleFileChange = (e) => {
                       <p className="text-emerald-400 text-[11px] m-0">Çevrimiçi</p>
                     </div>
                   </div>
-                  
+
                   {/* Chat Messages */}
                   <div className="flex-1 p-4 flex flex-col gap-4 pb-36 overflow-y-auto">
                     {chatMessages.map(msg => (
                       <div key={msg.id} className={`flex flex-col gap-1 ${msg.sender === 'guest' ? 'items-end' : 'items-start'}`}>
-                        <div 
-                          className={`p-3 rounded-2xl text-[13.5px] max-w-[85%] border leading-snug ${
-                            msg.sender === 'guest' 
-                              ? 'text-white rounded-tr-sm' 
+                        <div
+                          className={`p-3 rounded-2xl text-[13.5px] max-w-[85%] border leading-snug ${msg.sender === 'guest'
+                              ? 'text-white rounded-tr-sm'
                               : 'bg-white/10 text-white rounded-tl-sm border-white/5'
-                          }`}
+                            }`}
                           style={msg.sender === 'guest' ? { backgroundColor: activeAccent, borderColor: `${activeAccent}80` } : {}}
                         >
                           {msg.text}
@@ -3971,15 +3944,15 @@ const handleFileChange = (e) => {
                   {/* Chat Input */}
                   <div className="sticky bottom-0 left-0 right-0 p-3 bg-black/40 backdrop-blur-xl border-t border-white/10 z-10 mt-auto" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 12px) + 70px)" }}>
                     <div className="flex items-center gap-2">
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                        placeholder="Mesaj yazın..." 
+                        placeholder="Mesaj yazın..."
                         className="flex-1 bg-white/10 border border-white/20 rounded-full py-2.5 px-4 text-white text-sm outline-none placeholder:text-white/40 transition-colors focus:border-white/40"
                       />
-                      <button 
+                      <button
                         onClick={handleSendMessage}
                         className="w-10 h-10 rounded-full text-white flex items-center justify-center shrink-0 shadow-lg active:scale-95 transition-transform border-none cursor-pointer"
                         style={{ backgroundColor: activeAccent }}
@@ -3994,7 +3967,7 @@ const handleFileChange = (e) => {
               {/* TAB 5: Settings (Tema & Profil) */}
               {activeTab === "settings" && (
                 <div className="p-4 pb-36 animate-fade-in">
-                  <GuestThemeSettings 
+                  <GuestThemeSettings
                     guestTheme={guestTheme}
                     setGuestTheme={setGuestTheme}
                     showToast={showToast}
@@ -4008,7 +3981,7 @@ const handleFileChange = (e) => {
             </div>
 
             {/* TAB BAR NAVIGATION */}
-            <GuestBottomNav 
+            <GuestBottomNav
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               onTabClick={(tabId) => {
@@ -4024,7 +3997,7 @@ const handleFileChange = (e) => {
 
         {/* SCREEN 8: Full Screen iPhone Photos style Lightbox Modal */}
         {selectedPhoto && (
-          <GuestPhotoLightbox 
+          <GuestPhotoLightbox
             photo={selectedPhoto}
             event={selectedPhotoEvent}
             onClose={() => {
@@ -4040,7 +4013,7 @@ const handleFileChange = (e) => {
 
         {/* SCREEN 9: Full Screen Slideshow Modal */}
         {activeSlideshowPhotos && (
-          <GuestSlideshow 
+          <GuestSlideshow
             photos={activeSlideshowPhotos}
             onClose={() => setActiveSlideshowPhotos(null)}
           />
@@ -4058,7 +4031,7 @@ const handleFileChange = (e) => {
           >
             <div className="flex flex-col gap-4 text-center text-white py-1">
               <p className="text-[10px] text-white/50 m-0">Telefonunuza kaydetmek için bir şablon stili seçip indirin.</p>
-              
+
               {/* Template Style Selector Buttons */}
               <div className="grid grid-cols-3 gap-2 px-1">
                 {[
@@ -4072,9 +4045,8 @@ const handleFileChange = (e) => {
                       setSelectedTemplate(tmpl.id);
                       if (navigator.vibrate) navigator.vibrate(20);
                     }}
-                    className={`p-2 rounded-xl border text-[10px] font-black cursor-pointer transition-all duration-200 active:scale-95 ${tmpl.bg} ${
-                      selectedTemplate === tmpl.id ? "ring-2 ring-emerald-500 scale-[1.04]" : "opacity-60"
-                    }`}
+                    className={`p-2 rounded-xl border text-[10px] font-black cursor-pointer transition-all duration-200 active:scale-95 ${tmpl.bg} ${selectedTemplate === tmpl.id ? "ring-2 ring-emerald-500 scale-[1.04]" : "opacity-60"
+                      }`}
                   >
                     {tmpl.name}
                   </button>
@@ -4084,11 +4056,11 @@ const handleFileChange = (e) => {
               {/* Instagram Story Preview Card based on selected template */}
               <div className="w-full max-w-[250px] mx-auto aspect-[9/16] rounded-[24px] overflow-hidden p-4 flex flex-col justify-between shadow-2xl relative transition-all duration-300 border border-white/10"
                 style={{
-                  background: selectedTemplate === "polaroid" 
-                    ? "#FAF8F5" 
+                  background: selectedTemplate === "polaroid"
+                    ? "#FAF8F5"
                     : selectedTemplate === "neon"
-                    ? "linear-gradient(to bottom, #090D16, #04060B)"
-                    : `linear-gradient(rgba(10, 8, 16, 0.82), rgba(10, 8, 16, 0.95)), url(${activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url}) center/cover`
+                      ? "linear-gradient(to bottom, #090D16, #04060B)"
+                      : `linear-gradient(rgba(10, 8, 16, 0.82), rgba(10, 8, 16, 0.95)), url(${activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url}) center/cover`
                 }}
               >
                 {/* Polaroid Specific Layout */}
@@ -4101,9 +4073,9 @@ const handleFileChange = (e) => {
 
                     <div className="bg-white p-2.5 pb-10 shadow-md border border-slate-200/50 rounded-lg my-2 aspect-[3/4] flex flex-col justify-between overflow-hidden">
                       <div className="relative aspect-square w-full rounded overflow-hidden">
-                        <img 
-                          src={activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url} 
-                          alt="Polaroid card preview" 
+                        <img
+                          src={activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url}
+                          alt="Polaroid card preview"
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -4130,9 +4102,9 @@ const handleFileChange = (e) => {
                     </div>
 
                     <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden border-2 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] bg-black/40 my-2">
-                      <img 
-                        src={activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url} 
-                        alt="Cyber card preview" 
+                      <img
+                        src={activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url}
+                        alt="Cyber card preview"
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -4157,9 +4129,9 @@ const handleFileChange = (e) => {
 
                     <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-1.5 my-2 flex flex-col">
                       <div className="relative aspect-[4/5] w-full rounded-xl overflow-hidden border border-amber-500/20">
-                        <img 
-                          src={activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url} 
-                          alt="Glass card preview" 
+                        <img
+                          src={activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url}
+                          alt="Glass card preview"
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -4183,14 +4155,14 @@ const handleFileChange = (e) => {
                     try {
                       showToast("Hikaye görseli oluşturuluyor...", "info");
                       const shareCardUrl = await generateShareCard(activeShareCardPhoto, event, selectedTemplate);
-                      
+
                       const link = document.createElement("a");
                       link.href = shareCardUrl;
                       link.download = `snapmatch-story-${selectedTemplate}-${activeShareCardPhoto.id || "card"}.png`;
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
-                      
+
                       showToast("Hikaye kartı galerinize kaydedildi!", "success");
                       setActiveShareCardPhoto(null);
                     } catch (err) {
@@ -4218,8 +4190,8 @@ const handleFileChange = (e) => {
         )}
 
         {/* iOS Native Style Share Sheet Panel */}
-        <BottomMobileSheet 
-          isOpen={!!activeSharePhoto} 
+        <BottomMobileSheet
+          isOpen={!!activeSharePhoto}
           onClose={() => setActiveSharePhoto(null)}
           title="Fotoğrafı Paylaş"
         >
@@ -4228,9 +4200,9 @@ const handleFileChange = (e) => {
               {/* Photo Preview Card */}
               <div className="flex gap-4 p-3 bg-white/5 rounded-2xl border border-white/5 items-center">
                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/5 border border-white/10 shrink-0">
-                  <img 
-                    src={activeSharePhoto.thumbnail_url || activeSharePhoto.url} 
-                    alt="share preview" 
+                  <img
+                    src={activeSharePhoto.thumbnail_url || activeSharePhoto.url}
+                    alt="share preview"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -4250,7 +4222,7 @@ const handleFileChange = (e) => {
                     { label: "AirDrop", color: "bg-blue-500/10 text-blue-400 border-blue-500/20", icon: <RefreshCw size={18} />, action: () => showToast("Yakındaki cihazlar aranıyor...", "success") },
                     { label: "E-Posta", color: "bg-purple-500/10 text-purple-400 border-purple-500/20", icon: <User size={18} />, action: () => { window.location.href = "mailto:?body=" + encodeURIComponent(activeSharePhoto.url); } }
                   ].map(app => (
-                    <button 
+                    <button
                       key={app.label}
                       onClick={() => {
                         app.action();
@@ -4271,7 +4243,7 @@ const handleFileChange = (e) => {
               <div className="flex flex-col gap-2">
                 <span className="text-[10px] font-black uppercase text-white/30 tracking-wider">Hızlı Eylemler</span>
                 <div className="flex flex-col bg-white/5 border border-white/5 rounded-2xl overflow-hidden divide-y divide-white/5 mt-1">
-                  <button 
+                  <button
                     onClick={() => {
                       setActiveShareCardPhoto(activeSharePhoto);
                       setActiveSharePhoto(null);
@@ -4281,7 +4253,7 @@ const handleFileChange = (e) => {
                     <span>Hikaye Şablonu Üret</span>
                     <Sparkles size={14} className="text-pink-400" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       navigator.clipboard.writeText(activeSharePhoto.url || activeSharePhoto.thumbnail_url);
                       showToast("Paylaşım bağlantısı kopyalandı!", "success");
@@ -4292,7 +4264,7 @@ const handleFileChange = (e) => {
                     <span>Bağlantıyı Kopyala</span>
                     <Share2 size={14} className="text-white/40" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       handleDownload(activeSharePhoto);
                       setActiveSharePhoto(null);
@@ -4352,7 +4324,7 @@ const handleFileChange = (e) => {
         >
           <div className="flex flex-col gap-5 text-left text-white select-none pb-6">
             <p className="text-[10px] text-white/50 m-0 font-medium">Etkinlikte çektiğin fotoğrafları düğün albümüne ekleyebilirsin.</p>
-            
+
             {uploadingState === "idle" ? (
               <>
                 {/* Event Selector - if multiple wedding events exist */}
@@ -4365,14 +4337,13 @@ const handleFileChange = (e) => {
                       <span className="text-[10px] font-black uppercase text-white/30 tracking-wider font-sans">Etkinlik Seçin</span>
                       <div className="flex flex-col gap-2 max-h-[140px] overflow-y-auto scrollbar-none">
                         {weddingEvents.map(evt => (
-                          <div 
+                          <div
                             key={evt.id}
                             onClick={() => setSelectedUploadEventId(evt.id)}
-                            className={`p-3 rounded-2xl border flex flex-col gap-1 cursor-pointer transition-all ${
-                              selectedUploadEventId === evt.id 
-                                ? "bg-blue-600/10 border-blue-500/50 text-white" 
+                            className={`p-3 rounded-2xl border flex flex-col gap-1 cursor-pointer transition-all ${selectedUploadEventId === evt.id
+                                ? "bg-blue-600/10 border-blue-500/50 text-white"
                                 : "bg-white/5 border-white/5 text-white/70 hover:bg-white/10"
-                            }`}
+                              }`}
                           >
                             <strong className="text-xs">{evt.title}</strong>
                             <span className="text-[9px] opacity-60 font-medium">
@@ -4396,7 +4367,7 @@ const handleFileChange = (e) => {
                     </div>
                     <span className="text-[9px] font-black text-white/80 uppercase tracking-wide">Kamerayla Çek</span>
                   </button>
-                  
+
                   <button
                     onClick={() => document.getElementById("guest-upload-gallery-input").click()}
                     className="flex flex-col items-center gap-2 p-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl active:scale-95 transition-transform cursor-pointer"
@@ -4409,21 +4380,21 @@ const handleFileChange = (e) => {
                 </div>
 
                 {/* Hidden File Inputs */}
-                <input 
-                  type="file" 
-                  id="guest-upload-camera-input" 
-                  accept="image/jpeg,image/png,image/webp" 
-                  capture="environment" 
-                  className="hidden" 
-                  onChange={handleFilesAdded} 
+                <input
+                  type="file"
+                  id="guest-upload-camera-input"
+                  accept="image/jpeg,image/png,image/webp"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handleFilesAdded}
                 />
-                <input 
-                  type="file" 
-                  id="guest-upload-gallery-input" 
-                  accept="image/jpeg,image/png,image/webp" 
-                  multiple 
-                  className="hidden" 
-                  onChange={handleFilesAdded} 
+                <input
+                  type="file"
+                  id="guest-upload-gallery-input"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={handleFilesAdded}
                 />
 
                 {/* Upload Preview List */}
@@ -4436,16 +4407,16 @@ const handleFileChange = (e) => {
 
                     <div className="flex flex-col gap-2 max-h-[160px] overflow-y-auto scrollbar-none">
                       {selectedUploadFiles.map((file, idx) => (
-                        <div 
+                        <div
                           key={idx}
                           className="flex items-center justify-between p-2 rounded-xl bg-white/[0.02] border border-white/5 gap-3"
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 shrink-0 bg-white/5">
-                              <img 
-                                src={URL.createObjectURL(file)} 
-                                alt="preview" 
-                                className="w-full h-full object-cover" 
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt="preview"
+                                className="w-full h-full object-cover"
                               />
                             </div>
                             <div className="flex flex-col min-w-0">
@@ -4482,7 +4453,7 @@ const handleFileChange = (e) => {
                 <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center animate-spin">
                   <RefreshCw size={20} />
                 </div>
-                
+
                 <div className="flex flex-col gap-1.5 items-center w-full">
                   <h3 className="text-sm font-black text-white m-0">
                     {uploadingState === "preparing" && "Fotoğraflar hazırlanıyor"}
@@ -4495,7 +4466,7 @@ const handleFileChange = (e) => {
 
                 {/* Progress Bar */}
                 <div className="w-full max-w-[280px] h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   />

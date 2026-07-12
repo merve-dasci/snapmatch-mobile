@@ -2408,6 +2408,7 @@ input:checked+.ios-slider:before {
   align-items: center !important;
   position: relative !important;
   overflow-x: hidden !important;
+  overflow-y: visible !important;
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
@@ -2425,6 +2426,7 @@ body:has(.guest-app-root) #root {
   padding: 0 !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
   background: #080A0F !important;
   overscroll-behavior-y: none !important;
 }
@@ -2445,8 +2447,6 @@ body:has(.guest-app-root) {
   position: relative !important;
   overflow-x: hidden !important;
   overflow-y: visible !important;
-  -webkit-overflow-scrolling: touch !important;
-  touch-action: pan-y !important;
   padding: 20px 20px 0 20px !important;
   box-sizing: border-box !important;
   display: flex !important;
