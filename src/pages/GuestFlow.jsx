@@ -28,6 +28,7 @@ import {
 } from "../features/guest/guestSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "../components/ui/GlassCard";
+import GlassModal from "../components/ui/GlassModal";
 import { mockApi } from "../services/mockApi";
 import { useToast } from "../context/ToastContext";
 import BottomMobileSheet from "../components/ui/BottomMobileSheet";
@@ -334,25 +335,7 @@ export function GuestBottomNav({ activeTab, setActiveTab, onTabClick }) {
   ];
 
   return (
-    <nav 
-      className="guest-tab-bar"
-      style={{
-        paddingBottom: "env(safe-area-inset-bottom, 12px)",
-        boxSizing: "border-box",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-around",
-        background: "rgba(255, 255, 255, 0.72)",
-        backdropFilter: "blur(22px)",
-        WebkitBackdropFilter: "blur(22px)",
-        borderTop: "1px solid rgba(255, 255, 255, 0.65)",
-        boxShadow: "0 -8px 24px rgba(30, 38, 49, 0.08)",
-        marginLeft: "-20px",
-        marginRight: "-20px",
-        width: "calc(100% + 40px)",
-        flexShrink: 0
-      }}
-    >
+    <nav className="guest-tab-bar">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -1242,13 +1225,24 @@ export function GuestPhotoLightbox({
   const [zoomVal, setZoomVal] = useState(1);
   const [showInfoSheet, setShowInfoSheet] = useState(false);
   const [lastTap, setLastTap] = useState(0);
+  const [showHeart, setShowHeart] = useState(false);
 
   const handleDoubleTap = () => {
     const now = Date.now();
     if (now - lastTap < 300) {
-      setZoomVal(prev => (prev > 1 ? 1 : 2));
+      onToggleFavorite();
+      setShowHeart(true);
+      if (navigator.vibrate) navigator.vibrate([40, 40]);
+      setTimeout(() => setShowHeart(false), 800);
     }
     setLastTap(now);
+  };
+
+  const handleDoubleClick = () => {
+    onToggleFavorite();
+    setShowHeart(true);
+    if (navigator.vibrate) navigator.vibrate([40, 40]);
+    setTimeout(() => setShowHeart(false), 800);
   };
 
   return (
@@ -1269,16 +1263,31 @@ export function GuestPhotoLightbox({
       {/* Centered Image */}
       <div className="relative flex-grow flex items-center justify-center overflow-hidden my-4">
         <div 
-          className="transition-transform duration-200 ease-out max-w-full max-h-full flex items-center justify-center" 
+          className="transition-transform duration-200 ease-out max-w-full max-h-full flex items-center justify-center relative" 
           style={{ transform: `scale(${zoomVal})` }}
         >
           <img 
             src={photo.original_url || photo.thumbnail_url} 
             alt="lightbox preview" 
             className="max-w-full max-h-[66vh] object-contain rounded-2xl shadow-2xl border border-white/10 cursor-zoom-in active:scale-[0.98] transition-transform" 
-            onDoubleClick={() => setZoomVal(prev => (prev > 1 ? 1 : 2))}
+            onDoubleClick={handleDoubleClick}
             onTouchEnd={handleDoubleTap}
           />
+
+          {/* Floating Pulsing Heart Overlay */}
+          <AnimatePresence>
+            {showHeart && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.3 }}
+                animate={{ opacity: 1, scale: [1, 1.25, 0.95, 1.1, 1] }}
+                exit={{ opacity: 0, scale: 1.6, y: -60 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="absolute inset-0 flex items-center justify-center pointer-events-none z-50"
+              >
+                <Heart size={90} className="fill-rose-500 text-rose-500 drop-shadow-[0_0_25px_rgba(244,63,94,0.65)]" />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -1511,6 +1520,8 @@ const { showToast } = useToast();
   const [activeSlideshowPhotos, setActiveSlideshowPhotos] = useState(null);
   const [activeSharePhoto, setActiveSharePhoto] = useState(null);
   const [activeShareCardPhoto, setActiveShareCardPhoto] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState("polaroid");
+  const [cameraFilter, setCameraFilter] = useState("normal");
 
   // Guest photo upload states
   const [isUploadSheetOpen, setIsUploadSheetOpen] = useState(false);
@@ -1981,6 +1992,253 @@ const handleFileChange = (e) => {
     dispatch(toggleFavorite(photo));
   };
 
+  const drawCoverImage = (ctx, img, x, y, w, h) => {
+    ctx.save();
+    const r = 24;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.clip();
+    
+    const imgRatio = img.width / img.height;
+    const targetRatio = w / h;
+    let sx, sy, sw, sh;
+    if (imgRatio > targetRatio) {
+      sh = img.height;
+      sw = img.height * targetRatio;
+      sx = (img.width - sw) / 2;
+      sy = 0;
+    } else {
+      sw = img.width;
+      sh = img.width / targetRatio;
+      sx = 0;
+      sy = (img.height - sh) / 2;
+    }
+    ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+    ctx.restore();
+  };
+
+  const drawMockQrCode = (ctx, x, y, w, h, themeColor) => {
+    ctx.fillStyle = "rgba(255, 255, 255, 0.98)";
+    ctx.fillRect(x, y, w, h);
+    
+    ctx.fillStyle = "#0F172A";
+    const border = 8;
+    const qrSize = w - (border * 2);
+    const boxSize = qrSize / 8;
+    
+    // Top-Left marker
+    ctx.fillRect(x + border, y + border, boxSize * 3, boxSize * 3);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(x + border + boxSize, y + border + boxSize, boxSize, boxSize);
+    ctx.fillStyle = "#0F172A";
+    
+    // Top-Right marker
+    ctx.fillRect(x + border + boxSize * 5, y + border, boxSize * 3, boxSize * 3);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(x + border + boxSize * 6, y + border + boxSize, boxSize, boxSize);
+    ctx.fillStyle = "#0F172A";
+    
+    // Bottom-Left marker
+    ctx.fillRect(x + border, y + border + boxSize * 5, boxSize * 3, boxSize * 3);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(x + border + boxSize, y + border + boxSize * 6, boxSize, boxSize);
+    ctx.fillStyle = "#0F172A";
+    
+    // Random dots
+    for (let col = 0; col < 8; col++) {
+      for (let row = 0; row < 8; row++) {
+        if ((col < 3 && row < 3) || (col > 4 && row < 3) || (col < 3 && row > 4)) {
+          continue;
+        }
+        if (Math.random() > 0.4) {
+          ctx.fillRect(x + border + (col * boxSize), y + border + (row * boxSize), boxSize, boxSize);
+        }
+      }
+    }
+  };
+
+  const playShutterSound = () => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const bufferSize = audioCtx.sampleRate * 0.15;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = 1000;
+      filter.Q.value = 2.0;
+      
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+      
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      noise.start();
+      
+      const osc = audioCtx.createOscillator();
+      const oscGain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(2000, audioCtx.currentTime);
+      oscGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+      
+      osc.connect(oscGain);
+      oscGain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.05);
+    } catch (e) {
+      console.warn("Web Audio shutter sound failed:", e);
+    }
+  };
+
+  const generateShareCard = (photo, event, templateType) => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1080;
+      canvas.height = 1920;
+      const ctx = canvas.getContext("2d");
+      
+      const photoImg = new Image();
+      photoImg.crossOrigin = "anonymous";
+      photoImg.src = photo.original_url || photo.thumbnail_url || photo.url;
+      
+      photoImg.onload = () => {
+        if (templateType === "polaroid") {
+          // Polaroid background
+          ctx.fillStyle = "#FAF8F5";
+          ctx.fillRect(0, 0, 1080, 1920);
+          
+          // Photo white base
+          ctx.fillStyle = "#FFFFFF";
+          ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
+          ctx.shadowBlur = 40;
+          ctx.shadowOffsetY = 15;
+          ctx.fillRect(90, 160, 900, 1220);
+          ctx.shadowColor = "transparent";
+          
+          // Draw actual photo
+          drawCoverImage(ctx, photoImg, 130, 200, 820, 1020);
+          
+          // Text
+          ctx.fillStyle = "#2C201F";
+          ctx.font = "italic 44px Georgia, serif";
+          ctx.textAlign = "center";
+          ctx.fillText(event?.title || "Snapmatch Anıları", 1080 / 2, 1320);
+          
+          // QR label
+          ctx.fillStyle = "rgba(44, 32, 31, 0.6)";
+          ctx.font = "bold 20px system-ui";
+          ctx.fillText("ANILARINI BULMAK İÇİN QR KODU OKUT", 1080 / 2, 1440);
+          
+          // Draw QR Code
+          drawMockQrCode(ctx, 1080 / 2 - 80, 1470, 160, 160, "#2C201F");
+          
+          // Logo footer
+          ctx.fillStyle = "#C39C70";
+          ctx.font = "black 28px system-ui";
+          ctx.fillText("📸 SNAPMATCH", 1080 / 2, 1720);
+          
+        } else if (templateType === "neon") {
+          // Cyber Neon
+          ctx.fillStyle = "#090D16";
+          ctx.fillRect(0, 0, 1080, 1920);
+          
+          // Draw a glowing gradient line border
+          ctx.strokeStyle = "#3B82F6";
+          ctx.lineWidth = 10;
+          ctx.shadowColor = "#3B82F6";
+          ctx.shadowBlur = 40;
+          ctx.strokeRect(100, 160, 880, 1180);
+          ctx.shadowColor = "transparent";
+          
+          // Draw photo
+          drawCoverImage(ctx, photoImg, 105, 165, 870, 1170);
+          
+          // Header title
+          ctx.fillStyle = "#FFFFFF";
+          ctx.font = "900 56px system-ui";
+          ctx.textAlign = "center";
+          ctx.fillText(event?.title?.toUpperCase() || "SNAPMATCH", 1080 / 2, 1430);
+          
+          ctx.fillStyle = "#10B981";
+          ctx.font = "bold 26px monospace";
+          ctx.fillText("[ AI MATCH VERIFIED: %98 ]", 1080 / 2, 1490);
+          
+          // Draw QR
+          drawMockQrCode(ctx, 1080 / 2 - 70, 1530, 140, 140, "#3B82F6");
+          
+          // Logo footer
+          ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+          ctx.font = "bold 26px system-ui";
+          ctx.fillText("SNAPMATCH MOMENTS", 1080 / 2, 1760);
+          
+        } else {
+          // Elegant Glass
+          ctx.drawImage(photoImg, 0, 0, 1080, 1920);
+          ctx.fillStyle = "rgba(10, 8, 16, 0.78)";
+          ctx.fillRect(0, 0, 1080, 1920);
+          
+          // Glass plate
+          ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+          ctx.lineWidth = 4;
+          ctx.fillRect(100, 160, 880, 1560);
+          ctx.strokeRect(100, 160, 880, 1560);
+          
+          // Photo
+          drawCoverImage(ctx, photoImg, 140, 220, 800, 1000);
+          
+          // Gold thin border
+          ctx.strokeStyle = "rgba(212, 175, 55, 0.4)";
+          ctx.lineWidth = 3;
+          ctx.strokeRect(140, 220, 800, 1000);
+          
+          // Title
+          ctx.fillStyle = "#D4AF37";
+          ctx.font = "bold 56px system-ui";
+          ctx.textAlign = "center";
+          ctx.fillText(event?.title || "Özel Etkinlik", 1080 / 2, 1340);
+          
+          ctx.fillStyle = "#FFFFFF";
+          ctx.font = "300 28px system-ui";
+          ctx.fillText("Bu anı ölümsüzleştirdik.", 1080 / 2, 1390);
+          
+          // Draw QR
+          drawMockQrCode(ctx, 1080 / 2 - 80, 1460, 160, 160, "#D4AF37");
+          
+          ctx.fillStyle = "rgba(212, 175, 55, 0.8)";
+          ctx.font = "900 24px system-ui";
+          ctx.fillText("📸 SNAPMATCH EXCLUSIVE", 1080 / 2, 1680);
+        }
+        
+        resolve(canvas.toDataURL("image/png"));
+      };
+      
+      photoImg.onerror = (e) => {
+        reject(e);
+      };
+    });
+  };
+
   const handleDownload = (photo) => {
     showToast("Görsel indiriliyor...", "success");
     fetch(photo.thumbnail_url || photo.url)
@@ -2056,18 +2314,7 @@ const handleFileChange = (e) => {
   ];
 
   return (
-    <div 
-      className="guest-app-root"
-      style={{
-        width: "100%",
-        maxWidth: "100%",
-        overflow: "hidden",
-        height: "100dvh",
-        position: "relative",
-        display: "flex",
-        flexDirection: "column"
-      }}
-    >
+    <div className="guest-app-root">
       {/* Redux Data Loading Indicator */}
       {loading === "loading" && !event && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-md z-50 animate-fade-in">
@@ -2107,16 +2354,7 @@ const handleFileChange = (e) => {
       <div className="absolute top-[40%] left-[20%] w-[60%] h-[40%] rounded-full bg-indigo-500/6 blur-[90px] pointer-events-none z-0 guest-bg-blob-3" />
 
       {/* Main Wrapper */}
-      <div 
-        className={`guest-app-wrapper guest-theme-${guestTheme}`}
-        style={{
-          width: "100%",
-          maxWidth: "430px",
-          overflowX: "hidden",
-          margin: "0 auto",
-          position: "relative"
-        }}
-      >
+      <div className={`guest-app-wrapper guest-theme-${guestTheme}`}>
         
         {/* Instagram Story Style Step Progress Lines */}
         {["welcome", "consent", "selfie"].includes(step) && (
@@ -2176,7 +2414,7 @@ const handleFileChange = (e) => {
 
         {/* STEP 2: Welcome / Onboarding Landing Screen */}
         {step === "welcome" && (
-          <div className="flex-1 flex flex-col justify-between overflow-y-auto scrollbar-none min-h-0 w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb">
+          <div className="flex-1 flex flex-col justify-between w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb">
             {/* Top part cover card */}
             <div className="relative w-full aspect-[4/3] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shrink-0">
               <img 
@@ -2276,8 +2514,8 @@ const handleFileChange = (e) => {
         {/* STEP 3: KVKK Privacy / Consent screen */}
         {step === "consent" && (
           <div 
-            className="flex-1 flex flex-col justify-between overflow-y-auto scrollbar-none min-h-0 w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb px-5"
-            style={{ boxSizing: "border-box", overflowX: "hidden" }}
+            className="flex-1 flex flex-col justify-between w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb px-5"
+            style={{ boxSizing: "border-box" }}
           >
             {/* Header Area */}
             <div className="flex flex-col gap-2.5 mt-4 text-left w-full">
@@ -2294,7 +2532,7 @@ const handleFileChange = (e) => {
             </div>
 
             {/* Privacy list items */}
-            <div className="flex flex-col gap-2.5 my-5 justify-center flex-grow w-full">
+            <div className="flex flex-col gap-2.5 mt-2 mb-4 w-full">
               {/* Card 1 */}
               <div 
                 className="text-left flex gap-3 items-center"
@@ -2385,7 +2623,6 @@ const handleFileChange = (e) => {
                   minWidth: 0
                 }}
               >
-                {/* Icon Wrapper Circle */}
                 <div 
                   className="shrink-0"
                   style={{
@@ -2407,8 +2644,32 @@ const handleFileChange = (e) => {
               </div>
             </div>
 
-            {/* KVKK Checkbox & CTA Card */}
+            {/* Bottom Group (KVKK Text + Checkbox + CTA Card) */}
             <div className="flex flex-col gap-3 mt-auto w-full">
+              {/* Scrollable KVKK Metni */}
+              <div 
+                className="glass-subpanel scrollbar-thin"
+                style={{
+                  width: "100%",
+                  maxHeight: "150px",
+                  overflowY: "auto",
+                  borderRadius: "14px",
+                  padding: "12px 14px",
+                  fontSize: "10px",
+                  lineHeight: "1.45",
+                  color: "var(--guest-text)",
+                  opacity: 0.85,
+                  border: "1px solid var(--guest-border)",
+                  boxSizing: "border-box"
+                }}
+              >
+                <strong>SNAPMATCH AYDINLATMA METNİ VE AÇIK RIZA BEYANI</strong><br /><br />
+                İşbu Aydınlatma Metni, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, Snapmatch platformu üzerinden etkinlik fotoğraflarınızın yüz tanıma teknolojisi ile otomatik eşleştirilmesi kapsamında kişisel verilerinizin işlenme usul ve esaslarını belirlemek amacıyla hazırlanmıştır.<br /><br />
+                <strong>1. İşlenen Kişisel Verileriniz ve İşleme Amacı:</strong> Etkinlik süresince çekilen fotoğraflarda yer alan yüz görüntünüz ile sisteme yükleyeceğiniz biyometrik selfie görüntünüz karşılaştırılarak eşleştirme yapılacaktır. Biyometrik yüz veriniz yalnızca size ait fotoğrafların tespit edilmesi ve sadece size sunulması amacıyla işlenmektedir.<br /><br />
+                <strong>2. Veri Saklama ve Güvenlik:</strong> Yüklediğiniz selfie ve üretilen biyometrik yüz haritanız güvenli sunucularda saklanacaktır. Verileriniz üçüncü taraflarla paylaşılmaz. Profilinizi ve biyometrik verilerinizi dilediğiniz zaman Ayarlar sekmesindeki "Profilimi ve Biyometrik Verimi Sil" seçeneğiyle kalıcı ve geri döndürülemez şekilde silebilirsiniz.<br /><br />
+                <strong>3. Açık Rıza Beyanı:</strong> "KVKK metnini okudum ve kabul ediyorum" kutusunu işaretleyerek, biyometrik verilerinizin yukarıda belirtilen kapsamda işlenmesine ve eşleştirme yapılmasına açık rıza gösterdiğinizi beyan etmiş olursunuz.
+              </div>
+
               {/* Glass Checkbox Container Card */}
               <div 
                 onClick={() => setKvkkChecked(!kvkkChecked)}
@@ -2502,7 +2763,7 @@ const handleFileChange = (e) => {
 
         {/* STEP 4: Selfie Face Registration Onboarding */}
         {step === "selfie" && (
-          <div className="flex-1 flex flex-col justify-between overflow-y-auto scrollbar-none min-h-0 w-full animate-fade-in relative py-1 select-none pb-8 guest-safe-area-pb">
+          <div className="flex-1 flex flex-col justify-between w-full animate-fade-in relative py-1 select-none pb-8 guest-safe-area-pb">
             {/* Camera Flash overlay simulation */}
             {flashActive && (
               <div className="absolute inset-0 bg-white z-[99999] animate-fade-out" />
@@ -2522,7 +2783,7 @@ const handleFileChange = (e) => {
             </div>
 
             {/* Circular Camera Viewport */}
-            <div className="relative aspect-square w-full max-w-[240px] mx-auto my-6 rounded-full overflow-hidden border-2 border-white/20 bg-black/40 flex items-center justify-center shadow-inner">
+            <div className="relative aspect-square w-full max-w-[240px] mx-auto my-4 rounded-full overflow-hidden border-2 border-white/20 bg-black/40 flex items-center justify-center shadow-inner">
               <style>{`
                 @keyframes scanner-sweep {
                   0% { top: 10%; opacity: 0.3; }
@@ -2538,7 +2799,16 @@ const handleFileChange = (e) => {
                 className="absolute inset-0 bg-cover bg-center transition-all duration-300"
                 style={{
                   backgroundImage: selfieCaptured ? 'url("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80")' : 'none',
-                  filter: selfieCaptured ? "brightness(1) contrast(1.05)" : "none"
+                  filter: (() => {
+                    const filterStyle = {
+                      normal: "brightness(1) contrast(1)",
+                      soft: "brightness(1.08) contrast(0.95) saturate(1.15) blur(0.2px)",
+                      retro: "grayscale(1) contrast(1.2) brightness(0.95)",
+                      warm: "sepia(0.25) saturate(1.25) hue-rotate(-5deg) brightness(1.02)",
+                      cyber: "hue-rotate(90deg) saturate(1.4) contrast(1.1)"
+                    }[cameraFilter] || "none";
+                    return selfieCaptured ? `${filterStyle} brightness(1) contrast(1.05)` : filterStyle;
+                  })()
                 }}
               />
 
@@ -2564,6 +2834,34 @@ const handleFileChange = (e) => {
               )}
             </div>
 
+            {/* Camera Filter Selector */}
+            {!selfieCaptured && (
+              <div className="flex gap-2 justify-center mb-5 mt-1 select-none">
+                {[
+                  { id: "normal", name: "Normal" },
+                  { id: "soft", name: "Glow" },
+                  { id: "retro", name: "Retro" },
+                  { id: "warm", name: "Sıcak" },
+                  { id: "cyber", name: "Cyber" }
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => {
+                      setCameraFilter(f.id);
+                      if (navigator.vibrate) navigator.vibrate(12);
+                    }}
+                    className={`px-3 py-1 rounded-full text-[9px] font-black border transition-all duration-200 cursor-pointer active:scale-95 ${
+                      cameraFilter === f.id 
+                        ? "bg-blue-500 border-blue-400 text-white shadow-md shadow-blue-500/20" 
+                        : "bg-white/5 border-white/10 text-white/50"
+                    }`}
+                  >
+                    {f.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Instructions */}
             <div className="flex flex-col gap-2 px-6 items-center">
               <span className="text-[10px] text-white/60 font-bold flex items-center gap-1.5 justify-center">
@@ -2584,19 +2882,23 @@ const handleFileChange = (e) => {
                     <button 
                       onClick={() => {
                         setFlashActive(true);
+                        playShutterSound();
+                        if (navigator.vibrate) navigator.vibrate([80]);
                         setTimeout(() => setFlashActive(false), 300);
                         setSelfieCaptured(true);
-                        showToast("Kamera açıldı, selfie kaydedildi.", "success");
+                        showToast("Selfie kaydedildi.", "success");
                       }}
                       className="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform"
                     >
                       <Camera size={14} />
-                      <span>Kamerayı Aç</span>
+                      <span>Fotoğraf Çek</span>
                     </button>
 
                     <button 
                       onClick={() => {
                         setGuestName("Ezgi Çelik");
+                        playShutterSound();
+                        if (navigator.vibrate) navigator.vibrate([80]);
                         const mockSelfie = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80";
                         dispatch(setSelfie({ captured: true, url: mockSelfie }));
                         
@@ -2751,51 +3053,133 @@ const handleFileChange = (e) => {
             {/* Ambient glows */}
             <div className="absolute w-44 h-44 rounded-full bg-emerald-500/10 blur-[80px] animate-pulse z-0" />
             
-            <div className="glass-panel w-full max-w-[340px] p-6 flex flex-col items-center gap-6 border border-white/5 rounded-[32px] z-10 shadow-2xl relative">
-              <div className="flex flex-col items-center gap-2 text-center">
-                <BrainCircuit size={32} className="text-emerald-400 animate-pulse" />
-                <h3 className="text-base font-black uppercase tracking-wider text-emerald-400 m-0 mt-1">
-                  Anılarınız Hazırlanıyor
+            <div className="glass-panel w-full max-w-[340px] p-6 flex flex-col items-center gap-5 border border-white/5 rounded-[32px] z-10 shadow-2xl relative text-left">
+              <div className="flex flex-col items-center gap-1.5 text-center w-full">
+                <BrainCircuit size={28} className="text-emerald-400 animate-pulse shrink-0" />
+                <h3 className="text-sm font-black uppercase tracking-wider text-emerald-400 m-0 mt-1">
+                  Yüz Analizi Yapılıyor
                 </h3>
-                <p className="m-0 text-[10px] text-white/50 leading-relaxed max-w-[260px] mt-1 font-medium">
-                  Yapay zeka binlerce fotoğraf arasında sizi arıyor.
-                </p>
-              </div>
-
-              {/* Progress circle */}
-              <div className="relative w-36 h-36 flex items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle 
-                    cx="72" 
-                    cy="72" 
-                    r="56" 
-                    className="stroke-white/5" 
-                    strokeWidth="6" 
-                    fill="transparent" 
-                  />
-                  <circle 
-                    cx="72" 
-                    cy="72" 
-                    r="56" 
-                    className="stroke-emerald-400 transition-all duration-300 ease-out" 
-                    strokeWidth="6" 
-                    fill="transparent" 
-                    strokeDasharray={2 * Math.PI * 56}
-                    strokeDashoffset={2 * Math.PI * 56 * (1 - preparingPercent / 100)}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-2xl font-black tracking-tight text-white">{preparingPercent}%</span>
-                  <span className="text-[8px] font-black text-white/40 uppercase tracking-widest mt-0.5 font-sans">Analiz</span>
+                <div className="w-16 h-[2px] bg-emerald-500/20 rounded-full mt-1.5 relative overflow-hidden">
+                  <div className="absolute h-full bg-emerald-400 rounded-full animate-progress-loading" style={{ width: "60%" }} />
                 </div>
               </div>
 
-              {/* Log update message */}
-              <div className="h-6 flex items-center justify-center">
-                <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-wider animate-pulse">
-                  {statusLogs[preparingStatusIdx] || "Tamamlanıyor..."}
-                </span>
+              {/* High-Tech Biometric Scanner Preview Container */}
+              <div className="relative aspect-square w-full max-w-[180px] mx-auto rounded-full overflow-hidden border-2 border-emerald-500/40 bg-black/40 flex items-center justify-center shadow-lg">
+                
+                {/* User Selfie Backdrop */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url(${selfieUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80"})`,
+                    filter: "brightness(0.9) contrast(1.1) saturate(1.1)"
+                  }}
+                />
+
+                {/* Blinking Biometric Point Mesh (SVG Overlay) */}
+                <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none" viewBox="0 0 240 240">
+                  {/* Grid Lines */}
+                  <line x1="120" y1="0" x2="120" y2="240" stroke="rgba(16, 185, 129, 0.15)" strokeWidth="1" strokeDasharray="4 4" />
+                  <line x1="0" y1="120" x2="240" y2="120" stroke="rgba(16, 185, 129, 0.15)" strokeWidth="1" strokeDasharray="4 4" />
+
+                  {/* Connected Mesh Lines */}
+                  <polygon 
+                    points="60,80 180,80 190,140 120,200 50,140" 
+                    fill="rgba(16, 185, 129, 0.04)" 
+                    stroke="rgba(16, 185, 129, 0.25)" 
+                    strokeWidth="1" 
+                  />
+                  <line x1="85" y1="100" x2="155" y2="100" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="0.8" />
+                  <line x1="85" y1="100" x2="120" y2="135" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="0.8" />
+                  <line x1="155" y1="100" x2="120" y2="135" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="0.8" />
+                  <line x1="120" y1="135" x2="120" y2="200" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="0.8" />
+                  
+                  {/* Blinking nodes */}
+                  {[
+                    { cx: 85, cy: 100, label: "L_EYE" },
+                    { cx: 155, cy: 100, label: "R_EYE" },
+                    { cx: 120, cy: 135, label: "NOSE" },
+                    { cx: 95, cy: 170, label: "MOUTH_L" },
+                    { cx: 145, cy: 170, label: "MOUTH_R" },
+                    { cx: 120, cy: 200, label: "CHIN" },
+                    { cx: 50, cy: 140, label: "JAW_L" },
+                    { cx: 190, cy: 140, label: "JAW_R" },
+                    { cx: 60, cy: 80, label: "TEMP_L" },
+                    { cx: 180, cy: 80, label: "TEMP_R" }
+                  ].map((node, i) => (
+                    <g key={node.label}>
+                      <circle 
+                        cx={node.cx} 
+                        cy={node.cy} 
+                        r="3" 
+                        fill="#10B981" 
+                        className={i % 2 === 0 ? "animate-pulse" : ""}
+                        style={{ animationDuration: `${0.8 + (i * 0.15)}s` }}
+                      />
+                      <circle 
+                        cx={node.cx} 
+                        cy={node.cy} 
+                        r="6" 
+                        fill="transparent" 
+                        stroke="#10B981" 
+                        strokeWidth="0.5" 
+                        className="animate-ping"
+                        style={{ animationDuration: "1.8s", animationDelay: `${i * 0.2}s` }}
+                      />
+                    </g>
+                  ))}
+                </svg>
+
+                {/* Sweeping Green Laser Line */}
+                <div className="absolute left-0 right-0 h-[3px] bg-emerald-400 shadow-[0_0_12px_#10B981] animate-scanner-sweep z-20" />
+                
+                {/* Scan Overlay Vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/20 via-transparent to-transparent pointer-events-none z-20" />
+              </div>
+
+              {/* Progress Text Indicator */}
+              <div className="flex items-center justify-between w-full border-b border-white/5 pb-2 shrink-0">
+                <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Eşleştirme Durumu</span>
+                <span className="text-xs font-black text-emerald-400 tracking-tight">% {preparingPercent}</span>
+              </div>
+
+              {/* Terminal Logs Window */}
+              <div className="w-full bg-slate-950/70 border border-white/10 rounded-2xl p-3 font-mono text-[9px] text-[#A7F3D0] flex flex-col gap-1.5 min-h-[90px] h-[90px] overflow-hidden leading-relaxed shadow-inner shrink-0">
+                {preparingPercent >= 0 && (
+                  <div className="flex gap-1 animate-fade-in shrink-0">
+                    <span className="text-emerald-500 font-bold shrink-0">&gt;</span>
+                    <span className="text-white/40">19:35:02</span>
+                    <span>Selfie doğrulandı. [OK]</span>
+                  </div>
+                )}
+                {preparingPercent >= 20 && (
+                  <div className="flex gap-1 animate-fade-in shrink-0">
+                    <span className="text-emerald-500 font-bold shrink-0">&gt;</span>
+                    <span className="text-white/40">19:35:02</span>
+                    <span>Yüz haritası çıkarıldı (128 nokta). [OK]</span>
+                  </div>
+                )}
+                {preparingPercent >= 50 && (
+                  <div className="flex gap-1 animate-fade-in shrink-0">
+                    <span className="text-emerald-500 font-bold shrink-0">&gt;</span>
+                    <span className="text-white/40">19:35:03</span>
+                    <span>Embedding vektörleri oluşturuldu. [OK]</span>
+                  </div>
+                )}
+                {preparingPercent >= 80 && (
+                  <div className="flex gap-1 animate-fade-in shrink-0">
+                    <span className="text-emerald-500 font-bold shrink-0">&gt;</span>
+                    <span className="text-white/40">19:35:04</span>
+                    <span>Fotoğraf havuzu eşleştirildi. [OK]</span>
+                  </div>
+                )}
+                {preparingPercent >= 98 && (
+                  <div className="flex gap-1 animate-fade-in shrink-0">
+                    <span className="text-emerald-500 font-bold shrink-0">&gt;</span>
+                    <span className="text-white/40">19:35:05</span>
+                    <span className="text-white animate-pulse">Albüm güncelleniyor...</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -2813,7 +3197,7 @@ const handleFileChange = (e) => {
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              className="flex-1 overflow-y-auto scrollbar-none w-full min-h-0 relative"
+              className="flex-1 w-full relative"
             >
               {/* Pull-to-refresh spinner visual */}
               <div 
@@ -3345,59 +3729,156 @@ const handleFileChange = (e) => {
         {/* SCREEN 10: Instagram Story template Modal */}
         {activeShareCardPhoto && (
           <GlassModal
-            isOpen={!!activeShareCardPhoto}
-            onClose={() => setActiveShareCardPhoto(null)}
-            title="Hikaye Kartı Hazır!"
+            open={!!activeShareCardPhoto}
+            onClose={() => {
+              setActiveShareCardPhoto(null);
+              setSelectedTemplate("polaroid");
+            }}
+            title="Hikaye Kartı Tasarımcısı"
           >
-            <div className="flex flex-col gap-5 text-center text-white py-1">
-              <p className="text-[10px] text-white/50 m-0">Bu şablonu telefonunuza kaydedip Instagram Stories'de paylaşabilirsiniz.</p>
+            <div className="flex flex-col gap-4 text-center text-white py-1">
+              <p className="text-[10px] text-white/50 m-0">Telefonunuza kaydetmek için bir şablon stili seçip indirin.</p>
               
-              {/* Instagram Story Preview Card */}
-              <div className="w-full max-w-[280px] mx-auto aspect-[9/16] bg-gradient-to-b from-[#1C1F2E] via-[#0E121E] to-[#0A0D14] border border-white/10 rounded-[32px] overflow-hidden p-4 flex flex-col justify-between shadow-2xl relative">
-                {/* Neon blur accent glow behind photo */}
-                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full bg-blue-500/10 blur-[40px] pointer-events-none" />
-                
-                {/* Card Header (Snapmatch Logo) */}
-                <div className="flex justify-between items-center z-10 shrink-0">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-white/40 flex items-center gap-1">
-                    <Sparkles size={10} className="text-amber-400" />
-                    <span>Snapmatch Moments</span>
-                  </span>
-                  <span className="text-[8px] font-bold text-white/30 uppercase bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
-                    Story Template
-                  </span>
-                </div>
-
-                {/* Main Photo Card inside Template */}
-                <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/10 shadow-lg bg-black/40 my-3 z-10">
-                  <img 
-                    src={activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url} 
-                    alt="Story card photo" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                {/* Card Footer (Event title & branding) */}
-                <div className="flex flex-col gap-1 items-center text-center z-10 shrink-0 mt-auto">
-                  <strong className="text-xs font-black text-white tracking-wide">{event?.title || "Etkinlik Albümü"}</strong>
-                  <span className="text-[8px] text-white/40 tracking-wider">Anıları ölümsüzleştiriyoruz &bull; 2026</span>
-                  
-                  {/* QR code simulation */}
-                  <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 p-1 flex items-center justify-center mt-2.5">
-                    <QrCode size={20} className="text-white/40" />
-                  </div>
-                </div>
+              {/* Template Style Selector Buttons */}
+              <div className="grid grid-cols-3 gap-2 px-1">
+                {[
+                  { id: "polaroid", name: "Retro Polaroid", bg: "bg-[#FAF8F5] text-slate-800 border-slate-300" },
+                  { id: "neon", name: "Cyber Neon", bg: "bg-[#090D16] text-[#3B82F6] border-blue-500/30" },
+                  { id: "glass", name: "Elegant Glass", bg: "bg-slate-900/60 backdrop-blur-md text-[#D4AF37] border-amber-500/20" }
+                ].map((tmpl) => (
+                  <button
+                    key={tmpl.id}
+                    onClick={() => {
+                      setSelectedTemplate(tmpl.id);
+                      if (navigator.vibrate) navigator.vibrate(20);
+                    }}
+                    className={`p-2 rounded-xl border text-[10px] font-black cursor-pointer transition-all duration-200 active:scale-95 ${tmpl.bg} ${
+                      selectedTemplate === tmpl.id ? "ring-2 ring-emerald-500 scale-[1.04]" : "opacity-60"
+                    }`}
+                  >
+                    {tmpl.name}
+                  </button>
+                ))}
               </div>
 
-              {/* Download / Share Templates buttons */}
-              <div className="flex gap-3">
+              {/* Instagram Story Preview Card based on selected template */}
+              <div className="w-full max-w-[250px] mx-auto aspect-[9/16] rounded-[24px] overflow-hidden p-4 flex flex-col justify-between shadow-2xl relative transition-all duration-300 border border-white/10"
+                style={{
+                  background: selectedTemplate === "polaroid" 
+                    ? "#FAF8F5" 
+                    : selectedTemplate === "neon"
+                    ? "linear-gradient(to bottom, #090D16, #04060B)"
+                    : `linear-gradient(rgba(10, 8, 16, 0.82), rgba(10, 8, 16, 0.95)), url(${activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url}) center/cover`
+                }}
+              >
+                {/* Polaroid Specific Layout */}
+                {selectedTemplate === "polaroid" && (
+                  <div className="flex-1 flex flex-col justify-between py-2 text-slate-800">
+                    <div className="flex justify-between items-center shrink-0">
+                      <span className="text-[7px] font-black uppercase tracking-wider text-slate-500">📸 SNAPMATCH</span>
+                      <span className="text-[7px] font-bold text-slate-400 uppercase bg-slate-200/50 px-2 py-0.5 rounded-full">POLAROID</span>
+                    </div>
+
+                    <div className="bg-white p-2.5 pb-10 shadow-md border border-slate-200/50 rounded-lg my-2 aspect-[3/4] flex flex-col justify-between overflow-hidden">
+                      <div className="relative aspect-square w-full rounded overflow-hidden">
+                        <img 
+                          src={activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url} 
+                          alt="Polaroid card preview" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="text-[9px] font-black text-center italic text-slate-700 font-serif leading-none mt-4 truncate">
+                        {event?.title || "Özel Anlar"}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-0.5 items-center text-center shrink-0 mt-auto">
+                      <span className="text-[6px] font-black text-slate-400 tracking-wider">BULMAK İÇİN QR KODU OKUT</span>
+                      <div className="w-8 h-8 bg-white border border-slate-200 p-0.5 rounded flex items-center justify-center mt-1">
+                        <QrCode size={18} className="text-slate-800" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Cyber Neon Specific Layout */}
+                {selectedTemplate === "neon" && (
+                  <div className="flex-1 flex flex-col justify-between py-2 text-white">
+                    <div className="flex justify-between items-center shrink-0">
+                      <span className="text-[7px] font-black uppercase tracking-wider text-blue-400">⚡ SNAPMATCH CYBER</span>
+                      <span className="text-[7px] font-bold text-emerald-400 uppercase bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">VERIFIED</span>
+                    </div>
+
+                    <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden border-2 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] bg-black/40 my-2">
+                      <img 
+                        src={activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url} 
+                        alt="Cyber card preview" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-0.5 items-center text-center shrink-0 mt-auto">
+                      <strong className="text-[10px] font-black text-white tracking-wide truncate max-w-full">{event?.title?.toUpperCase()}</strong>
+                      <span className="text-[6px] text-emerald-400 font-mono tracking-widest">[ AI MATCHING %98 ]</span>
+                      <div className="w-8 h-8 bg-white p-0.5 rounded flex items-center justify-center mt-1.5 shadow-[0_0_8px_rgba(59,130,246,0.4)]">
+                        <QrCode size={18} className="text-[#090D16]" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Elegant Glass Specific Layout */}
+                {selectedTemplate === "glass" && (
+                  <div className="flex-1 flex flex-col justify-between py-2 text-white">
+                    <div className="flex justify-between items-center shrink-0">
+                      <span className="text-[7px] font-black uppercase tracking-wider text-amber-400/80">✨ EXCLUSIVE EDITION</span>
+                      <span className="text-[7px] font-bold text-white/50 uppercase bg-white/5 px-2 py-0.5 rounded-full border border-white/5">GLASS</span>
+                    </div>
+
+                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-1.5 my-2 flex flex-col">
+                      <div className="relative aspect-[4/5] w-full rounded-xl overflow-hidden border border-amber-500/20">
+                        <img 
+                          src={activeShareCardPhoto.url || activeShareCardPhoto.thumbnail_url} 
+                          alt="Glass card preview" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-0.5 items-center text-center shrink-0 mt-auto">
+                      <strong className="text-[10px] font-black text-[#D4AF37] tracking-wide truncate max-w-full">{event?.title}</strong>
+                      <span className="text-[6px] text-white/40 tracking-wider">Snapmatch Premium Memoires</span>
+                      <div className="w-8 h-8 bg-white/90 p-0.5 rounded flex items-center justify-center mt-1.5 border border-amber-500/20">
+                        <QrCode size={18} className="text-slate-900" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Download / Close Buttons */}
+              <div className="flex gap-3 mt-1">
                 <button
-                  onClick={() => {
-                    handleDownload(activeShareCardPhoto);
-                    setActiveShareCardPhoto(null);
-                    showToast("Şablon başarıyla galerinize kaydedildi!", "success");
+                  onClick={async () => {
+                    try {
+                      showToast("Hikaye görseli oluşturuluyor...", "info");
+                      const shareCardUrl = await generateShareCard(activeShareCardPhoto, event, selectedTemplate);
+                      
+                      const link = document.createElement("a");
+                      link.href = shareCardUrl;
+                      link.download = `snapmatch-story-${selectedTemplate}-${activeShareCardPhoto.id || "card"}.png`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      
+                      showToast("Hikaye kartı galerinize kaydedildi!", "success");
+                      setActiveShareCardPhoto(null);
+                    } catch (err) {
+                      console.error("Canvas draw error:", err);
+                      showToast("Görsel oluşturulurken bir hata oluştu.", "error");
+                    }
                   }}
-                  className="flex-1 py-3 text-xs font-black bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-transform"
+                  className="flex-grow py-3 text-xs font-black bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-transform border-none"
                 >
                   <Download size={14} />
                   <span>Şablonu İndir</span>
@@ -3405,8 +3886,9 @@ const handleFileChange = (e) => {
                 <button
                   onClick={() => {
                     setActiveShareCardPhoto(null);
+                    setSelectedTemplate("polaroid");
                   }}
-                  className="px-4 py-3 text-xs font-bold bg-white/5 border border-white/10 text-white rounded-xl active:scale-95 transition-transform"
+                  className="px-4 py-3 text-xs font-bold bg-white/5 border border-white/10 text-white rounded-xl active:scale-95 transition-transform cursor-pointer"
                 >
                   Kapat
                 </button>

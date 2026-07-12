@@ -2157,46 +2157,51 @@ input:checked + .ios-slider:before {
 
 /* Base resets to prevent horizontal overflow for GuestFlow only */
 html:has(.guest-app-root),
-body:has(.guest-app-root) {
-  background: #080A0F !important;
-  padding: 0 !important;
-  margin: 0 !important;
+body:has(.guest-app-root),
+body:has(.guest-app-root) #root {
   width: 100% !important;
   max-width: 100% !important;
-  height: 100dvh !important;
-  max-height: 100dvh !important;
-  overflow: hidden !important;
-  touch-action: none !important;
-  overscroll-behavior: none !important;
+  min-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  background: #080A0F !important;
 }
 
-body:has(.guest-app-root) #root {
-  display: block !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  height: 100dvh !important;
-  max-height: 100dvh !important;
-  overflow: hidden !important;
-  padding: 0 !important;
-  margin: 0 !important;
+body:has(.guest-app-root) {
+  overscroll-behavior-x: none !important;
+  touch-action: pan-y !important;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 .guest-app-wrapper {
   width: 100% !important;
   max-width: 430px !important;
-  margin: 0 auto !important;
   min-height: 100dvh !important;
   height: 100dvh !important;
-  max-height: 100dvh !important;
+  margin: 0 auto !important;
+  position: relative !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
   padding: 20px 20px 0 20px !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
-  justify-content: space-between !important;
-  position: relative !important;
+  justify-content: flex-start !important;
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.6) !important;
-  overflow: hidden !important;
-  overflow-x: hidden !important;
+  padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Scoped flex/grid children min-width/max-width and images styling rules */
+.guest-app-wrapper * {
+  min-width: 0;
+}
+.guest-app-wrapper img {
+  display: block !important;
+  max-width: 100% !important;
 }
 
 /* Scroll area container behavior rules */
@@ -2233,19 +2238,23 @@ body:has(.guest-app-root) #root {
 
 /* Bottom Tab Bar stretching locked to absolute bottom */
 .guest-tab-bar {
-  position: absolute !important;
+  position: fixed !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
   bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
+  width: min(100%, 430px) !important;
+  max-width: 430px !important;
+  z-index: 1000 !important;
+  padding-bottom: env(safe-area-inset-bottom) !important;
   margin: 0 !important;
-  width: 100% !important;
   box-sizing: border-box !important;
-  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 12px)) 20px !important;
+  padding-top: 12px !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
   background: var(--guest-tabbar) !important;
   backdrop-filter: blur(20px) saturate(120%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(120%) !important;
   border-top: 1px solid var(--guest-border) !important;
-  z-index: 100 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-around !important;
@@ -2588,5 +2597,13 @@ input:checked + .ios-slider {
   padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px)) !important;
 }
 
+/* 🔎 Biometric Laser scanner sweep keyframes */
+@keyframes scanner-sweep {
+  0% { top: 5%; opacity: 0.3; }
+  50% { top: 92%; opacity: 1; }
+  100% { top: 5%; opacity: 0.3; }
+}
 
-
+.animate-scanner-sweep {
+  animation: scanner-sweep 2.5s ease-in-out infinite !important;
+}
