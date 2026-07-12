@@ -2415,8 +2415,7 @@ input:checked+.ios-slider:before {
   z-index: 1000 !important;
 }
 
-html:has(.guest-app-root),
-body:has(.guest-app-root) {
+html:has(.guest-app-root) {
   width: 100% !important;
   max-width: 100% !important;
   min-height: 100% !important;
@@ -2429,6 +2428,18 @@ body:has(.guest-app-root) {
   overscroll-behavior-y: none !important;
 }
 
+body:has(.guest-app-root) {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  background: #080A0F !important;
+  touch-action: pan-y !important;
+}
+
 body:has(.guest-app-root) #root {
   width: 100% !important;
   max-width: 100% !important;
@@ -2436,10 +2447,6 @@ body:has(.guest-app-root) #root {
   margin: 0 !important;
   padding: 0 !important;
   overflow: visible !important;
-}
-
-body:has(.guest-app-root) {
-  touch-action: pan-y !important;
 }
 
 * {
@@ -2548,9 +2555,15 @@ body:has(.guest-app-root) {
   display: flex !important;
   flex-direction: column !important;
   width: 100% !important;
-  height: calc(var(--vh, 1vh) * 100 - 20px - 76px - env(safe-area-inset-bottom, 0px)) !important;
-  position: relative !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  height: auto !important;
   overflow: hidden !important;
+  background: var(--guest-bg) !important;
+  z-index: 1500 !important;
 }
 
 .guest-chat-header {
@@ -2558,34 +2571,58 @@ body:has(.guest-app-root) {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
-  padding: 16px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  background: rgba(0, 0, 0, 0.4) !important;
+  padding: 16px 20px !important;
+  border-bottom: 1px solid var(--guest-border) !important;
+  background: var(--guest-surface) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   z-index: 10 !important;
+}
+
+.guest-chat-header h3 {
+  color: var(--guest-text) !important;
 }
 
 .guest-chat-messages {
   flex: 1 !important;
   min-height: 0 !important;
   overflow-y: auto !important;
-  padding: 16px !important;
+  padding: 16px 20px 84px 20px !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 16px !important;
   -webkit-overflow-scrolling: touch !important;
   overscroll-behavior-y: contain !important;
+  background: var(--guest-bg) !important;
 }
 
 .guest-chat-input-bar {
   flex-shrink: 0 !important;
-  padding: 12px !important;
-  background: rgba(0, 0, 0, 0.4) !important;
+  position: absolute !important;
+  bottom: 16px !important;
+  left: 16px !important;
+  right: 16px !important;
+  padding: 8px 12px !important;
+  background: var(--guest-surface) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid var(--guest-border) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;
   z-index: 10 !important;
+  display: block !important;
+  width: auto !important;
+}
+
+.guest-chat-input-bar input {
+  background: var(--guest-bg) !important;
+  border: 1px solid var(--guest-border) !important;
+  color: var(--guest-text) !important;
+}
+
+.guest-chat-input-bar input::placeholder {
+  color: var(--guest-text) !important;
+  opacity: 0.45 !important;
 }
 
 /* Style overrides when virtual keyboard is open in the chat view */
@@ -2598,7 +2635,23 @@ body:has(.guest-app-root) {
 }
 
 .guest-app-wrapper.keyboard-open .guest-chat-wrapper {
-  height: calc(var(--vh, 1vh) * 100 - 20px) !important;
+  bottom: 0 !important;
+}
+
+.guest-app-wrapper.keyboard-open .guest-chat-input-bar {
+  bottom: 8px !important;
+  left: 8px !important;
+  right: 8px !important;
+  border-radius: 20px !important;
+}
+
+.guest-app-wrapper.keyboard-open .guest-chat-messages {
+  padding-bottom: 72px !important;
+}
+
+/* Force structural layout containers in the guest app to be static, preventing absolute positioning context issues for overlays */
+.guest-app-wrapper .relative:not(.aspect-square):not(.group):not(.glass-panel):not(.rounded-full):not(.aspect-\[16\/10\]):not(.aspect-\[3\/4\]):not(.aspect-\[2\/1\]):not(.aspect-\[4\/3\]):not(.aspect-\[4\/5\]):not(.rounded-xl):not(.rounded-2xl):not(.rounded-3xl):not(.rounded-\[28px\]) {
+  
 }
 
 /* ==========================================================
