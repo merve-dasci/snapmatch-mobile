@@ -1798,9 +1798,9 @@ const { showToast } = useToast();
     }
   };
 
-  // Auto-transition from QR scanning to QR verified to Welcome
+  // Auto-transition from QR scanning to QR verified to Welcome (runs only when splash is dismissed)
   useEffect(() => {
-    if (step === "qr") {
+    if (step === "qr" && !showSplash) {
       setQrSubStep("scanning");
       const timer1 = setTimeout(() => {
         setQrSubStep("verified");
@@ -1813,7 +1813,7 @@ const { showToast } = useToast();
         clearTimeout(timer2);
       };
     }
-  }, [step]);
+  }, [step, showSplash]);
 
   // Simulate selfie scanning indicators
   useEffect(() => {
@@ -2423,7 +2423,7 @@ const handleFileChange = (e) => {
         )}
         
         {/* 3-PAGE PREMIUM SPLASH / ONBOARDING SCREEN */}
-        {showSplash && step !== "qr" && (
+        {showSplash && (
           <div className="flex-grow flex flex-col justify-between w-full animate-fade-in py-4 select-none pb-8 guest-safe-area-pb px-5 text-center">
             {/* Header / Brand info */}
             <div className="flex flex-col items-center mt-2 shrink-0">
@@ -2518,7 +2518,7 @@ const handleFileChange = (e) => {
                     <button 
                       onClick={() => {
                         setShowSplash(false);
-                        setStep("albums");
+                        setStep("qr");
                       }}
                       className="px-5 py-3 text-white/50 text-xs font-black uppercase tracking-wider bg-transparent border-none cursor-pointer active:scale-95"
                     >
@@ -2535,7 +2535,7 @@ const handleFileChange = (e) => {
                   <button 
                     onClick={() => {
                       setShowSplash(false);
-                      setStep("albums");
+                      setStep("qr");
                     }}
                     className="w-full py-4 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
                     style={{
@@ -2543,7 +2543,7 @@ const handleFileChange = (e) => {
                       boxShadow: `0 8px 24px ${activeAccent}33`
                     }}
                   >
-                    Albümleri Görüntüle
+                    Devam Et
                   </button>
                 )}
               </div>
@@ -2552,7 +2552,7 @@ const handleFileChange = (e) => {
         )}
 
         {/* STEP 1: QR Verification screen */}
-        {step === "qr" && (
+        {!showSplash && step === "qr" && (
           <div className="flex-1 flex flex-col items-center justify-center text-center animate-fade-in p-6 select-none">
             {qrSubStep === "scanning" ? (
               <>
@@ -2588,9 +2588,73 @@ const handleFileChange = (e) => {
           </div>
         )}
 
-        {/* STEP 2: Welcome / Onboarding Landing Screen */}
-        {/* SIMULATION BYPASSED: Splash ekranları kullanıldığı için bu adım es geçildi */}
-        {false && step === "welcome" && (
+        {/* STEP 2: Welcome / Onboarding Landing Screen - TRANSFORMED TO NAME/SURNAME FORM */}
+        {step === "welcome" && (
+          <div className="flex-1 flex flex-col justify-between w-full animate-fade-in py-4 select-none pb-8 guest-safe-area-pb px-5">
+            <div className="flex flex-col gap-3 mt-4 text-left">
+              <button 
+                onClick={() => {
+                  setShowSplash(true);
+                  setStep("qr");
+                }}
+                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer text-white/75 active:scale-90"
+              >
+                <ArrowLeft size={16} />
+              </button>
+              <h2 className="text-xl font-black m-0 mt-3 text-white">Profilinizi Tamamlayın</h2>
+              <p className="text-white/50 text-xs m-0">
+                Albüme giriş yapmak ve fotoğraflarınızı eşleştirmek için adınızı soyadınızı girin.
+              </p>
+            </div>
+
+            <div className="flex-grow flex flex-col justify-center my-6 gap-6 w-full">
+              {/* Event Name Card Mini */}
+              <div className="glass-panel p-4 border border-white/10 bg-white/5 rounded-2xl flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                  <Sparkles size={20} />
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-[10px] text-white/40 uppercase font-black tracking-wider">Bağlanılan Etkinlik</span>
+                  <span className="text-xs text-white font-bold">{event.title}</span>
+                </div>
+              </div>
+
+              {/* Name Surname Input */}
+              <div className="flex flex-col gap-2.5 text-left">
+                <span className="text-[10px] font-black uppercase text-white/40 tracking-wider">Adınız Soyadınız</span>
+                <input 
+                  type="text" 
+                  placeholder="Örn: Ezgi Çelik"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs font-bold focus:outline-none focus:border-white/30"
+                />
+              </div>
+            </div>
+
+            {/* Devam Et Button */}
+            <button 
+              onClick={() => {
+                setConsent1(true);
+                setConsent2(true);
+                setConsent3(true);
+                setStep("selfie");
+              }}
+              disabled={!guestName.trim()}
+              className={`w-full py-4 text-xs font-black rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all ${
+                guestName.trim()
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20" 
+                  : "bg-white/10 text-white/30 cursor-not-allowed"
+              }`}
+            >
+              <span>Onayla ve Devam Et</span>
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* ORIGINAL BYPASSED WELCOME SCREEN CODE (PRESERVED AS REQUESTED) */}
+        {false && (
           <div className="flex-1 flex flex-col justify-between w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb">
             {/* Top part cover card */}
             <div className="relative w-full aspect-[4/3] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shrink-0">
@@ -2940,8 +3004,7 @@ const handleFileChange = (e) => {
         )}
 
         {/* STEP 4: Selfie Face Registration Onboarding */}
-        {/* SIMULATION BYPASSED: Splash ekranları kullanıldığı için bu adım es geçildi */}
-        {false && step === "selfie" && (
+        {step === "selfie" && (
           <div className="flex-1 flex flex-col justify-between w-full animate-fade-in relative py-1 select-none pb-8 guest-safe-area-pb">
             {/* Camera Flash overlay simulation */}
             {flashActive && (
@@ -3198,6 +3261,15 @@ const handleFileChange = (e) => {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
+                    <span className="text-[9px] font-black uppercase text-white/40 tracking-wider">Kayıtlı İsim</span>
+                    <div className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/60 text-xs font-bold text-left">
+                      {guestName}
+                    </div>
+                  </div>
+
+                  {/* Orijinal girdi alanı korundu */}
+                  {/*
+                  <div className="flex flex-col gap-1.5">
                     <span className="text-[9px] font-black uppercase text-white/40 tracking-wider">Adınız Soyadınız</span>
                     <input 
                       type="text" 
@@ -3207,6 +3279,7 @@ const handleFileChange = (e) => {
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs font-bold focus:outline-none focus:border-white/30"
                     />
                   </div>
+                  */}
 
                   <button 
                     onClick={handleUploadSelfie}
@@ -3227,8 +3300,7 @@ const handleFileChange = (e) => {
         )}
 
         {/* STEP 5: Processing Loader Screen */}
-        {/* SIMULATION BYPASSED: Splash ekranları kullanıldığı için bu adım es geçildi */}
-        {false && step === "processing" && (
+        {step === "processing" && (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-fade-in relative bg-transparent select-none">
             {/* Ambient glows */}
             <div className="absolute w-44 h-44 rounded-full bg-emerald-500/10 blur-[80px] animate-pulse z-0" />
