@@ -1395,7 +1395,7 @@ export default function GuestFlow() {
   const [showSplash, setShowSplash] = useState(true);
   const [splashPage, setSplashPage] = useState(1);
   const fileInputRef = useRef(null);
-  const chatMessagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const dispatch = useDispatch();
 
   const handleSendMessage = () => {
@@ -1478,8 +1478,11 @@ export default function GuestFlow() {
 
   // Scroll to bottom of chat
   useEffect(() => {
-    if (activeTab === "messages" && chatMessagesEndRef.current) {
-      chatMessagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (activeTab === "messages" && messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+      }, 50);
     }
   }, [chatMessages, activeTab]);
 
@@ -4006,7 +4009,7 @@ export default function GuestFlow() {
                   </div>
 
                   {/* Chat Messages */}
-                  <div className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto pb-4">
+                  <div ref={messagesContainerRef} className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto pb-4">
                     {chatMessages.map(msg => (
                       <div key={msg.id} className={`flex flex-col gap-1 ${msg.sender === 'guest' ? 'items-end' : 'items-start'}`}>
                         <div
@@ -4023,7 +4026,6 @@ export default function GuestFlow() {
                         </span>
                       </div>
                     ))}
-                    <div ref={chatMessagesEndRef} />
                   </div>
 
                   {/* Chat Input */}
