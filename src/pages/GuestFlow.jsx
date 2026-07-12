@@ -1411,6 +1411,8 @@ const { showToast } = useToast();
     { id: 1, sender: "org", text: "Merhaba, etkinliğe hoş geldiniz! Fotoğraflarınızla ilgili bir sorun yaşarsanız veya yardıma ihtiyacınız olursa buradan bana yazabilirsiniz.", time: "10:45" }
   ]);
   const [chatInput, setChatInput] = useState("");
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashPage, setSplashPage] = useState(1);
   const fileInputRef = useRef(null);
   const dispatch = useDispatch();
 
@@ -2401,7 +2403,8 @@ const handleFileChange = (e) => {
       <div className={`guest-app-wrapper guest-theme-${guestTheme}`}>
         
         {/* Instagram Story Style Step Progress Lines */}
-        {["welcome", "consent", "selfie"].includes(step) && (
+        {/* BYPASSED: Biyometrik onboarding adımları es geçildiği için gizlendi */}
+        {false && ["welcome", "consent", "selfie"].includes(step) && (
           <div className="flex gap-1.5 w-full px-1 mb-2 shrink-0 select-none z-10">
             {["welcome", "consent", "selfie"].map((st, idx) => {
               const stepsList = ["welcome", "consent", "selfie"];
@@ -2419,6 +2422,135 @@ const handleFileChange = (e) => {
           </div>
         )}
         
+        {/* 3-PAGE PREMIUM SPLASH / ONBOARDING SCREEN */}
+        {showSplash && step !== "qr" && (
+          <div className="flex-grow flex flex-col justify-between w-full animate-fade-in py-4 select-none pb-8 guest-safe-area-pb px-5 text-center">
+            {/* Header / Brand info */}
+            <div className="flex flex-col items-center mt-2 shrink-0">
+              <span className="text-[10px] font-black uppercase text-blue-400 tracking-widest bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full mb-1">
+                Snapmatch Mobile
+              </span>
+            </div>
+
+            {/* Slider Content with Framer Motion */}
+            <div className="flex-grow flex flex-col items-center justify-center my-4 overflow-hidden relative min-h-[380px]">
+              <AnimatePresence mode="wait">
+                {splashPage === 1 && (
+                  <motion.div 
+                    key="splash1"
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.35, ease: "easeInOut" }}
+                    className="flex flex-col items-center gap-4 w-full"
+                  >
+                    <div className="w-full max-w-[260px] aspect-square rounded-[24px] overflow-hidden border border-white/10 shadow-xl bg-black/20">
+                      <img src="/splash_face_match.png" alt="AI Match" className="w-full h-full object-cover" />
+                    </div>
+                    <h3 className="text-lg font-black text-white m-0 mt-2 tracking-tight">Akıllı Yüz Eşleştirme</h3>
+                    <p className="text-white/60 text-xs m-0 px-2 leading-relaxed">
+                      Sistem, etkinlik boyunca çekilen tüm fotoğraflar arasından sizin bulunduğunuz kareleri gelişmiş yapay zeka yüz tanıma algoritmasıyla saniyeler içinde tespit eder.
+                    </p>
+                  </motion.div>
+                )}
+
+                {splashPage === 2 && (
+                  <motion.div 
+                    key="splash2"
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.35, ease: "easeInOut" }}
+                    className="flex flex-col items-center gap-4 w-full"
+                  >
+                    <div className="w-full max-w-[260px] aspect-square rounded-[24px] overflow-hidden border border-white/10 shadow-xl bg-black/20">
+                      <img src="/splash_instant_alert.png" alt="Instant Alert" className="w-full h-full object-cover" />
+                    </div>
+                    <h3 className="text-lg font-black text-white m-0 mt-2 tracking-tight">Anında Canlı Bildirimler</h3>
+                    <p className="text-white/60 text-xs m-0 px-2 leading-relaxed">
+                      Fotoğrafçı deklanşöre bastığı an, size ait yeni fotoğraflar anında telefonunuza düşer. Hiçbir anı kaçırmaz, albümünüzü canlı olarak takip edersiniz.
+                    </p>
+                  </motion.div>
+                )}
+
+                {splashPage === 3 && (
+                  <motion.div 
+                    key="splash3"
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.35, ease: "easeInOut" }}
+                    className="flex flex-col items-center gap-4 w-full"
+                  >
+                    <div className="w-full max-w-[260px] aspect-square rounded-[24px] overflow-hidden border border-white/10 shadow-xl bg-black/20">
+                      <img src="/splash_story_templates.png" alt="Templates" className="w-full h-full object-cover" />
+                    </div>
+                    <h3 className="text-lg font-black text-white m-0 mt-2 tracking-tight">Özel Paylaşım Şablonları</h3>
+                    <p className="text-white/60 text-xs m-0 px-2 leading-relaxed">
+                      En güzel anılarınızı size özel tasarlanan retro polaroid, neon veya glassmorphism şablonları ile birleştirip doğrudan Instagram ve WhatsApp hikayelerinde paylaşın.
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Bottom Section (Dots & Controls) */}
+            <div className="flex flex-col gap-5 shrink-0 w-full mt-auto">
+              {/* Pagination Dots */}
+              <div className="flex justify-center gap-2">
+                {[1, 2, 3].map((page) => (
+                  <button 
+                    key={page}
+                    onClick={() => setSplashPage(page)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      splashPage === page 
+                        ? "w-6 bg-blue-400" 
+                        : "w-2 bg-white/20"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between gap-4 px-2">
+                {splashPage < 3 ? (
+                  <>
+                    <button 
+                      onClick={() => {
+                        setShowSplash(false);
+                        setStep("albums");
+                      }}
+                      className="px-5 py-3 text-white/50 text-xs font-black uppercase tracking-wider bg-transparent border-none cursor-pointer active:scale-95"
+                    >
+                      Geç
+                    </button>
+                    <button 
+                      onClick={() => setSplashPage(prev => prev + 1)}
+                      className="px-6 py-3 bg-white/10 border border-white/10 hover:bg-white/15 active:scale-95 text-white text-xs font-black rounded-xl transition-all"
+                    >
+                      İleri
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    onClick={() => {
+                      setShowSplash(false);
+                      setStep("albums");
+                    }}
+                    className="w-full py-4 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
+                    style={{
+                      background: `linear-gradient(135deg, ${activeAccent}, ${activeAccent}dd)`,
+                      boxShadow: `0 8px 24px ${activeAccent}33`
+                    }}
+                  >
+                    Albümleri Görüntüle
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* STEP 1: QR Verification screen */}
         {step === "qr" && (
           <div className="flex-1 flex flex-col items-center justify-center text-center animate-fade-in p-6 select-none">
@@ -2457,7 +2589,8 @@ const handleFileChange = (e) => {
         )}
 
         {/* STEP 2: Welcome / Onboarding Landing Screen */}
-        {step === "welcome" && (
+        {/* SIMULATION BYPASSED: Splash ekranları kullanıldığı için bu adım es geçildi */}
+        {false && step === "welcome" && (
           <div className="flex-1 flex flex-col justify-between w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb">
             {/* Top part cover card */}
             <div className="relative w-full aspect-[4/3] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shrink-0">
@@ -2556,7 +2689,8 @@ const handleFileChange = (e) => {
         )}
 
         {/* STEP 3: KVKK Privacy / Consent screen */}
-        {step === "consent" && (
+        {/* SIMULATION BYPASSED: Splash ekranları kullanıldığı için bu adım es geçildi */}
+        {false && step === "consent" && (
           <div 
             className="flex-1 flex flex-col justify-between w-full animate-fade-in py-1 select-none pb-8 guest-safe-area-pb px-5"
             style={{ boxSizing: "border-box" }}
@@ -2806,7 +2940,8 @@ const handleFileChange = (e) => {
         )}
 
         {/* STEP 4: Selfie Face Registration Onboarding */}
-        {step === "selfie" && (
+        {/* SIMULATION BYPASSED: Splash ekranları kullanıldığı için bu adım es geçildi */}
+        {false && step === "selfie" && (
           <div className="flex-1 flex flex-col justify-between w-full animate-fade-in relative py-1 select-none pb-8 guest-safe-area-pb">
             {/* Camera Flash overlay simulation */}
             {flashActive && (
@@ -3092,7 +3227,8 @@ const handleFileChange = (e) => {
         )}
 
         {/* STEP 5: Processing Loader Screen */}
-        {step === "processing" && (
+        {/* SIMULATION BYPASSED: Splash ekranları kullanıldığı için bu adım es geçildi */}
+        {false && step === "processing" && (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-fade-in relative bg-transparent select-none">
             {/* Ambient glows */}
             <div className="absolute w-44 h-44 rounded-full bg-emerald-500/10 blur-[80px] animate-pulse z-0" />
