@@ -1829,7 +1829,7 @@ export default function GuestFlow() {
     }
   };
 
-  // Auto-transition from QR scanning to QR verified to Welcome (runs only when splash is dismissed)
+  // Auto-transition from QR scanning to QR verified to Processing (runs only when splash is dismissed)
   useEffect(() => {
     if (step === "qr" && !showSplash) {
       setQrSubStep("scanning");
@@ -1837,7 +1837,7 @@ export default function GuestFlow() {
         setQrSubStep("verified");
       }, 2000);
       const timer2 = setTimeout(() => {
-        setStep("welcome");
+        setStep("processing");
       }, 3500);
       return () => {
         clearTimeout(timer1);
@@ -1977,7 +1977,7 @@ export default function GuestFlow() {
     });
 
     setMatchedPhotosMap(loadedMatches);
-    setStep("processing");
+    setStep("qr");
   };
 
   const getTotalMatchedCount = () => {
@@ -2548,7 +2548,7 @@ export default function GuestFlow() {
                     <button
                       onClick={() => {
                         setShowSplash(false);
-                        setStep("qr");
+                        setStep("welcome");
                       }}
                       className="px-5 py-3 text-white/50 text-xs font-black uppercase tracking-wider bg-transparent border-none cursor-pointer active:scale-95"
                     >
@@ -2565,7 +2565,7 @@ export default function GuestFlow() {
                   <button
                     onClick={() => {
                       setShowSplash(false);
-                      setStep("qr");
+                      setStep("welcome");
                     }}
                     className="w-full py-4 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg"
                     style={{
@@ -2625,7 +2625,7 @@ export default function GuestFlow() {
               <button
                 onClick={() => {
                   setShowSplash(true);
-                  setStep("qr");
+                  setStep("welcome");
                 }}
                 className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer text-white/75 active:scale-90"
               >
@@ -3042,7 +3042,7 @@ export default function GuestFlow() {
 
             <div className="flex flex-col gap-3 mt-4 text-left">
               <button
-                onClick={() => setStep("consent")}
+                onClick={() => setStep("welcome")}
                 className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer text-white/75 active:scale-90"
               >
                 <ArrowLeft size={16} />
@@ -3201,7 +3201,7 @@ export default function GuestFlow() {
                         localStorage.setItem(`sm_guest_onboarding_${token}`, JSON.stringify(onboardingObj));
 
                         showToast("Demo selfie kullanıldı, analiz ediliyor.", "success");
-                        setStep("processing");
+                        setStep("qr");
                       }}
                       className="p-4 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold text-xs rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform"
                     >
