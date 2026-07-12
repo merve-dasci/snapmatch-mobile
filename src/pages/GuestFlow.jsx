@@ -1555,6 +1555,8 @@ export default function GuestFlow() {
   const [activeShareCardPhoto, setActiveShareCardPhoto] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState("polaroid");
   const [cameraFilter, setCameraFilter] = useState("normal");
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState(new Set());
 
   // Guest photo upload states
   const [isUploadSheetOpen, setIsUploadSheetOpen] = useState(false);
@@ -3743,9 +3745,21 @@ export default function GuestFlow() {
                 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&auto=format&fit=crop";
 
                 const handlePhotoSelect = (photo) => {
-                  setSelectedPhoto(photo);
-                  const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
-                  setSelectedPhotoEvent(relatedEvent);
+                  if (isSelectMode) {
+                    setSelectedPhotoIds(prev => {
+                      const next = new Set(prev);
+                      if (next.has(photo.id)) {
+                        next.delete(photo.id);
+                      } else {
+                        next.add(photo.id);
+                      }
+                      return next;
+                    });
+                  } else {
+                    setSelectedPhoto(photo);
+                    const relatedEvent = allEvents.find(e => e.id === photo.event_id) || event;
+                    setSelectedPhotoEvent(relatedEvent);
+                  }
                 };
 
                 return (
@@ -3763,24 +3777,38 @@ export default function GuestFlow() {
                         </div>
                         <p className="text-[10px] text-white/50 m-0 font-medium">Yapay zekânın seninle eşleştirdiği anılar.</p>
                       </div>
+
+                      {allPhotos.length > 0 && (
+                        <button
+                          onClick={() => {
+                            setIsSelectMode(!isSelectMode);
+                            setSelectedPhotoIds(new Set());
+                          }}
+                          className="px-3 py-1.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-[10px] font-black rounded-lg cursor-pointer active:scale-95 transition-all select-none"
+                        >
+                          {isSelectMode ? "Vazgeç" : "Seç"}
+                        </button>
+                      )}
                     </div>
 
                     {/* Yeni Resimleri Kontrol Et Butonu */}
-                    <button
-                      onClick={() => {
-                        setIsRefreshing(true);
-                        showToast("Yeni fotoğraflar kontrol ediliyor...", "success");
-                        setTimeout(() => {
-                          setIsRefreshing(false);
-                          showToast("Yeni fotoğraf bulunamadı, albümünüz güncel!", "success");
-                        }, 1500);
-                      }}
-                      disabled={isRefreshing}
-                      className="mt-1 w-full py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-black rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] select-none cursor-pointer"
-                    >
-                      <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
-                      <span>{isRefreshing ? "Kontrol Ediliyor..." : "Yeni Resimleri Kontrol Et"}</span>
-                    </button>
+                    {!isSelectMode && (
+                      <button
+                        onClick={() => {
+                          setIsRefreshing(true);
+                          showToast("Yeni fotoğraflar kontrol ediliyor...", "success");
+                          setTimeout(() => {
+                            setIsRefreshing(false);
+                            showToast("Yeni fotoğraf bulunamadı, albümünüz güncel!", "success");
+                          }, 1500);
+                        }}
+                        disabled={isRefreshing}
+                        className="mt-1 w-full py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-black rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] select-none cursor-pointer"
+                      >
+                        <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
+                        <span>{isRefreshing ? "Kontrol Ediliyor..." : "Yeni Resimleri Kontrol Et"}</span>
+                      </button>
+                    )}
 
                     {/* Timeline Content */}
                     {allPhotos.length === 0 ? (
@@ -3802,6 +3830,7 @@ export default function GuestFlow() {
                       >
                         {allPhotos.map((photo, index) => {
                           const isFav = favorites.some(p => p.id === photo.id);
+                          const isSelected = selectedPhotoIds.has(photo.id);
                           const photoUrl = photo.original_url || photo.thumbnail_url || photo.url || photo.previewUrl || FALLBACK_IMAGE;
 
                           const handleImgError = (e) => {
@@ -3813,19 +3842,14 @@ export default function GuestFlow() {
                           const mod = index % 6;
                           let sizeClasses = "";
                           if (mod === 0) {
-                            // 1. büyük yatay kart (2 kolon genişliğinde)
                             sizeClasses = "col-span-2 h-[200px]";
                           } else if (mod === 1) {
-                            // 2. sol uzun portre dikey kart (2 row span)
                             sizeClasses = "col-span-1 row-span-2 h-[308px]";
                           } else if (mod === 2 || mod === 3) {
-                            // 3 & 4. sağ iki küçük kare kart
                             sizeClasses = "col-span-1 h-[150px]";
                           } else if (mod === 4) {
-                            // 5. sol kare kart
                             sizeClasses = "col-span-1 h-[150px]";
                           } else {
-                            // 6. sağ dikey kart (daha uzun)
                             sizeClasses = "col-span-1 h-[220px]";
                           }
 
@@ -3850,25 +3874,65 @@ export default function GuestFlow() {
                                 <span>AI %{photo.matchConfidence || 98}</span>
                               </div>
 
+                              {/* Selection Mode Checkbox Overlay */}
+                              {isSelectMode && (
+                                <div className={`absolute bottom-2.5 right-2.5 w-6 h-6 rounded-full border-2 flex items-center justify-center z-30 transition-all ${
+                                  isSelected 
+                                    ? "bg-blue-500 border-blue-400 text-white" 
+                                    : "bg-black/30 border-white/40 text-transparent"
+                                }`}>
+                                  {isSelected && <Check size={12} strokeWidth={3.5} />}
+                                </div>
+                              )}
+
                               {/* Right top processing status badge */}
                               {photo.status === "processing" ? (
                                 <div className="absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-full bg-blue-600/80 backdrop-blur-md border border-blue-500/20 text-[8px] font-black text-white uppercase tracking-wider animate-pulse z-10">
                                   İşleniyor
                                 </div>
                               ) : (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleToggleFavorite(photo);
-                                  }}
-                                  className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-white z-20 cursor-pointer hover:bg-black/50 active:scale-90 transition-transform border-none animate-fade-in"
-                                >
-                                  <Heart size={11} className={isFav ? "fill-rose-500 text-rose-500" : "text-white/80"} />
-                                </button>
+                                !isSelectMode && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleFavorite(photo);
+                                    }}
+                                    className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-white z-20 cursor-pointer hover:bg-black/50 active:scale-90 transition-transform border-none animate-fade-in"
+                                  >
+                                    <Heart size={11} className={isFav ? "fill-rose-500 text-rose-500" : "text-white/80"} />
+                                  </button>
+                                )
                               )}
                             </div>
                           );
                         })}
+                      </div>
+                    )}
+
+                    {/* Floating Selection Action Panel */}
+                    {isSelectMode && selectedPhotoIds.size > 0 && (
+                      <div 
+                        className="fixed left-1/2 -translate-x-1/2 p-3 bg-slate-950/90 border border-white/10 backdrop-blur-md rounded-2xl flex items-center justify-between gap-3 shadow-2xl z-[900]"
+                        style={{
+                          width: "min(calc(100% - 32px), 398px)",
+                          bottom: "calc(88px + env(safe-area-inset-bottom, 12px))"
+                        }}
+                      >
+                        <span className="text-[11px] font-extrabold text-white pl-2">
+                          {selectedPhotoIds.size} Fotoğraf Seçildi
+                        </span>
+                        <button
+                          onClick={() => {
+                            const selectedPhotos = allPhotos.filter(p => selectedPhotoIds.has(p.id));
+                            handleBulkDownload(selectedPhotos);
+                            setIsSelectMode(false);
+                            setSelectedPhotoIds(new Set());
+                          }}
+                          className="bg-emerald-500 hover:bg-emerald-400 text-white text-[10.5px] font-black px-4 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all border-none"
+                        >
+                          <Download size={12} />
+                          <span>Seçilenleri İndir</span>
+                        </button>
                       </div>
                     )}
                   </div>
@@ -4305,11 +4369,7 @@ export default function GuestFlow() {
                 }
                 setIsUploadSheetOpen(true);
               }}
-              className="absolute w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-2xl flex items-center justify-center cursor-pointer active:scale-90 transition-transform z-[90] border border-white/20"
-              style={{
-                right: "16px",
-                bottom: "calc(76px + env(safe-area-inset-bottom, 12px))"
-              }}
+              className="guest-upload-fab bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-2xl flex items-center justify-center cursor-pointer active:scale-90 transition-transform border border-white/20"
             >
               <Plus size={24} strokeWidth={2.5} />
             </button>

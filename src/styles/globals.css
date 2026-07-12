@@ -2529,6 +2529,17 @@ body:has(.guest-app-root) {
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08) !important;
 }
 
+.guest-upload-fab {
+  position: fixed !important;
+  left: calc(50% + min(50vw, 215px) - 44px) !important;
+  transform: translateX(-50%) !important;
+  bottom: calc(88px + env(safe-area-inset-bottom, 12px)) !important;
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  z-index: 990 !important;
+}
+
 /* ==========================================================
    GUEST APP SCORING THEMES
    ========================================================== */
