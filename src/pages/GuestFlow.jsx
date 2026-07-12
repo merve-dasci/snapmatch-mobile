@@ -1412,6 +1412,7 @@ const { showToast } = useToast();
   ]);
   const [chatInput, setChatInput] = useState("");
   const fileInputRef = useRef(null);
+  const dispatch = useDispatch();
 
   const handleSendMessage = () => {
     if (!chatInput.trim()) return;
