@@ -2433,7 +2433,7 @@ body:has(.guest-app-root) #root {
 }
 
 body:has(.guest-app-root) {
-  touch-action: none !important;
+  touch-action: pan-y !important;
 }
 
 * {
@@ -2452,6 +2452,7 @@ body:has(.guest-app-root) {
   overflow-x: hidden !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
   padding: 20px 20px 0 20px !important;
   box-sizing: border-box !important;
   display: flex !important;
