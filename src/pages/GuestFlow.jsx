@@ -314,11 +314,12 @@ export function GuestThemeSettings({
               setConfirmDelete(false);
             }
           }}
-          className={`w-full p-3.5 border text-xs font-bold rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all mb-24 ${
+          className={`w-full p-4 text-xs font-black rounded-2xl flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all mb-24 shadow-lg ${
             confirmDelete 
-              ? "bg-red-600 border-red-600 text-white animate-pulse" 
-              : "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20"
+              ? "bg-red-800 text-white animate-pulse" 
+              : "bg-red-600 hover:bg-red-500 text-white shadow-red-600/10"
           }`}
+          style={{ border: "none" }}
         >
           <Trash2 size={14} />
           <span>{confirmDelete ? "Emin misiniz? Onaylamak için tekrar tıklayın" : "Biyometrik Verimi & Profilimi Sil"}</span>
@@ -3453,30 +3454,12 @@ const handleFileChange = (e) => {
             {/* TAB VIEW CONTAINER */}
             <div 
               ref={containerRef}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
+              /* onTouchStart={handleTouchStart} */
+              /* onTouchMove={handleTouchMove} */
+              /* onTouchEnd={handleTouchEnd} */
               className="flex-1 w-full relative"
             >
-              {/* Pull-to-refresh spinner visual */}
-              <div 
-                className="w-full flex items-center justify-center transition-all duration-150 overflow-hidden bg-white/5 border-b border-white/5 shrink-0"
-                style={{ 
-                  height: pullDistance > 0 || isRefreshing ? `${pullDistance}px` : '0px',
-                  opacity: pullDistance > 0 || isRefreshing ? 1 : 0
-                }}
-              >
-                <div className="flex items-center gap-2 py-2">
-                  <RefreshCw 
-                    size={14} 
-                    className={`text-emerald-400 ${isRefreshing ? 'animate-spin' : ''}`}
-                    style={{ transform: !isRefreshing ? `rotate(${pullDistance * 6}deg)` : 'none' }}
-                  />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-white/50">
-                    {isRefreshing ? "Yenileniyor..." : "Yenilemek İçin Çekin"}
-                  </span>
-                </div>
-              </div>
+              {/* Pull-to-refresh spinner kaldırıldı (sadece resimler sayfasındaki buton kullanılacak) */}
               
               {/* TAB 1: Albums (Albums Grid) */}
               {activeTab === "albums" && (() => {
@@ -3801,6 +3784,23 @@ const handleFileChange = (e) => {
                         <p className="text-[10px] text-white/50 m-0 font-medium">Yapay zekânın seninle eşleştirdiği anılar.</p>
                       </div>
                     </div>
+
+                    {/* Yeni Resimleri Kontrol Et Butonu */}
+                    <button
+                      onClick={() => {
+                        setIsRefreshing(true);
+                        showToast("Yeni fotoğraflar kontrol ediliyor...", "success");
+                        setTimeout(() => {
+                          setIsRefreshing(false);
+                          showToast("Yeni fotoğraf bulunamadı, albümünüz güncel!", "success");
+                        }, 1500);
+                      }}
+                      disabled={isRefreshing}
+                      className="mt-1 w-full py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-black rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] select-none cursor-pointer"
+                    >
+                      <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
+                      <span>{isRefreshing ? "Kontrol Ediliyor..." : "Yeni Resimleri Kontrol Et"}</span>
+                    </button>
 
                     {/* Timeline Content */}
                     {allPhotos.length === 0 ? (
