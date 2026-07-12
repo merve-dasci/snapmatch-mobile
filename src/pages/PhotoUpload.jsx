@@ -290,7 +290,7 @@ export default function PhotoUpload() {
             <select
               value={selectedEventId}
               onChange={(e) => dispatch(setSelectedEventId(e.target.value))}
-              className="w-full p-3 rounded-xl border border-[var(--glass-border)] bg-white/10 text-sm text-[var(--text-main)] outline-none cursor-pointer"
+              className="w-full p-3 rounded-xl border border-[rgba(99,115,129,0.22)] bg-white/40 text-sm text-[var(--text-main)] outline-none shadow-sm hover:border-[rgba(99,115,129,0.35)] focus:border-[var(--color-blue-dark)] focus:ring-1 focus:ring-[var(--color-blue-dark)] transition-all cursor-pointer"
             >
               <option value="" disabled className="bg-[var(--glass-bg-strong)] text-[var(--text-muted)]">Bir Etkinlik Seçin...</option>
               {events.map(e => (
@@ -394,7 +394,7 @@ export default function PhotoUpload() {
               <select 
                 value={selectedEventId} 
                 onChange={(e) => dispatch(setSelectedEventId(e.target.value))}
-                className="p-[10px_14px] rounded-[12px] border border-[var(--glass-border)] bg-white/15 text-[0.92rem] font-semibold flex-grow text-[var(--text-main)] outline-none"
+                className="p-[10px_14px] rounded-[12px] border border-[rgba(99,115,129,0.22)] bg-white/40 text-[0.92rem] font-semibold flex-grow text-[var(--text-main)] outline-none shadow-sm hover:border-[rgba(99,115,129,0.35)] focus:border-[var(--color-blue-dark)] focus:ring-1 focus:ring-[var(--color-blue-dark)] transition-all cursor-pointer"
               >
                 <option value="" className="bg-[var(--glass-bg-strong)] text-[var(--text-main)]">-- Etkinlik Seçin --</option>
                 {events.map(e => (
@@ -449,7 +449,7 @@ export default function PhotoUpload() {
                   e.stopPropagation();
                   handleSimulateBatch50();
                 }}
-                className="secondary-btn flex items-center gap-1.5 text-[0.78rem]"
+                className="primary-btn flex items-center gap-1.5 text-[0.78rem] font-bold text-white shadow-md"
               >
                 <Layers size={14} />
                 <span>50 Fotoğraflık Batch Simüle Et</span>

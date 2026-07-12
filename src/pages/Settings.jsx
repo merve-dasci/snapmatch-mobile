@@ -117,12 +117,15 @@ export default function Settings() {
     { id: "amoled-black", name: "AMOLED Black", desc: "Saf siyah karanlık mod", previewBg: "linear-gradient(135deg, #000000, #0b0b0d)", accent: "#3b82f6" },
   ];
 
-  const subTabs = [
+  const allSubTabs = [
     { id: "theme", label: "Sistem Teması", icon: Palette },
     { id: "workspace", label: "Branding & Marka", icon: Building2 },
     { id: "privacy", label: "KVKK & Gizlilik", icon: ShieldAlert },
     { id: "storage", label: "Depolama & Kota", icon: Database },
   ];
+
+  const isAdmin = user?.role === "platform_admin" || user?.role === "business_admin";
+  const subTabs = isAdmin ? allSubTabs : allSubTabs.filter(t => t.id === "theme");
 
   if (isMobile) {
     return (
@@ -156,18 +159,20 @@ export default function Settings() {
             </div>
           ))}
           {/* Add Developer Section Link for Developer Credentials */}
-          <div 
-            onClick={() => setOpenSection("api")}
-            className="flex items-center justify-between p-4 cursor-pointer active:bg-white/5 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[var(--color-blue-dark)]/15 text-[var(--color-blue-dark)] flex items-center justify-center">
-                <Key size={16} />
+          {isAdmin && (
+            <div 
+              onClick={() => setOpenSection("api")}
+              className="flex items-center justify-between p-4 cursor-pointer active:bg-white/5 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[var(--color-blue-dark)]/15 text-[var(--color-blue-dark)] flex items-center justify-center">
+                  <Key size={16} />
+                </div>
+                <span className="text-xs font-bold text-[var(--text-main)]">Geliştirici Entegrasyonları</span>
               </div>
-              <span className="text-xs font-bold text-[var(--text-main)]">Geliştirici Entegrasyonları</span>
+              <ChevronRight size={14} className="text-[var(--text-muted)]" />
             </div>
-            <ChevronRight size={14} className="text-[var(--text-muted)]" />
-          </div>
+          )}
         </div>
 
         {/* Mobile Detail Modal Sheets */}
@@ -202,7 +207,7 @@ export default function Settings() {
 
             {openSection === "workspace" && (
               <div className="flex flex-col gap-4">
-                <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl">
+                <div className="panel-toggle-row">
                   <div>
                     <strong className="text-xs block text-[var(--text-main)]">Görsel Filigranı (Watermark)</strong>
                     <small className="text-[9px] text-[var(--text-muted)]">Fotoğrafların üzerinde filigran ekler.</small>
@@ -211,27 +216,27 @@ export default function Settings() {
                     type="checkbox" 
                     checked={form.watermarkEnabled}
                     onChange={(e) => updateField("watermarkEnabled", e.target.checked)}
-                    className="w-5 h-5 cursor-pointer"
+                    className="panel-toggle"
                   />
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)]">Marka Başlığı</label>
+                <div className="panel-field">
+                  <label className="panel-label">Marka Başlığı</label>
                   <input 
                     type="text" 
                     value={form.title} 
                     onChange={(e) => updateField("title", e.target.value)}
-                    className="p-2.5 rounded-xl border border-[var(--glass-border)] bg-white/10 text-sm text-[var(--text-main)] outline-none"
+                    className="panel-input"
                   />
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)]">Logo Simgesi</label>
+                <div className="panel-field">
+                  <label className="panel-label">Logo Simgesi</label>
                   <input 
                     type="text" 
                     value={form.logo} 
                     onChange={(e) => updateField("logo", e.target.value)}
-                    className="p-2.5 rounded-xl border border-[var(--glass-border)] bg-white/10 text-sm text-[var(--text-main)] outline-none"
+                    className="panel-input"
                   />
                 </div>
 
@@ -243,22 +248,23 @@ export default function Settings() {
 
             {openSection === "privacy" && (
               <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)]">Varsayılan Kayıt Onay Metni</label>
+                <div className="panel-field">
+                  <label className="panel-label">Varsayılan Kayıt Onay Metni</label>
                   <textarea 
                     rows={4} 
                     value={form.defaultConsentText}
                     onChange={(e) => updateField("defaultConsentText", e.target.value)}
-                    className="p-2.5 rounded-xl border border-[var(--glass-border)] bg-white/10 text-sm text-[var(--text-main)] resize-none outline-none"
+                    className="panel-textarea"
+                    style={{ resize: 'none' }}
                   />
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)]">Veri Saklama Politikası</label>
+                <div className="panel-field">
+                  <label className="panel-label">Veri Saklama Politikası</label>
                   <select 
                     value={form.retentionPolicy} 
                     onChange={(e) => updateField("retentionPolicy", e.target.value)}
-                    className="p-2.5 rounded-xl border border-[var(--glass-border)] bg-white/10 text-sm text-[var(--text-main)] outline-none"
+                    className="panel-select"
                   >
                     <option value="30_days">Etkinlikten 30 Gün Sonra Sil</option>
                     <option value="6_months">Etkinlikten 6 Ay Sonra Sil</option>
@@ -290,13 +296,13 @@ export default function Settings() {
 
             {openSection === "api" && (
               <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] font-mono">Public API Key</label>
-                  <input type="text" readOnly value={apiSettings.publicKey} className="p-2.5 rounded-xl border border-[var(--glass-border)] bg-white/5 text-xs text-[var(--text-muted)] font-mono outline-none" />
+                <div className="panel-field">
+                  <label className="panel-label" style={{ fontFamily: 'monospace' }}>Public API Key</label>
+                  <input type="text" readOnly value={apiSettings.publicKey} className="panel-input panel-input-mono" />
                 </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] font-mono">Secret API Key</label>
-                  <input type="password" readOnly value={apiSettings.secretKey} className="p-2.5 rounded-xl border border-[var(--glass-border)] bg-white/5 text-xs text-[var(--text-muted)] font-mono outline-none" />
+                <div className="panel-field">
+                  <label className="panel-label" style={{ fontFamily: 'monospace' }}>Secret API Key</label>
+                  <input type="password" readOnly value={apiSettings.secretKey} className="panel-input panel-input-mono" />
                 </div>
                 <button onClick={() => setOpenSection(null)} className="primary-btn justify-center py-3 rounded-xl w-full">Geri Dön</button>
               </div>
@@ -310,13 +316,25 @@ export default function Settings() {
   return (
     <div className="flex gap-6 items-start">
       {/* Sub Tabs Menu Card (Left) */}
-      <GlassCard className="w-[260px] p-3 flex flex-col gap-1.5 shrink-0 glass-panel">
+      <GlassCard className="w-[260px] p-3 flex flex-col gap-1.5 shrink-0 glass-panel" role="tablist" aria-label="Ayarlar Kategorileri">
         <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider p-2">Ayarlar Menüsü</span>
         {subTabs.map((tab) => {
           const isActive = activeSubTab === tab.id;
           return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={isActive}
+              tabIndex={isActive ? 0 : -1}
+              onKeyDown={(e) => {
+                const tabs = ["theme", "workspace", "privacy", "storage", "api"];
+                const currentIdx = tabs.indexOf(activeSubTab);
+                if (e.key === "ArrowDown") {
+                  setActiveSubTab(tabs[(currentIdx + 1) % tabs.length]);
+                } else if (e.key === "ArrowUp") {
+                  setActiveSubTab(tabs[(currentIdx - 1 + tabs.length) % tabs.length]);
+                }
+              }}
               onClick={() => setActiveSubTab(tab.id)}
               className={`flex items-center gap-3 p-3 text-left border-none rounded-xl cursor-pointer transition-all ${
                 isActive 
@@ -330,17 +348,31 @@ export default function Settings() {
           );
         })}
         {/* Developer credentials tab */}
-        <button
-          onClick={() => setActiveSubTab("api")}
-          className={`flex items-center gap-3 p-3 text-left border-none rounded-xl cursor-pointer transition-all ${
-            activeSubTab === "api" 
-              ? "bg-[var(--accent-gradient)] text-white font-bold" 
-              : "bg-transparent text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--text-main)]"
-          }`}
-        >
-          <Key size={18} />
-          <span className="text-[0.82rem]">Geliştirici Entegrasyonları</span>
-        </button>
+        {isAdmin && (
+          <button
+            role="tab"
+            aria-selected={activeSubTab === "api"}
+            tabIndex={activeSubTab === "api" ? 0 : -1}
+            onKeyDown={(e) => {
+              const tabs = ["theme", "workspace", "privacy", "storage", "api"];
+              const currentIdx = tabs.indexOf(activeSubTab);
+              if (e.key === "ArrowDown") {
+                setActiveSubTab(tabs[(currentIdx + 1) % tabs.length]);
+              } else if (e.key === "ArrowUp") {
+                setActiveSubTab(tabs[(currentIdx - 1 + tabs.length) % tabs.length]);
+              }
+            }}
+            onClick={() => setActiveSubTab("api")}
+            className={`flex items-center gap-3 p-3 text-left border-none rounded-xl cursor-pointer transition-all ${
+              activeSubTab === "api" 
+                ? "bg-[var(--accent-gradient)] text-white font-bold" 
+                : "bg-transparent text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--text-main)]"
+            }`}
+          >
+            <Key size={18} />
+            <span className="text-[0.82rem]">Geliştirici Entegrasyonları</span>
+          </button>
+        )}
       </GlassCard>
 
       {/* Settings Action forms content area (Right) */}
@@ -391,7 +423,7 @@ export default function Settings() {
         {activeSubTab === "workspace" && (
           <GlassCard title="Branding & Fotoğraf Filigranı" className="glass-panel">
             <div className="flex flex-col gap-5">
-              <div className="flex justify-between items-center">
+              <div className="panel-toggle-row">
                 <div>
                   <strong className="text-[0.88rem] block">Görsel Filigranı (Watermark) Ekle</strong>
                   <span className="text-[0.78rem] text-[var(--text-muted)]">Misafirler fotoğrafları satın almadan önce üzerlerinde Snapmatch filigranı gösterilir.</span>
@@ -400,27 +432,29 @@ export default function Settings() {
                   type="checkbox" 
                   checked={form.watermarkEnabled} 
                   onChange={(e) => updateField("watermarkEnabled", e.target.checked)}
-                  className="w-5 h-5 cursor-pointer"
+                  className="panel-toggle"
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5 border-t border-[var(--glass-border)] pt-4">
-                <label className="text-[0.85rem] font-bold">Marka Başlığı (Workspace Name)</label>
+              <hr className="panel-section-divider" />
+
+              <div className="panel-field">
+                <label className="panel-label">Marka Başlığı (Workspace Name)</label>
                 <input 
                   type="text" 
                   value={form.title} 
                   onChange={(e) => updateField("title", e.target.value)}
-                  className="p-2.5 rounded-[10px] border border-[var(--glass-border)] bg-white/15 text-[var(--text-main)] text-[0.9rem] outline-none"
+                  className="panel-input"
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[0.85rem] font-bold">Marka Logosu Simge/Görsel URL</label>
+              <div className="panel-field">
+                <label className="panel-label">Marka Logosu Simge/Görsel URL</label>
                 <input 
                   type="text" 
                   value={form.logo} 
                   onChange={(e) => updateField("logo", e.target.value)}
-                  className="p-2.5 rounded-[10px] border border-[var(--glass-border)] bg-white/15 text-[var(--text-main)] text-[0.9rem] outline-none"
+                  className="panel-input"
                 />
               </div>
 
@@ -435,22 +469,25 @@ export default function Settings() {
         {activeSubTab === "privacy" && (
           <GlassCard title="KVKK / GDPR Aydınlatma Beyanları" className="glass-panel">
             <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[0.85rem] font-bold">Varsayılan Kayıt Onay Metni</label>
+              <div className="panel-field">
+                <label className="panel-label">Varsayılan Kayıt Onay Metni</label>
                 <textarea 
                   rows={4} 
                   value={form.defaultConsentText}
                   onChange={(e) => updateField("defaultConsentText", e.target.value)}
-                  className="p-2.5 rounded-[10px] border border-[var(--glass-border)] bg-white/15 text-[var(--text-main)] text-[0.85rem] resize-none outline-none"
+                  className="panel-textarea"
+                  style={{ resize: 'none' }}
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5 border-t border-[var(--glass-border)] pt-4">
-                <label className="text-[0.85rem] font-bold">Veri Saklama Politikası (Data Retention)</label>
+              <hr className="panel-section-divider" />
+
+              <div className="panel-field">
+                <label className="panel-label">Veri Saklama Politikası (Data Retention)</label>
                 <select 
                   value={form.retentionPolicy} 
                   onChange={(e) => updateField("retentionPolicy", e.target.value)}
-                  className="p-2.5 rounded-[10px] border border-[var(--glass-border)] bg-white/15 text-[0.9rem] text-[var(--text-main)] outline-none"
+                  className="panel-select"
                 >
                   <option value="30_days">Etkinlik Bittikten 30 Gün Sonra Biyometrik Verileri Sil</option>
                   <option value="6_months">Etkinlik Bittikten 6 Ay Sonra Biyometrik Verileri Sil</option>
@@ -481,13 +518,13 @@ export default function Settings() {
                 <div className="h-full bg-[var(--accent-gradient)]" style={{ width: `${(storageSettings.storageUsedGB / storageSettings.storageLimitGB) * 100}%` }} />
               </div>
 
-              <div className="flex flex-col gap-1.5 mt-4">
-                <label className="text-[0.85rem] font-bold">Yeni Kota Limit Değeri (GB)</label>
+              <div className="panel-field mt-4">
+                <label className="panel-label">Yeni Kota Limit Değeri (GB)</label>
                 <input 
                   type="number" 
                   value={form.storageLimitGB} 
                   onChange={(e) => updateField("storageLimitGB", e.target.value)}
-                  className="p-2.5 rounded-[10px] border border-[var(--glass-border)] bg-white/15 text-[var(--text-main)] text-[0.9rem] outline-none"
+                  className="panel-input"
                 />
               </div>
 
@@ -504,23 +541,23 @@ export default function Settings() {
                 Fotoğrafçılık yazılımlarınıza veya Lightroom pluginlerinize Snapmatch AI entegrasyonu yapmak için API anahtarlarını kullanabilirsiniz.
               </p>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[0.82rem] font-bold">Public API Key</label>
+              <div className="panel-field">
+                <label className="panel-label">Public API Key</label>
                 <input 
                   type="text" 
                   readOnly 
                   value={apiSettings.publicKey} 
-                  className="p-2.5 rounded-[10px] border border-[var(--glass-border)] bg-white/5 text-[var(--text-muted)] text-[0.8rem] font-mono outline-none"
+                  className="panel-input panel-input-mono"
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[0.82rem] font-bold">Secret API Key</label>
+              <div className="panel-field">
+                <label className="panel-label">Secret API Key</label>
                 <input 
                   type="password" 
                   readOnly 
                   value={apiSettings.secretKey} 
-                  className="p-2.5 rounded-[10px] border border-[var(--glass-border)] bg-white/5 text-[var(--text-muted)] text-[0.8rem] font-mono outline-none"
+                  className="panel-input panel-input-mono"
                 />
               </div>
             </div>

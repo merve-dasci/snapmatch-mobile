@@ -21,6 +21,7 @@ export const useToast = () => {
 
 export const ToastProvider = ({ children }) => {
   const [toast, setToast] = useState(null);
+  const [confirmData, setConfirmData] = useState(null);
   const timeoutRef = useRef(null);
 
   const showToast = (message, type = "success") => {
@@ -35,6 +36,10 @@ export const ToastProvider = ({ children }) => {
       setToast(null);
       timeoutRef.current = null;
     }, 3000);
+  };
+
+  const showConfirm = (message, onConfirm, onCancel = null) => {
+    setConfirmData({ message, onConfirm, onCancel });
   };
 
   useEffect(() => {
@@ -82,7 +87,7 @@ export const ToastProvider = ({ children }) => {
   };
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, showConfirm }}>
       {children}
 
       {toast && (
@@ -112,6 +117,52 @@ export const ToastProvider = ({ children }) => {
           >
             <X size={16} />
           </button>
+        </div>
+      )}
+
+      {/* Özel Tasarıma Uygun Onay Modali (Confirm Modal) */}
+      {confirmData && (
+        <div className="fixed inset-0 z-[9999] bg-black/80 grid place-items-center p-4 backdrop-blur-md animate-fade-in">
+          <div 
+            className="max-w-[380px] w-full p-6 rounded-[24px] flex flex-col gap-5 text-center relative overflow-hidden"
+            style={{
+              background: "var(--glass-bg-strong)",
+              border: "1px solid var(--glass-border)",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.6)"
+            }}
+          >
+            <div className="w-12 h-12 rounded-full bg-amber-500/10 text-amber-500 mx-auto grid place-items-center border border-amber-500/20">
+              <AlertTriangle size={22} className="animate-[pulse_2s_infinite]" />
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <strong className="text-base font-extrabold text-white">Emin misiniz?</strong>
+              <p className="text-xs text-[var(--text-muted)] leading-relaxed m-0 px-2">
+                {confirmData.message}
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button 
+                onClick={() => {
+                  if (confirmData.onCancel) confirmData.onCancel();
+                  setConfirmData(null);
+                }}
+                className="secondary-btn flex-1 py-3 text-xs font-bold rounded-[14px] cursor-pointer border border-white/10"
+              >
+                İptal
+              </button>
+              <button 
+                onClick={() => {
+                  confirmData.onConfirm();
+                  setConfirmData(null);
+                }}
+                className="flex-1 py-3 text-xs font-bold rounded-[14px] cursor-pointer bg-gradient-to-r from-red-500 to-rose-600 text-white border-none shadow-md shadow-red-500/10 hover:from-red-600 hover:to-rose-700"
+              >
+                Onayla
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </ToastContext.Provider>

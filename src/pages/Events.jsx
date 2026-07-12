@@ -97,24 +97,6 @@ export default function Events() {
     consent_text: "Yuz verilerimin bu etkinlik fotograflarinda eslestirme amaciyla KVKK kapsaminda islenmesini onayliyorum."
   });
 
-  const loadEvents = async () => {
-    if (!user?.workspaceId) {
-      setEvents(mockApi.getEvents());
-      setIsLoadingEvents(false);
-      return;
-    }
-
-    try {
-      setIsLoadingEvents(true);
-      const data = await eventsApi.getWorkspaceEvents(user.workspaceId);
-      setEvents(data.events || []);
-    } catch (err) {
-      showToast(err.message || "Etkinlikler yuklenemedi.", "error");
-      setEvents([]);
-    } finally {
-      setIsLoadingEvents(false);
-    }
-  };
 
   useEffect(() => {
     dispatch(fetchEvents());
@@ -137,10 +119,14 @@ export default function Events() {
     { value: "archived", label: "Arşivlendi" }
   ];
 
+  const globalSearch = useSelector((state) => state.ui.globalSearchQuery) || "";
+  const activeSearchQuery = searchQuery || globalSearch;
+
   const filteredEvents = events.filter(e => {
+    const searchLower = activeSearchQuery.toLocaleLowerCase("tr-TR");
     const matchesSearch = 
-      e.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      e.location.toLowerCase().includes(searchQuery.toLowerCase());
+      (e.title || "").toLocaleLowerCase("tr-TR").includes(searchLower) || 
+      (e.location || "").toLocaleLowerCase("tr-TR").includes(searchLower);
     const matchesCategory = selectedCategory === "all" || e.category === selectedCategory;
     const matchesStatus = selectedStatus === "all" || e.status === selectedStatus;
     return matchesSearch && matchesCategory && matchesStatus;

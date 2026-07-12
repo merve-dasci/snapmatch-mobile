@@ -25,7 +25,8 @@ import {
   Sliders,
   AlertCircle,
   Plus,
-  X
+  X,
+  Shield
 } from "lucide-react";
 import { useAdaptive } from "../context/AdaptiveContext";
 import { motion } from "framer-motion";
@@ -36,6 +37,7 @@ export default function MatchReview() {
   const { showToast } = useToast();
   const { user } = useAuth();
   const isUploader = user?.role === "uploader";
+  const isOrganizer = user?.role === "event_owner";
 
   const participants = useSelector((state) => state.participants.items) || [];
   const photos = useSelector((state) => state.photos.items) || [];
@@ -160,7 +162,16 @@ export default function MatchReview() {
         {/* Selected Participant Details Card */}
         {selectedParticipant && (
           <div className="glass-panel p-3 flex items-center gap-3 bg-[var(--glass-bg-strong)]">
-            <img src={selectedParticipant.face_url} alt="Selfie" className="w-12 h-12 rounded-full object-cover border border-[var(--glass-border)]" />
+            {isOrganizer ? (
+              <div 
+                className="w-12 h-12 rounded-full bg-slate-950/40 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0"
+                title="KVKK Güvenliği: Organizatörler biyometrik selfie verisini görüntüleyemez."
+              >
+                <Shield size={18} />
+              </div>
+            ) : (
+              <img src={selectedParticipant.face_url} alt="Selfie" className="w-12 h-12 rounded-full object-cover border border-[var(--glass-border)]" />
+            )}
             <div>
               <strong className="text-xs font-black block text-[var(--text-main)]">{selectedParticipant.display_name}</strong>
               <p className="text-[9px] text-[var(--text-muted)] mt-0.5 m-0">Eşleşmeler bu selfie referans alınarak doğrulanır.</p>
@@ -300,12 +311,25 @@ export default function MatchReview() {
                       : "bg-white/5 border-[var(--glass-border)] text-[var(--text-main)] hover:bg-white/10"
                   }`}
                 >
-                  <img 
-                    src={p.selfie_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"} 
-                    alt={p.display_name} 
-                    className="w-10 h-10 rounded-full object-cover mr-3 shrink-0"
-                    onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"; }}
-                  />
+                  {isOrganizer ? (
+                    <div 
+                      className={`w-10 h-10 rounded-full mr-3 shrink-0 flex items-center justify-center border ${
+                        isSelected 
+                          ? "bg-white/10 border-white/20 text-white" 
+                          : "bg-slate-950/40 border-amber-500/30 text-amber-500"
+                      }`}
+                      title="KVKK Güvenliği: Organizatörler biyometrik selfie verisini görüntüleyemez."
+                    >
+                      <Shield size={16} />
+                    </div>
+                  ) : (
+                    <img 
+                      src={p.selfie_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"} 
+                      alt={p.display_name} 
+                      className="w-10 h-10 rounded-full object-cover mr-3 shrink-0"
+                      onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"; }}
+                    />
+                  )}
                   <div className="flex-grow min-w-0">
                     <strong className={`text-[0.88rem] block truncate font-bold ${isSelected ? "text-white" : "text-[var(--text-main)]"}`}>
                       {p.display_name}
@@ -331,7 +355,7 @@ export default function MatchReview() {
         <div className="flex flex-col gap-[var(--space-md)]">
           {/* Status Tabs */}
           <GlassCard className="glass-panel p-2">
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1" role="tablist" aria-label="Eşleşme Durumları">
               {[
                 { id: "pending_review", label: "İnceleme Bekleyenler" },
                 { id: "approved", label: "Onaylananlar" },
@@ -340,6 +364,18 @@ export default function MatchReview() {
               ].map(tab => (
                 <button 
                   key={tab.id}
+                  role="tab"
+                  aria-selected={statusFilter === tab.id}
+                  tabIndex={statusFilter === tab.id ? 0 : -1}
+                  onKeyDown={(e) => {
+                    const tabs = ["pending_review", "approved", "rejected", "all"];
+                    const currentIdx = tabs.indexOf(statusFilter);
+                    if (e.key === "ArrowRight") {
+                      setStatusFilter(tabs[(currentIdx + 1) % tabs.length]);
+                    } else if (e.key === "ArrowLeft") {
+                      setStatusFilter(tabs[(currentIdx - 1 + tabs.length) % tabs.length]);
+                    }
+                  }}
                   onClick={() => setStatusFilter(tab.id)}
                   className={`flex-grow sm:flex-grow-0 p-[8px_16px] rounded-[10px] text-[0.85rem] font-bold border-none cursor-pointer transition-all duration-200 ${
                     statusFilter === tab.id 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useOutletContext, useLocation } from "react-router-dom";
 import GlassCard from "../components/ui/GlassCard";
 import GlassModal from "../components/ui/GlassModal";
@@ -41,7 +41,9 @@ import {
   Loader2,
   CheckSquare,
   ChevronDown,
-  MessageSquare
+  MessageSquare,
+  UploadCloud,
+  RefreshCw
 } from "lucide-react";
 import { useAdaptive } from "../context/AdaptiveContext";
 import BottomMobileSheet from "../components/ui/BottomMobileSheet";
@@ -50,11 +52,13 @@ export default function EventDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { showToast } = useToast();
+  const { showToast, showConfirm } = useToast();
   const { isMobile } = useAdaptive();
   const { user } = useAuth();
   const isOrganizer = user?.role === "event_owner";
   const isPhotographer = user?.role === "business_admin" || user?.role === "platform_admin";
+  const rawBaseUrl = import.meta.env.VITE_BASE_URL;
+  const baseUrlDisplay = rawBaseUrl ? rawBaseUrl.replace(/^https?:\/\//, "") : "";
 
   const [event, setEvent] = useState(null);
   const [eventLoading, setEventLoading] = useState(true);
@@ -71,6 +75,19 @@ export default function EventDetail() {
 
   // Tab 3 Participants - PII mask state
   const [maskPII, setMaskPII] = useState(true);
+  const [showAddParticipantModal, setShowAddParticipantModal] = useState(false);
+  const [newPartName, setNewPartName] = useState("");
+  const [newPartEmail, setNewPartEmail] = useState("");
+  const [newPartPhone, setNewPartPhone] = useState("");
+  
+  // Selfie / Camera States
+  const [selfieMode, setSelfieMode] = useState("upload");
+  const [cameraStream, setCameraStream] = useState(null);
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
+  const videoRef = useRef(null);
+  const modalFileInputRef = useRef(null);
+  const [wizardStep, setWizardStep] = useState(1);
+  const [kvkkConsent, setKvkkConsent] = useState(false);
 
   // Tab 4 Matching - AI Matching control states
   const [matchingActive, setMatchingActive] = useState(false);
@@ -157,9 +174,11 @@ export default function EventDetail() {
       const data = await eventsApi.getEvent(id);
       const apiEvent = data.event;
       setEvent(apiEvent);
-      setPhotos([]);
-      setParticipants([]);
-      setMatches([]);
+      // Load related data from localStorage (mockApi) using the event id
+      const eventId = apiEvent.id || id;
+      setPhotos(mockApi.getPhotos(eventId));
+      setParticipants(mockApi.getParticipants(eventId));
+      setMatches(mockApi.getMatches(eventId));
       setQrToken(apiEvent.qr_token || "");
       setAccessType(apiEvent.access_type || "public");
       setAccessPassword(apiEvent.access_password || "");
@@ -233,6 +252,96 @@ export default function EventDetail() {
     showToast("Etkinlik şablonu başarıyla kopyalandı!");
   };
 
+  const startCamera = async () => {
+    try {
+      setCapturedPhoto(null);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 320, height: 320, facingMode: "user" },
+        audio: false
+      });
+      setCameraStream(stream);
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 100);
+    } catch (err) {
+      console.error("Camera access error:", err);
+      showToast("Kameraya erişilemedi. Lütfen izinleri kontrol edin.", "error");
+      setSelfieMode("upload");
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth || 320;
+    canvas.height = video.videoHeight || 320;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL("image/jpeg");
+    setCapturedPhoto(dataUrl);
+    stopCamera();
+  };
+
+  const handleCloseModal = () => {
+    stopCamera();
+    setCapturedPhoto(null);
+    setSelfieMode("upload");
+    setNewPartName("");
+    setNewPartEmail("");
+    setNewPartPhone("");
+    setWizardStep(1);
+    setKvkkConsent(false);
+    setShowAddParticipantModal(false);
+  };
+
+  const handleAddParticipant = async (e) => {
+    if (e) e.preventDefault();
+    if (!newPartName.trim()) {
+      showToast("Lütfen katılımcı adını girin.", "warning");
+      return;
+    }
+    if (!capturedPhoto) {
+      showToast("Lütfen bir selfie fotoğrafı yükleyin veya kamerayla çekin.", "warning");
+      return;
+    }
+    if (!kvkkConsent) {
+      showToast("Katılımcı eklemek için KVKK Açık Rıza Onay kutusunu işaretlemeniz gerekmektedir.", "warning");
+      return;
+    }
+    
+    try {
+      const newPart = mockApi.createParticipant(
+        event.id,
+        newPartName.trim(),
+        capturedPhoto,
+        newPartEmail.trim(),
+        newPartPhone.trim()
+      );
+      
+      // Immediately add the new participant to state as a fallback
+      setParticipants(prev => [...prev, newPart]);
+      
+      // Then refresh all data from the source of truth
+      await refreshData();
+      
+      showToast("Katılımcı başarıyla eklendi ve AI yüz eşleştirmesi başlatıldı.", "success");
+    } catch (err) {
+      showToast("Katılımcı eklenirken bir hata oluştu: " + (err.message || err), "error");
+    }
+    
+    handleCloseModal();
+  };
+
   // Tab 3 Revoke Participant Consent & Face Data
   const handleRevokeParticipant = (participantId, displayName) => {
     // Delete face profile simulation
@@ -271,7 +380,7 @@ export default function EventDetail() {
           `[${timestamp}] AI Engine: Fotoğraflarda yüz geometrileri algılanıyor...`,
           `[${timestamp}] AI Engine: 4 yeni yüz profili karşılaştırıldı.`,
           `[${timestamp}] AI Engine: Eşleşme bulundu - Katılımcı: Can A. (Skor: 0.94)`,
-          `[${timestamp}] AI Engine: Düşük güvenli eşleşme review kuyruğuna gönderildi (Skor: 0.72)`,
+          `[${timestamp}] AI Engine: Düşük güvenli eşleşme inceleme kuyruğuna gönderildi (Skor: 0.72)`,
           `[${timestamp}] AI Engine: Eşleme motoru kuyruğu başarıyla tamamladı.`
         ];
         
@@ -305,7 +414,7 @@ export default function EventDetail() {
   if (eventLoading) {
     return (
       <div className="skeleton-page-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "50vh", gap: "16px" }}>
-        <h3>Etkinlik yukleniyor...</h3>
+        <h3>Etkinlik yükleniyor...</h3>
       </div>
     );
   }
@@ -497,7 +606,7 @@ export default function EventDetail() {
             <div className="flex justify-between items-center px-1">
               <span className="text-xs font-bold text-[var(--text-muted)]">{photos.length} Görsel</span>
               <button 
-                onClick={() => showToast("Tüm fotoğraflar zip olarak hazırlanıyor...", "info")}
+                onClick={() => showToast("Tüm fotoğraflar ZIP olarak hazırlanıyor...", "info")}
                 className="text-[10px] font-bold text-[var(--color-blue-dark)] bg-transparent border-none cursor-pointer"
               >
                 Tümünü İndir
@@ -573,7 +682,7 @@ export default function EventDetail() {
               <div className="flex gap-2 w-full mt-5">
                 <button 
                   onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/guest/${event.qr_token}`);
+                    navigator.clipboard.writeText(`${rawBaseUrl}/guest/${event.qr_token}`);
                     showToast("Misafir erişim bağlantısı kopyalandı!");
                   }}
                   className="primary-btn flex-1 py-2 text-[10px] font-bold rounded-xl justify-center"
@@ -662,11 +771,14 @@ export default function EventDetail() {
 
               <button
                 onClick={() => {
-                  if (confirm(`"${event.title}" etkinliğini kalıcı olarak silmek istediğinize emin misiniz?`)) {
-                    mockApi.deleteEvent(event.id);
-                    showToast("Etkinlik silindi.");
-                    navigate("/events");
-                  }
+                  showConfirm(
+                    `"${event.title}" etkinliğini kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
+                    () => {
+                      mockApi.deleteEvent(event.id);
+                      showToast("Etkinlik silindi.", "warning");
+                      navigate("/events");
+                    }
+                  );
                 }}
                 className="w-full py-3 rounded-xl bg-red-500/10 text-red-500 font-bold text-xs border border-transparent cursor-pointer text-left px-4 flex items-center justify-between"
               >
@@ -762,7 +874,7 @@ export default function EventDetail() {
               <div className="flex items-center gap-2">
                 <span className="bg-black/45 backdrop-blur-[6px] border border-white/20 p-[8px_14px] rounded-[12px] text-[0.8rem] font-bold flex items-center gap-2 select-none">
                   <QrCode size={15} />
-                  <span>snapmatch.me/{event.qr_token || "guest"}</span>
+                  <span>{baseUrlDisplay}/guest/{event.qr_token || "token"}</span>
                 </span>
               </div>
             </div>
@@ -829,7 +941,7 @@ export default function EventDetail() {
                 <AlertCircle size={22} />
               </div>
               <div>
-                <small className="text-[var(--text-muted)] block text-[0.76rem] font-bold uppercase tracking-wider">Review Bekleyen</small>
+                <small className="text-[var(--text-muted)] block text-[0.76rem] font-bold uppercase tracking-wider">İnceleme Bekleyen</small>
                 <strong className="text-[1.25rem] font-black text-rose-500">{pendingReviewsCount}</strong>
               </div>
             </GlassCard>
@@ -873,14 +985,14 @@ export default function EventDetail() {
                   <QrCode size={135} className="text-black" />
                 </div>
                 <div className="flex flex-col gap-1.5 w-full">
-                  <strong className="text-[0.92rem]">snapmatch.me/{event.qr_token}</strong>
+                  <strong className="text-[0.92rem]">{baseUrlDisplay}/guest/{event.qr_token}</strong>
                   <p className="m-0 text-[0.76rem] text-[var(--text-muted)]">Misafirlerinizin kendi fotoğraflarını bulabilmesi için bu QR kodu posterlere veya ekranlara yansıtabilirsiniz.</p>
                 </div>
                 <div className="flex gap-2 w-full">
                   <button 
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://snapmatch.me/${event.qr_token}`);
-                      showToast("Link başarıyla kopyalandı.", "success");
+                      navigator.clipboard.writeText(`${rawBaseUrl}/guest/${event.qr_token}`);
+                      showToast("QR linki panoya kopyalandı!");
                     }}
                     className="primary-btn flex-grow text-[0.8rem] justify-center gap-1"
                   >
@@ -907,7 +1019,7 @@ export default function EventDetail() {
         };
 
         const filteredParticipants = participants.filter(p => 
-          p.display_name.toLowerCase().includes(albumSearchQuery.toLowerCase())
+          (p.display_name || "").toLocaleLowerCase("tr-TR").includes(albumSearchQuery.toLocaleLowerCase("tr-TR"))
         );
 
         if (selectedAlbum) {
@@ -1084,7 +1196,7 @@ export default function EventDetail() {
                   placeholder="Kişi adı ara..." 
                   value={albumSearchQuery} 
                   onChange={(e) => setAlbumSearchQuery(e.target.value)}
-                  className="p-[6px_12px] rounded-lg border border-[var(--glass-border)] bg-white/5 text-[0.8rem] text-[var(--text-main)] outline-none w-[180px]"
+                  className="p-[8px_14px] rounded-xl border border-[rgba(99,115,129,0.22)] bg-white/40 text-[0.85rem] text-[var(--text-main)] outline-none shadow-sm hover:border-[rgba(99,115,129,0.35)] focus:border-[var(--color-blue-dark)] focus:ring-1 focus:ring-[var(--color-blue-dark)] transition-all w-[200px]"
                 />
                 <button className="primary-btn flex items-center gap-1.5" onClick={() => navigate("/upload")}>
                   <Plus size={16} /> 
@@ -1173,16 +1285,33 @@ export default function EventDetail() {
             </div>
             
             {/* PII Masking Toggle Button */}
-            <button 
-              onClick={() => {
-                setMaskPII(!maskPII);
-                showToast(maskPII ? "Kişisel veriler görünür yapıldı." : "Kişisel veriler maskelendi.", "info");
-              }}
-              className="secondary-btn"
-            >
-              {maskPII ? <Eye size={15} /> : <EyeOff size={15} />}
-              <span>{maskPII ? "Kişisel Verileri Göster" : "Verileri Maskele (KVKK)"}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => {
+                  setMaskPII(!maskPII);
+                  showToast(maskPII ? "Kişisel veriler görünür yapıldı." : "Kişisel veriler maskelendi.", "info");
+                }}
+                className="secondary-btn"
+              >
+                {maskPII ? <Eye size={15} /> : <EyeOff size={15} />}
+                <span>{maskPII ? "Kişisel Verileri Göster" : "Verileri Maskele (KVKK)"}</span>
+              </button>
+
+              {(isOrganizer || isPhotographer) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCapturedPhoto(null);
+                    setSelfieMode("upload");
+                    setShowAddParticipantModal(true);
+                  }}
+                  className="primary-btn flex items-center gap-1.5 p-[10px_16px] text-xs font-bold rounded-xl text-white shadow-md border-none"
+                >
+                  <Plus size={15} />
+                  <span>Yeni Katılımcı Ekle</span>
+                </button>
+              )}
+            </div>
           </GlassCard>
 
           {participants.length === 0 ? (
@@ -1197,7 +1326,16 @@ export default function EventDetail() {
                 return (
                   <GlassCard key={p.id} className="flex items-center justify-between p-4 flex-wrap gap-4 hover:translate-y-[-1px] transition-all border border-[var(--glass-border)]/50">
                     <div className="flex items-center gap-3">
-                      <img src={p.selfie_url} alt="selfie" className="w-11 h-11 rounded-full object-cover border border-white/40 shadow-sm" />
+                      {isOrganizer ? (
+                        <div 
+                          className="w-11 h-11 rounded-full bg-slate-950/40 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0"
+                          title="KVKK Güvenliği: Organizatörler biyometrik selfie verisini görüntüleyemez."
+                        >
+                          <Shield size={18} />
+                        </div>
+                      ) : (
+                        <img src={p.selfie_url} alt="selfie" className="w-11 h-11 rounded-full object-cover border border-white/40 shadow-sm" />
+                      )}
                       <div className="flex flex-col">
                         <strong className="text-[0.92rem] text-[var(--text-main)]">{p.display_name}</strong>
                         <span className="text-[0.78rem] text-[var(--text-muted)] font-medium mt-0.5">
@@ -1346,9 +1484,19 @@ export default function EventDetail() {
                     <div className="grid grid-cols-2 gap-4 items-center justify-center text-center">
                       <div className="flex flex-col items-center gap-2">
                         <span className="text-[0.74rem] font-bold text-[var(--text-muted)] uppercase tracking-wider">Selfie / Referans</span>
-                        <div className="w-[100px] h-[100px] rounded-full overflow-hidden border-2 border-white/30 shadow-md">
-                          <img src={participant.selfie_url} alt="selfie" className="w-full h-full object-cover" />
-                        </div>
+                        {isOrganizer ? (
+                          <div 
+                            className="w-[100px] h-[100px] rounded-full bg-slate-950/40 border-2 border-amber-500/30 flex flex-col items-center justify-center text-amber-500 gap-1"
+                            title="KVKK Güvenliği: Organizatörler biyometrik selfie verisini görüntüleyemez."
+                          >
+                            <Shield size={24} />
+                            <span className="text-[0.52rem] font-bold">KVKK Korumalı</span>
+                          </div>
+                        ) : (
+                          <div className="w-[100px] h-[100px] rounded-full overflow-hidden border-2 border-white/30 shadow-md">
+                            <img src={participant.selfie_url} alt="selfie" className="w-full h-full object-cover" />
+                          </div>
+                        )}
                         <strong className="text-[0.85rem] mt-1 line-clamp-1">{participant.display_name}</strong>
                       </div>
 
@@ -1397,7 +1545,7 @@ export default function EventDetail() {
               
               <div className="flex flex-col gap-1">
                 <span className="text-[0.8rem] text-[var(--text-muted)] font-semibold">Aktif Link</span>
-                <strong className="text-[1.05rem] text-[var(--color-blue-dark)]">https://snapmatch.me/{event.qr_token}</strong>
+                <strong className="text-[1.05rem] text-[var(--color-blue-dark)]">{baseUrlDisplay}/guest/{event.qr_token}</strong>
               </div>
 
               {/* SVG / PNG downloads */}
@@ -1566,7 +1714,7 @@ export default function EventDetail() {
                   type="text" 
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="p-3 rounded-[12px] border border-[var(--glass-border)] bg-white/15 text-[var(--text-main)] outline-none font-semibold text-[0.88rem]" 
+                  className="p-3 rounded-[12px] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--text-main)] outline-none font-semibold text-[0.88rem] shadow-sm" 
                 />
               </div>
               
@@ -1577,7 +1725,7 @@ export default function EventDetail() {
                     type="date" 
                     value={editDate}
                     onChange={(e) => setEditDate(e.target.value)}
-                    className="p-3 rounded-[12px] border border-[var(--glass-border)] bg-white/15 text-[var(--text-main)] outline-none font-semibold text-[0.88rem]" 
+                    className="p-3 rounded-[12px] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--text-main)] outline-none font-semibold text-[0.88rem] shadow-sm" 
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -1586,7 +1734,7 @@ export default function EventDetail() {
                     type="text" 
                     value={editLocation}
                     onChange={(e) => setEditLocation(e.target.value)}
-                    className="p-3 rounded-[12px] border border-[var(--glass-border)] bg-white/15 text-[var(--text-main)] outline-none font-semibold text-[0.88rem]" 
+                    className="p-3 rounded-[12px] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--text-main)] outline-none font-semibold text-[0.88rem] shadow-sm" 
                   />
                 </div>
               </div>
@@ -1602,11 +1750,11 @@ export default function EventDetail() {
 
           {/* Danger Zone panel */}
           <GlassCard className="glass-panel p-5 border-[2px] border-red-500/25">
-                     <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-[var(--glass-border)]/40">
+                     <div className="flex flex-wrap gap-3">
               {event.status !== "archived" && (
                 <button 
                   onClick={handleArchiveEvent}
-                  className="p-[10px_18px] text-[0.8rem] font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 rounded-[12px] cursor-pointer transition-colors"
+                  className="primary-btn p-[10px_18px] text-[0.8rem] font-bold flex items-center gap-1.5"
                 >
                   Etkinliği Arşivle
                 </button>
@@ -1616,7 +1764,7 @@ export default function EventDetail() {
                   setConfirmTitle("");
                   setShowDeleteModal(true);
                 }}
-                className="p-[10px_18px] text-[0.8rem] font-bold bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-[12px] cursor-pointer transition-colors flex items-center gap-1"
+                className="primary-btn p-[10px_18px] text-[0.8rem] font-bold flex items-center gap-1.5"
               >
                 <Trash2 size={14} /> Etkinliği Kalıcı Olarak Sil
               </button>
@@ -1780,15 +1928,15 @@ export default function EventDetail() {
         const step = photo.status === "matched" ? 4 : (photo.status === "needs_review" ? 3 : 2);
 
         return (
-          <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 sm:p-8 animate-fade-in">
-            <button 
-              onClick={() => setActiveLightboxPhoto(null)}
-              className="absolute top-4 right-4 bg-white/5 hover:bg-white/10 text-white p-2.5 rounded-full border border-white/10 transition-all cursor-pointer z-[110] shadow-lg"
-            >
-              <X size={20} className="text-white" />
-            </button>
-
-            <div className="relative grid grid-cols-1 md:grid-cols-[1.7fr_1fr] h-full max-h-[85vh] w-full max-w-[1050px] bg-slate-950/40 backdrop-blur-3xl border border-white/20 rounded-[24px] overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),_0_24px_60px_rgba(0,0,0,0.8)] text-white">
+          <GlassModal
+            open={!!activeLightboxPhoto}
+            onClose={() => setActiveLightboxPhoto(null)}
+            title="Görsel Bilgileri"
+            width="max-w-[1050px]"
+            height="max-h-[85vh]"
+            noPadding
+          >
+            <div className="relative grid grid-cols-1 md:grid-cols-[1.7fr_1fr] h-full w-full bg-slate-950/20 text-white overflow-hidden">
               {/* Glowing atmospheric lights in background */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[24px] z-0">
                 <div className="absolute -top-32 -left-32 w-64 h-64 rounded-full bg-[var(--color-blue-medium)]/25 blur-3xl" />
@@ -1811,7 +1959,7 @@ export default function EventDetail() {
                     <span className="truncate pr-2">{photo.filename}</span>
                     <ChevronDown size={18} className="text-slate-400 shrink-0 opacity-70" />
                   </h3>
-                  <span className="text-[0.7rem] text-slate-300 block mt-1 font-semibold">Fotoğraf Detayları & EXIF Metadata</span>
+                  <span className="text-[0.7rem] text-slate-300 block mt-1 font-semibold">Fotoğraf Detayları &amp; Meta Verisi</span>
                 </div>
 
                 {/* Metadata Items */}
@@ -1906,11 +2054,379 @@ export default function EventDetail() {
                 </div>
 
               </div>
-            </div>
-          </div>
-        );
+              </div>
+            </GlassModal>
+          );
       })()}
 
+      {/* ADD PARTICIPANT MODAL */}
+      <GlassModal
+        open={showAddParticipantModal}
+        onClose={handleCloseModal}
+        title="Yeni Katılımcı Ekle"
+        subtitle="Katılımcı bilgilerini ve yüz profilini 3 adımda kolayca tanımlayın"
+        icon={Users}
+        width="max-w-[540px]"
+        footer={
+          <div className="flex justify-between items-center gap-3 w-full">
+            {wizardStep > 1 ? (
+              <button 
+                type="button"
+                onClick={() => {
+                  if (wizardStep === 2) {
+                    stopCamera();
+                  }
+                  setWizardStep(wizardStep - 1);
+                }}
+                className="glass-btn flex items-center gap-1.5 p-[10px_20px] text-[0.85rem] font-bold rounded-[14px] border border-white/10 hover:bg-white/10 text-white cursor-pointer bg-transparent"
+              >
+                <span>Geri</span>
+              </button>
+            ) : (
+              <button 
+                type="button" 
+                onClick={handleCloseModal}
+                className="glass-btn flex items-center gap-1.5 p-[10px_20px] text-[0.85rem] font-bold rounded-[14px] border border-white/10 hover:bg-white/10 text-white cursor-pointer bg-transparent"
+              >
+                <span>İptal</span>
+              </button>
+            )}
+
+            {wizardStep < 3 ? (
+              <button 
+                type="button"
+                onClick={() => {
+                  if (wizardStep === 1) {
+                    if (!newPartName.trim()) {
+                      showToast("Lütfen katılımcı adını girin.", "warning");
+                      return;
+                    }
+                    setWizardStep(2);
+                  } else if (wizardStep === 2) {
+                    if (!capturedPhoto) {
+                      showToast("Lütfen bir selfie fotoğrafı yükleyin veya kamerayla çekin.", "warning");
+                      return;
+                    }
+                    setWizardStep(3);
+                  }
+                }}
+                className="primary-btn flex items-center gap-1.5 p-[10px_24px] text-[0.85rem] font-bold rounded-[14px] bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-none cursor-pointer shadow-md"
+              >
+                <span>İleri</span>
+              </button>
+            ) : (
+              <button 
+                type="button"
+                onClick={handleAddParticipant}
+                disabled={!kvkkConsent}
+                className={`primary-btn flex items-center gap-1.5 p-[10px_24px] text-[0.85rem] font-bold rounded-[14px] bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-none cursor-pointer shadow-md ${!kvkkConsent ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <span>Kaydet ve AI Eşleştir</span>
+              </button>
+            )}
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-4 text-left">
+          {/* Step Indicators */}
+          <div className="mb-2 bg-white/[0.03] p-4 rounded-[18px] select-none relative z-10 border border-white/5">
+            <div className="flex justify-between items-center relative px-2">
+              {/* Connecting line */}
+              <div className="absolute top-[14px] left-8 right-8 h-[2px] bg-white/10 z-0">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
+                  style={{ width: `${(wizardStep - 1) * 50}%` }}
+                />
+              </div>
+              
+              {[1, 2, 3].map((s) => {
+                const labels = ["Kişi Bilgileri", "Yüz Tanımlama", "Onay & KVKK"];
+                const isActive = wizardStep === s;
+                const isCompleted = wizardStep > s;
+                return (
+                  <div key={s} className="flex flex-col items-center gap-2 z-10 flex-1 relative">
+                    <div 
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-[0.8rem] font-bold transition-all relative border ${
+                        isActive 
+                          ? "border-blue-400 bg-blue-500/20 text-white shadow-[0_0_12px_rgba(59,130,246,0.5)] scale-110" 
+                          : (isCompleted 
+                            ? "border-blue-400/80 bg-blue-500/10 text-white" 
+                            : "border-white/20 bg-slate-950/40 text-slate-300")
+                      }`}
+                    >
+                      {s}
+                    </div>
+                    <span 
+                      className={`text-[0.68rem] font-black transition-colors ${
+                        isActive ? "text-blue-400 font-extrabold" : "text-slate-200"
+                      }`}
+                    >
+                      {labels[s - 1]}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Step 1 Content */}
+          {wizardStep === 1 && (
+            <div className="flex flex-col gap-4 animate-fade-in bg-white/[0.04] p-5 rounded-[18px] border border-white/5">
+              <div className="flex items-center gap-2.5 mb-1">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-[var(--color-blue-medium)]">
+                  <UserCheck size={16} />
+                </div>
+                <div className="flex flex-col text-left">
+                  <div className="text-[0.9rem] font-bold text-white flex items-center gap-1.5">
+                    <span className="text-[var(--color-blue-medium)] font-extrabold">Adım 1:</span>
+                    <span className="text-white font-bold">Kişi Bilgileri</span>
+                  </div>
+                  <span className="text-[0.72rem] text-slate-400">Katılımcının temel iletişim bilgilerini tanımlayın.</span>
+                </div>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex flex-col gap-1 text-left">
+                <span className="text-[0.72rem] text-[var(--text-muted)] font-bold uppercase tracking-wider">Hedef Etkinlik</span>
+                <strong className="text-[0.88rem] text-[var(--text-main)]">{event?.title}</strong>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Adı Soyadı</label>
+                <input 
+                  type="text" 
+                  placeholder="Örn. Ezgi Kuzu" 
+                  required
+                  value={newPartName}
+                  onChange={(e) => setNewPartName(e.target.value)}
+                  className="glass-input-distinct w-full p-[10px_14px] rounded-xl text-[0.92rem] outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">E-posta (İsteğe Bağlı)</label>
+                  <input 
+                    type="email" 
+                    placeholder="ornek@domain.com"
+                    value={newPartEmail}
+                    onChange={(e) => setNewPartEmail(e.target.value)}
+                    className="glass-input-distinct w-full p-[10px_14px] rounded-xl text-[0.92rem] outline-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Telefon (İsteğe Bağlı)</label>
+                  <input 
+                    type="tel" 
+                    placeholder="Örn. 0532 123 45 67" 
+                    value={newPartPhone}
+                    onChange={(e) => setNewPartPhone(e.target.value)}
+                    className="glass-input-distinct w-full p-[10px_14px] rounded-xl text-[0.92rem] outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2 Content */}
+          {wizardStep === 2 && (
+            <div className="flex flex-col gap-4 animate-fade-in bg-white/[0.04] p-5 rounded-[18px] border border-white/5">
+              <div className="flex items-center gap-2.5 mb-1">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-[var(--color-blue-medium)]">
+                  <Camera size={16} />
+                </div>
+                <div className="flex flex-col text-left">
+                  <div className="text-[0.9rem] font-bold text-white flex items-center gap-1.5">
+                    <span className="text-[var(--color-blue-medium)] font-extrabold">Adım 2:</span>
+                    <span className="text-white font-bold">Yüz Tanımlama</span>
+                  </div>
+                  <span className="text-[0.72rem] text-slate-400">Katılımcının AI eşleştirmesinde kullanılacak biyometrik selfiesini yükleyin veya çekin.</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2.5">
+                {/* Toggle Button Group */}
+                <div className="flex gap-2 p-1 bg-slate-950/60 border border-white/10 rounded-xl w-fit">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      stopCamera();
+                      setSelfieMode("upload");
+                    }}
+                    className={`p-[6px_14px] text-[0.76rem] font-bold rounded-lg cursor-pointer transition-all border-none ${selfieMode === "upload" ? "bg-[var(--color-blue-dark)] text-white shadow-sm" : "text-slate-300 hover:text-white bg-transparent"}`}
+                  >
+                    📁 Dosya Yükle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelfieMode("camera");
+                      startCamera();
+                    }}
+                    className={`p-[6px_14px] text-[0.76rem] font-bold rounded-lg cursor-pointer transition-all border-none ${selfieMode === "camera" ? "bg-[var(--color-blue-dark)] text-white shadow-sm" : "text-slate-300 hover:text-white bg-transparent"}`}
+                  >
+                    📷 Kamera Aç
+                  </button>
+                </div>
+
+                {/* Selfie Mode: Upload */}
+                {selfieMode === "upload" && (
+                  <div className="mt-1">
+                    {capturedPhoto ? (
+                      <div className="flex items-center gap-4 p-3 bg-white/5 border border-[var(--glass-border)] rounded-xl">
+                        <img src={capturedPhoto} alt="Uploaded preview" className="w-16 h-16 rounded-xl object-cover border border-white/20 shadow-sm" />
+                        <div className="flex flex-col gap-1 text-left">
+                          <span className="text-[0.78rem] text-white font-semibold">Selfie Dosyası Yüklendi</span>
+                          <button
+                            type="button"
+                            onClick={() => setCapturedPhoto(null)}
+                            className="text-[0.72rem] text-red-400 hover:text-red-300 font-bold w-fit bg-transparent border-none cursor-pointer p-0 text-left"
+                          >
+                            Fotoğrafı Kaldır
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div 
+                          onClick={() => modalFileInputRef.current?.click()}
+                          className="border border-dashed border-white/20 hover:border-blue-400/50 bg-slate-950/40 hover:bg-slate-900/60 rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center gap-2"
+                        >
+                          <UploadCloud size={24} className="text-blue-400" />
+                          <span className="text-[0.78rem] text-slate-200 font-bold">Cihazınızdan bir selfie (JPEG, PNG) seçin</span>
+                          <span className="text-[0.68rem] text-slate-400 font-medium">Dosyayı seçmek için buraya tıklayın</span>
+                        </div>
+                        <input 
+                          type="file" 
+                          ref={modalFileInputRef} 
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files && e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = () => setCapturedPhoto(reader.result);
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="hidden" 
+                        />
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Selfie Mode: Camera */}
+                {selfieMode === "camera" && (
+                  <div className="mt-1 flex flex-col items-center gap-3 w-full">
+                    {capturedPhoto ? (
+                      <div className="flex items-center gap-4 p-3 bg-white/5 border border-[var(--glass-border)] rounded-xl w-full">
+                        <img src={capturedPhoto} alt="Captured preview" className="w-16 h-16 rounded-xl object-cover border border-white/20 shadow-sm" />
+                        <div className="flex flex-col gap-1 text-left">
+                          <span className="text-[0.78rem] text-[var(--text-main)] font-semibold">Fotoğraf Başarıyla Çekildi</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCapturedPhoto(null);
+                              startCamera();
+                            }}
+                            className="text-[0.72rem] text-[var(--color-blue-dark)] hover:brightness-110 font-bold w-fit bg-transparent border-none cursor-pointer p-0 text-left"
+                          >
+                            Yeniden Fotoğraf Çek
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative w-full max-w-[280px] aspect-square rounded-2xl overflow-hidden border border-[var(--glass-border)] bg-black flex items-center justify-center">
+                        {cameraStream ? (
+                          <video 
+                            ref={videoRef} 
+                            autoPlay 
+                            playsInline 
+                            muted 
+                            className="w-full h-full object-cover scale-x-[-1]"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 text-[var(--text-muted)] text-[0.78rem] p-4">
+                            <RefreshCw size={20} className="animate-spin text-[var(--color-blue-dark)]" />
+                            <span>Kamera başlatılıyor...</span>
+                          </div>
+                        )}
+                        
+                        {cameraStream && (
+                          <button
+                            type="button"
+                            onClick={capturePhoto}
+                            className="absolute bottom-4 left-1/2 -translate-x-1/2 p-[8px_16px] bg-[var(--color-blue-dark)] hover:brightness-110 text-white text-[0.76rem] font-bold rounded-xl shadow-md border-none cursor-pointer active:scale-95 transition-all"
+                          >
+                            📸 Fotoğrafı Çek
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 3 Content */}
+          {wizardStep === 3 && (
+            <div className="flex flex-col gap-4 animate-fade-in bg-white/[0.04] p-5 rounded-[18px] border border-white/5">
+              <div className="flex items-center gap-2.5 mb-1">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-[var(--accent-green)]">
+                  <Sparkles size={16} />
+                </div>
+                <div className="flex flex-col text-left">
+                  <div className="text-[0.9rem] font-bold text-white flex items-center gap-1.5">
+                    <span className="text-[var(--accent-green)] font-extrabold">Adım 3:</span>
+                    <span className="text-white font-bold">Onay ve KVKK</span>
+                  </div>
+                  <span className="text-[0.72rem] text-slate-400">Katılımcı kaydını doğrulamak için KVKK iznini onaylayın.</span>
+                </div>
+              </div>
+
+              {/* Summary card */}
+              <div className="flex flex-col sm:flex-row items-center gap-4 p-3 bg-white/5 border border-[var(--glass-border)] rounded-xl">
+                <img src={capturedPhoto} alt="Captured preview" className="w-16 h-16 rounded-xl object-cover border border-white/20 shadow-sm shrink-0" />
+                <div className="flex flex-col gap-1 text-[0.8rem] text-left w-full overflow-hidden">
+                  <div className="flex justify-between border-b border-white/5 pb-1">
+                    <span className="text-slate-400">Katılımcı:</span>
+                    <strong className="text-white truncate max-w-[160px]">{newPartName}</strong>
+                  </div>
+                  {newPartEmail && (
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span className="text-slate-400">E-posta:</span>
+                      <span className="text-slate-200 truncate max-w-[160px]">{newPartEmail}</span>
+                    </div>
+                  )}
+                  {newPartPhone && (
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span className="text-slate-400">Telefon:</span>
+                      <span className="text-slate-200">{newPartPhone}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-1">
+                    <span className="text-slate-400">Etkinlik:</span>
+                    <span className="text-indigo-400 font-semibold truncate max-w-[160px]">{event?.title}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* KVKK consent checkbox */}
+              <label className="flex items-start gap-3 p-3 bg-emerald-500/5 border border-emerald-500/25 rounded-xl cursor-pointer select-none transition-all hover:bg-emerald-500/10">
+                <input 
+                  type="checkbox" 
+                  checked={kvkkConsent} 
+                  onChange={(e) => setKvkkConsent(e.target.checked)} 
+                  className="mt-0.5 rounded border-[var(--glass-border)] bg-slate-900 text-blue-500 focus:ring-blue-500 cursor-pointer"
+                />
+                <span className="text-[0.74rem] text-slate-300 leading-normal text-left">
+                  Katılımcı {new Date().toLocaleDateString("tr-TR")} tarihinde biyometrik yüz verilerinin aranması, galerinin eşleştirilmesi ve KVKK Aydınlatma Metninde belirtilen amaçlarla işlenmesi için <strong>açık rıza göstermiştir.</strong>
+                </span>
+              </label>
+            </div>
+          )}
+        </div>
+      </GlassModal>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import GlassCard from "../components/ui/GlassCard";
 import GlassModal from "../components/ui/GlassModal";
+import EmptyState from "../components/ui/EmptyState";
 import { mockApi } from "../services/mockApi";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -12,7 +13,8 @@ import {
   Video,
   MoreVertical,
   CheckCheck,
-  ExternalLink
+  ExternalLink,
+  Smile
 } from "lucide-react";
 
 export default function Messages() {
@@ -21,6 +23,7 @@ export default function Messages() {
   const [messages, setMessages] = useState([]);
   const [activeContactId, setActiveContactId] = useState("");
   const [inputText, setInputText] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [callModalOpen, setCallModalOpen] = useState(false);
   const messagesEndRef = useRef(null);
 
@@ -47,8 +50,8 @@ export default function Messages() {
   const contactIdsMatrix = {
     platform_admin: ["business_admin", "event_owner"],
     business_admin: ["event_owner"],
-    event_owner: ["business_admin", "uploader", "katilimci"],
-    uploader: ["event_owner"],
+    event_owner: ["business_admin", "katilimci"],
+    uploader: [],
     katilimci: ["event_owner"]
   };
 
@@ -64,6 +67,14 @@ export default function Messages() {
     if (contacts.length > 0) {
       setActiveContactId(contacts[0].id);
     }
+
+    const handleNewMessage = () => {
+      setMessages(mockApi.getMessages());
+    };
+    window.addEventListener("sm_new_message_received", handleNewMessage);
+    return () => {
+      window.removeEventListener("sm_new_message_received", handleNewMessage);
+    };
   }, [currentUserRole]);
 
   // Scroll to bottom on new messages
@@ -87,25 +98,6 @@ export default function Messages() {
     mockApi.sendMessage(currentUserRole, activeContactId, inputText);
     setMessages([...mockApi.getMessages()]);
     setInputText("");
-
-    // Simulated Auto-Reply to show interactivity
-    setTimeout(() => {
-      let replyText = "Mesajınızı aldım, en kısa sürede kontrol edip döneceğim.";
-      
-      if (currentUserRole === "katilimci" && activeContactId === "event_owner") {
-        replyText = `Merhaba Zeynep Hanım, mesajınızı aldım. Etkinlikteki yüz kayıtlarınızı inceleyip fotoğraflarınızın doğrulanmasını hızlandırıyorum.`;
-      } else if (currentUserRole === "event_owner" && activeContactId === "business_admin") {
-        replyText = `Merve Hanım selamlar, sisteme son yüklenen albümü asistanım şimdi onayladı, paneline düşmüş olmalı.`;
-      } else if (currentUserRole === "event_owner" && activeContactId === "uploader") {
-        replyText = `Merve Hanım, kapalı gruptaki fotoğrafları hemen uploader üzerinden aktarıyorum, 2 dakika içinde biter.`;
-      } else if (currentUserRole === "business_admin" && activeContactId === "event_owner") {
-        replyText = `Ezgi Hanım, etkinlik detaylarındaki QR kodunu misafirlerle paylaştım. Katılımcı kayıtları gelmeye başladı.`;
-      }
-
-      mockApi.sendMessage(activeContactId, currentUserRole, replyText);
-      setMessages([...mockApi.getMessages()]);
-      showToast(`${activeContact?.name || "Kullanıcı"} yeni bir mesaj gönderdi.`, "info");
-    }, 1500);
   };
 
   const getFormatTime = (isoString) => {
@@ -154,9 +146,11 @@ export default function Messages() {
         {/* Contacts Scrollable area */}
         <div className="flex-grow overflow-y-auto pr-1 flex flex-col gap-2 relative z-10 custom-scrollbar">
           {contacts.length === 0 ? (
-            <div className="text-center p-8 text-[var(--text-muted)] text-[0.8rem] border border-dashed border-[var(--glass-border)] rounded-xl bg-[var(--glass-bg)]/20">
-              Kişi veya aktif sohbet bulunamadı.
-            </div>
+            <EmptyState
+              icon={MessageSquare}
+              title="Sohbet Bulunamadı"
+              description="İletişime geçebileceğiniz aktif bir sohbet veya kullanıcı bulunmuyor."
+            />
           ) : (
             contacts.map(c => {
               // Find last message in this thread
@@ -170,7 +164,10 @@ export default function Messages() {
               return (
                 <button
                   key={c.id}
-                  onClick={() => setActiveContactId(c.id)}
+                  onClick={() => {
+                    setActiveContactId(c.id);
+                    setShowEmojiPicker(false);
+                  }}
                   className={`w-full text-left p-3.5 rounded-[16px] border flex items-center gap-3 transition-all cursor-pointer relative overflow-hidden group ${
                     isSelected 
                       ? "bg-[var(--glass-bg-strong)] shadow-md" 
@@ -259,7 +256,7 @@ export default function Messages() {
                 >
                   {activeContact.initials}
                 </div>
-                <div className="flex flex-col">
+                <div className="flex flex-col text-left">
                   <span className="text-[var(--text-main)] text-[0.9rem] font-extrabold leading-tight">{activeContact.name}</span>
                   <span 
                     className="text-[0.72rem] font-bold mt-0.5"
@@ -272,16 +269,6 @@ export default function Messages() {
               
               <div className="flex items-center gap-2">
                 <button 
-                  className="w-8.5 h-8.5 rounded-lg flex items-center justify-center border cursor-pointer transition"
-                  style={{
-                    backgroundColor: "var(--glass-bg)",
-                    borderColor: "var(--glass-border)",
-                    color: "var(--text-main)"
-                  }}
-                >
-                  <Phone size={15} />
-                </button>
-                <button 
                   onClick={() => setCallModalOpen(true)}
                   className="w-8.5 h-8.5 rounded-lg flex items-center justify-center border cursor-pointer transition hover:bg-[var(--color-blue-dark)]/15"
                   style={{
@@ -293,21 +280,17 @@ export default function Messages() {
                 >
                   <Video size={15} />
                 </button>
-                <button 
-                  className="w-8.5 h-8.5 rounded-lg flex items-center justify-center border cursor-pointer transition"
-                  style={{
-                    backgroundColor: "var(--glass-bg)",
-                    borderColor: "var(--glass-border)",
-                    color: "var(--text-main)"
-                  }}
-                >
-                  <MoreVertical size={15} />
-                </button>
               </div>
             </div>
 
             {/* Chat Messages list */}
-            <div className="flex-grow overflow-y-auto p-5 flex flex-col gap-4 relative z-10 custom-scrollbar">
+            <div 
+              className="flex-grow overflow-y-auto p-5 flex flex-col gap-3 relative z-10 custom-scrollbar"
+              style={{
+                backgroundImage: "radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)",
+                backgroundSize: "16px 16px"
+              }}
+            >
               {currentThreadMessages.length === 0 ? (
                 <div className="flex-grow flex flex-col items-center justify-center text-[var(--text-muted)] text-[0.82rem] gap-2 p-12">
                   <MessageSquare size={36} className="opacity-30" style={{ color: "var(--color-blue-medium)" }} />
@@ -322,23 +305,16 @@ export default function Messages() {
                       className={`flex flex-col max-w-[70%] ${isMe ? "self-end items-end animate-slide-in-right" : "self-start items-start animate-slide-in-left"}`}
                     >
                       <div 
-                        className={`p-3.5 rounded-[18px] text-[0.84rem] leading-[1.45] shadow-sm ${
+                        className={`p-3.5 text-[0.84rem] leading-[1.45] shadow-sm relative ${
                           isMe 
-                            ? "text-white rounded-tr-sm" 
-                            : "text-[var(--text-main)] rounded-tl-sm backdrop-blur-md border"
+                            ? "text-white rounded-[16px] rounded-tr-none" 
+                            : "text-[var(--text-main)] rounded-[16px] rounded-tl-none bg-[var(--glass-bg-strong)] border border-[var(--glass-border)]"
                         }`}
-                        style={{
-                          background: isMe 
-                            ? "var(--accent-gradient)" 
-                            : "var(--glass-bg-strong)",
-                          borderColor: isMe 
-                            ? "transparent" 
-                            : "var(--glass-border)"
-                        }}
+                        style={isMe ? { background: "var(--accent-gradient)" } : {}}
                       >
                         {msg.text}
                       </div>
-                      <div className="flex items-center gap-1 mt-1.5 text-[0.65rem] text-[var(--text-muted)] px-1 font-semibold">
+                      <div className="flex items-center gap-1 mt-1 text-[0.65rem] text-[var(--text-muted)] px-1 font-semibold">
                         <span>{getFormatTime(msg.timestamp)}</span>
                         {isMe && <CheckCheck size={12} style={{ color: "var(--color-blue-dark)" }} className="ml-0.5" />}
                       </div>
@@ -349,47 +325,80 @@ export default function Messages() {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Canlı Emoji Seçici */}
+            {showEmojiPicker && (
+              <div 
+                className="absolute bottom-[66px] left-[16px] z-50 p-3 rounded-[16px] w-[290px] shadow-2xl flex flex-wrap gap-1.5 animate-fade-in"
+                style={{
+                  background: "var(--glass-bg-strong)",
+                  border: "1px solid var(--glass-border)",
+                  backdropFilter: "blur(12px)"
+                }}
+              >
+                {["😊", "😂", "😍", "👍", "🎉", "🔥", "❤️", "🙌", "😉", "😎", "👏", "📸", "✨", "🤵", "👰", "🥳", "💬", "⭐", "🎈", "🕺", "💃", "🥂", "🎂", "💔"].map((emoji, eIdx) => (
+                  <button
+                    key={eIdx}
+                    type="button"
+                    onClick={() => {
+                      setInputText(prev => prev + emoji);
+                      setShowEmojiPicker(false);
+                    }}
+                    className="w-7 h-7 text-base bg-transparent border-none flex items-center justify-center cursor-pointer hover:bg-white/10 active:scale-90 rounded-lg transition-all"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Message Input Form */}
             <form 
               onSubmit={handleSendMessage}
-              className="p-4 border-t backdrop-blur-md flex gap-2.5 items-center relative z-10"
+              className="p-3.5 border-t backdrop-blur-md flex gap-2.5 items-center relative z-10"
               style={{
-                backgroundColor: "color-mix(in srgb, var(--glass-bg-strong) 50%, transparent)",
+                backgroundColor: "color-mix(in srgb, var(--glass-bg-strong) 65%, transparent)",
                 borderColor: "var(--glass-border)"
               }}
             >
+              <button 
+                type="button" 
+                title="İfade Ekle"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className={`w-9 h-9 rounded-full flex items-center justify-center border cursor-pointer shrink-0 transition-colors ${
+                  showEmojiPicker 
+                    ? "bg-white/15 text-white border-white/20" 
+                    : "bg-white/5 border-white/5 text-[var(--text-muted)] hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Smile size={16} />
+              </button>
+
               <input 
                 type="text" 
                 placeholder="Mesajınızı buraya yazın..." 
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                className="flex-grow bg-[var(--glass-bg-strong)]/30 border border-[var(--glass-border)] rounded-[14px] p-3 px-4 text-[0.85rem] outline-none text-[var(--text-main)] focus:border-[var(--color-blue-dark)] placeholder-[var(--text-muted)] transition-colors"
+                className="flex-grow bg-[var(--glass-bg-strong)]/30 border border-[var(--glass-border)] rounded-[20px] p-2.5 px-4 text-[0.85rem] outline-none text-[var(--text-main)] focus:border-[var(--color-blue-dark)] placeholder-[var(--text-muted)] transition-colors"
               />
+
               <button 
                 type="submit" 
-                className="w-11 h-11 rounded-[14px] text-white flex items-center justify-center border-none cursor-pointer transition-all active:scale-95 shadow-md shadow-blue-500/10 shrink-0"
+                className="w-10 h-10 rounded-full text-white flex items-center justify-center border-none cursor-pointer transition-all active:scale-95 shadow-md shadow-blue-500/10 shrink-0"
                 style={{
                   background: "var(--accent-gradient)"
                 }}
               >
-                <Send size={16} />
+                <Send size={15} />
               </button>
             </form>
           </>
         ) : (
-          <div className="flex-grow flex flex-col items-center justify-center text-[var(--text-muted)] text-[0.82rem] gap-2.5 p-12">
-            <div 
-              className="w-14 h-14 rounded-full border flex items-center justify-center mb-2"
-              style={{
-                backgroundColor: "color-mix(in srgb, var(--color-blue-dark) 10%, transparent)",
-                borderColor: "color-mix(in srgb, var(--color-blue-dark) 20%, transparent)",
-                color: "var(--color-blue-dark)"
-              }}
-            >
-              <MessageSquare size={26} />
-            </div>
-            <strong className="text-[var(--text-main)] text-[0.95rem]">Sohbet Seçin</strong>
-            <span className="text-[var(--text-muted)] text-center max-w-[280px]">İletişime geçmek istediğiniz kullanıcıyı sol listeden seçerek sohbeti başlatabilirsiniz.</span>
+          <div className="flex-grow flex items-center justify-center p-8 select-none">
+            <EmptyState
+              icon={MessageSquare}
+              title="Sohbet Seçin"
+              description="İletişime geçmek istediğiniz kullanıcıyı sol listeden seçerek sohbeti başlatabilirsiniz."
+            />
           </div>
         )}
       </GlassCard>

@@ -3,26 +3,23 @@ import { ShieldCheck, Camera, CalendarCheck, UploadCloud, UserRound } from "luci
 // İşletme (Fotoğrafçı) Admini rotaları
 const BUSINESS_ROUTES = [
     "/home",
-    "/dashboard",
     "/events",
     "/events/:id",
     "/upload",
-    "/participants",
     "/matching",
     "/review",
     "/qr",
     "/analytics",
     "/team",
-    "/settings",
     "/messages",
+    "/settings",
 ];
 
 // Tüm sistem rotaları (Sadece Platform Admini görebilir)
 const PLATFORM_ROUTES = [
-    ...BUSINESS_ROUTES,
-    "/roles",
-    "/access-matrix",
+    "/home",
     "/customers",
+    "/settings",
 ];
 
 // Erişim Matrisi'nden (6.2) türetilmiş rol tanımları.
@@ -74,8 +71,8 @@ export const ROLES = {
             "/participants",
             "/review",
             "/qr",
-            "/settings",
             "/messages",
+            "/settings",
         ],
     },
     uploader: {
@@ -90,7 +87,7 @@ export const ROLES = {
         home: "/home",
         blurb:
             "Fotoğraf yükler, eşleşme ve katılımcı verilerine sınırlı olarak (salt okunur) erişirsiniz.",
-        allowed: ["/home", "/upload", "/participants", "/review", "/analytics", "/settings", "/messages"],
+        allowed: ["/home", "/upload", "/participants", "/review", "/settings"],
     },
     // Katılımcı / Misafir: QR ile onboarding'den geçer (e-posta/şifre hesabı yoktur),
     // ardından kendi paneline (Fotoğraflarım) düşer. Yetkisi sadece kendi eşleşmeleridir.
@@ -99,12 +96,14 @@ export const ROLES = {
         label: "Katılımcı / Misafir",
         tag: "Son Kullanıcı",
         name: "Zeynep Kaya",
+        email: "zeynep@snapmatch.me",
+        password: "123456",
         icon: UserRound,
         color: "var(--color-blue-soft)",
         home: "/my-photos",
         blurb:
             "Fotoğrafları işler, yüzleri tespit eder, katılımcı yüz kayıtlarıyla karşılaştırır, güven skoru üretir ve review kuyruğuna sonuç yazar.",
-        allowed: ["/home", "/my-photos", "/matching", "/settings", "/messages"],
+        allowed: ["/my-photos", "/messages", "/settings"],
     },
 };
 

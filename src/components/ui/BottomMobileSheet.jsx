@@ -1,12 +1,70 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 
 export default function BottomMobileSheet({ isOpen, onClose, title, children }) {
+  const sheetRef = useRef(null);
+
+  // Esc key closes the sheet, scroll lock on body
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    
+    // Prevent background scrolling
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen, onClose]);
+
+  // Tab Focus Trap
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleFocusTrap = (e) => {
+      if (e.key !== "Tab" || !sheetRef.current) return;
+
+      const focusableElements = sheetRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleFocusTrap);
+    return () => window.removeEventListener("keydown", handleFocusTrap);
+  }, [isOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex flex-col justify-end">
+        <div 
+          className="fixed inset-0 z-[9999] flex flex-col justify-end"
+          role="dialog"
+          aria-modal="true"
+          aria-label={title || "Mobil Panel"}
+        >
           {/* Backdrop Blur & Fade */}
           <motion.div
             className="fixed inset-0 bg-black/40 backdrop-blur-[6px]"
@@ -18,6 +76,7 @@ export default function BottomMobileSheet({ isOpen, onClose, title, children }) 
 
           {/* Sheet Body with spring sliding animation */}
           <motion.div
+            ref={sheetRef}
             className="relative bg-[var(--glass-bg-strong)] border-t border-[var(--glass-border)] rounded-t-[32px] p-5 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] max-h-[85vh] overflow-y-auto flex flex-col z-[10000] backdrop-blur-2xl"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}

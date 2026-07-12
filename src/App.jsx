@@ -4,6 +4,10 @@ import RequireAuth from "./routes/RequireAuth";
 import PageLoader from "./components/ui/PageLoader";
 
 const Home = lazy(() => import("./pages/Home"));
+const AboutUs = lazy(() => import("./pages/AboutUs"));
+const Services = lazy(() => import("./pages/Services"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Faq = lazy(() => import("./pages/Faq"));
 const Login = lazy(() => import("./pages/Login"));
 const RoleHome = lazy(() => import("./pages/RoleHome"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -23,6 +27,7 @@ const GuestFlow = lazy(() => import("./pages/GuestFlow"));
 const MyPhotos = lazy(() => import("./pages/MyPhotos"));
 const Messages = lazy(() => import("./pages/Messages"));
 const Customers = lazy(() => import("./pages/Customers"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 function App() {
   return (
@@ -30,6 +35,10 @@ function App() {
       <Routes>
         {/* Public */}
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/faq" element={<Faq />} />
         <Route path="/login" element={<Login />} />
         <Route path="/guest/:token" element={<GuestFlow />} />
 
@@ -55,7 +64,7 @@ function App() {
         </Route>
 
         {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );

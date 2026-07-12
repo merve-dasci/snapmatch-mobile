@@ -7,6 +7,7 @@ import App from "./App";
 import { AuthProvider } from "./auth/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import { AdaptiveProvider } from "./context/AdaptiveContext";
+import ErrorBoundary from "./components/ui/ErrorBoundary";
 import "./styles/globals.css";
 
 createRoot(document.getElementById("root")).render(
@@ -16,7 +17,9 @@ createRoot(document.getElementById("root")).render(
         <AdaptiveProvider>
           <AuthProvider>
             <ToastProvider>
-              <App />
+              <ErrorBoundary>
+                <App />
+              </ErrorBoundary>
             </ToastProvider>
           </AuthProvider>
         </AdaptiveProvider>

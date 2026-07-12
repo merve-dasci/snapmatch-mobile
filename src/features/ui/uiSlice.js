@@ -10,6 +10,7 @@ const uiSlice = createSlice({
     globalLoading: false,
     error: null,
     toasts: [],
+    globalSearchQuery: "",
   },
   reducers: {
     toggleSidebar: (state) => {
@@ -43,6 +44,9 @@ const uiSlice = createSlice({
     },
     removeToast: (state, action) => {
       state.toasts = state.toasts.filter(t => t.id !== action.payload);
+    },
+    setGlobalSearchQuery: (state, action) => {
+      state.globalSearchQuery = action.payload;
     }
   }
 });
@@ -56,6 +60,7 @@ export const {
   setGlobalLoading, 
   setError,
   addToast,
-  removeToast 
+  removeToast,
+  setGlobalSearchQuery
 } = uiSlice.actions;
 export default uiSlice.reducer;

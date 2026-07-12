@@ -56,6 +56,21 @@ export default function Login() {
     const role = ROLES[roleId];
     if (!role?.email || !role?.password) return;
 
+    if (roleId === "katilimci") {
+      const data = {
+        token: "mock_participant_token_" + Date.now(),
+        user: {
+          id: "00000000-0000-4000-8000-000000000005",
+          email: "zeynep@snapmatch.me",
+          name: "Zeynep Kaya",
+          role: "katilimci",
+          initials: "ZK"
+        }
+      };
+      finishLogin(data);
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
@@ -73,11 +88,28 @@ export default function Login() {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
+    
+    if (cleanEmail === "zeynep@snapmatch.me" && password === "123456") {
+      const data = {
+        token: "mock_participant_token_" + Date.now(),
+        user: {
+          id: "00000000-0000-4000-8000-000000000005",
+          email: "zeynep@snapmatch.me",
+          name: "Zeynep Kaya",
+          role: "katilimci",
+          initials: "ZK"
+        }
+      };
+      finishLogin(data);
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
       const data = await authApi.login({
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         password,
       });
       finishLogin(data);
@@ -144,56 +176,54 @@ export default function Login() {
       `}</style>
 
       {/* Header Menu (Landing Page Style) */}
-      <header className="relative z-20 w-full flex items-center justify-between p-[24px_50px] max-md:p-[20px_20px]">
-        <div 
-          className="flex items-center gap-2 cursor-pointer font-extrabold text-[1.15rem] tracking-wider drop-shadow-md transition-colors"
-          style={{ color: "var(--text-main)" }}
-        >
-          <span>SNAPMATCH</span>
+      <header className="fixed top-6 inset-x-6 max-w-[1280px] mx-auto z-50 flex items-center justify-between p-4 rounded-[24px] bg-[var(--glass-bg)] border border-[var(--glass-border)] backdrop-blur-2xl shadow-[var(--glass-shadow)] text-[var(--text-main)]">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
+          <span className="font-extrabold text-[1.25rem] tracking-tight text-[var(--text-main)] select-none">
+            Snapmatch
+          </span>
         </div>
-        
-        <nav className="flex items-center gap-10 max-md:hidden">
-          <a 
-            href="#home" 
-            className="text-[0.88rem] font-bold transition-opacity no-underline opacity-80 hover:opacity-100"
-            style={{ color: "var(--text-main)" }}
+
+        <nav className="hidden md:flex items-center gap-6">
+          <button
+            onClick={() => navigate("/")}
+            className="text-[0.82rem] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors bg-transparent border-none outline-none cursor-pointer"
           >
             Ana Sayfa
-          </a>
-          <a 
-            href="#service" 
-            className="text-[0.88rem] font-bold transition-opacity no-underline opacity-80 hover:opacity-100"
-            style={{ color: "var(--text-main)" }}
-          >
-            Hizmetler
-          </a>
-          <a 
-            href="#contact" 
-            className="text-[0.88rem] font-bold transition-opacity no-underline opacity-80 hover:opacity-100"
-            style={{ color: "var(--text-main)" }}
-          >
-            İletişim
-          </a>
-          <a 
-            href="#about" 
-            className="text-[0.88rem] font-bold transition-opacity no-underline opacity-80 hover:opacity-100"
-            style={{ color: "var(--text-main)" }}
+          </button>
+          <button
+            onClick={() => navigate("/about")}
+            className="text-[0.82rem] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors bg-transparent border-none outline-none cursor-pointer"
           >
             Hakkımızda
-          </a>
+          </button>
+          <button
+            onClick={() => navigate("/services")}
+            className="text-[0.82rem] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors bg-transparent border-none outline-none cursor-pointer"
+          >
+            Hizmetlerimiz
+          </button>
+          <button
+            onClick={() => navigate("/contact")}
+            className="text-[0.82rem] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors bg-transparent border-none outline-none cursor-pointer"
+          >
+            İletişim
+          </button>
+          <button
+            onClick={() => navigate("/faq")}
+            className="text-[0.82rem] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors bg-transparent border-none outline-none cursor-pointer"
+          >
+            S.S.S.
+          </button>
         </nav>
 
-        <button 
-          onClick={() => setIsRegister(!isRegister)}
-          className="px-5 py-1.5 rounded-full border text-[0.82rem] font-extrabold transition-all cursor-pointer select-none"
-          style={{
-            borderColor: "var(--glass-border)",
-            backgroundColor: "var(--glass-bg)",
-            color: "var(--text-main)"
-          }}
-        >
-          {isRegister ? "Giriş Yap" : "Kayıt Ol"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsRegister(!isRegister)}
+            className="text-[0.82rem] py-2 px-5 font-bold rounded-xl bg-[var(--color-blue-dark)] hover:opacity-90 text-white shadow-md cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 border-none"
+          >
+            {isRegister ? "Giriş Yap" : "Kayıt Ol"}
+          </button>
+        </div>
       </header>
 
       {/* Main Container */}

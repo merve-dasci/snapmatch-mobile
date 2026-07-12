@@ -47,7 +47,7 @@ const statusLabels = {
 
 export default function TeamRoles() {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { showToast, showConfirm } = useToast();
   const { isMobile } = useAdaptive();
   const dispatch = useDispatch();
 
@@ -145,15 +145,17 @@ export default function TeamRoles() {
   };
 
   const handleRemoveMember = (member) => {
-    const accepted = window.confirm(`${member.email} ekipten kaldırılsın mı?`);
-    if (!accepted) return;
-
-    dispatch(deleteUser(member.id)).unwrap().then(() => {
-      showToast("Üye ekipten kaldırıldı.", "success");
-      dispatch(fetchUsers());
-    }).catch(err => {
-      showToast("Üye silinemedi: " + err, "error");
-    });
+    showConfirm(
+      `"${member.name || member.email}" üyesini ekipten kaldırmak istediğinizden emin misiniz?`,
+      () => {
+        dispatch(deleteUser(member.id)).unwrap().then(() => {
+          showToast("Üye ekipten kaldırıldı.", "success");
+          dispatch(fetchUsers());
+        }).catch(err => {
+          showToast("Üye silinemedi: " + err, "error");
+        });
+      }
+    );
   };
 
   const getInitial = (member) => {

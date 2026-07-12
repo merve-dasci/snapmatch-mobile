@@ -25,9 +25,11 @@ import {
   ListOrdered,
   Gauge,
   RefreshCw,
-  ChevronDown
+  ChevronDown,
+  Users
 } from "lucide-react";
 import { useAdaptive } from "../context/AdaptiveContext";
+import EmptyState from "../components/ui/EmptyState";
 
 export default function AIMatching() {
   const { isMobile } = useAdaptive();
@@ -316,38 +318,48 @@ export default function AIMatching() {
                   </button>
 
                   {/* Katılımcıların Listesi */}
-                  {eventParticipants.map(p => {
-                    const isSelected = selectedParticipantId === p.id;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => setSelectedParticipantId(p.id)}
-                        className={`flex flex-col items-center gap-1.5 p-2 rounded-[16px] border transition-all cursor-pointer ${
-                          isSelected
-                            ? "border-[var(--color-blue-dark)] bg-[var(--color-blue-dark)]/20 shadow-[0_0_12px_rgba(255,255,255,0.08)] scale-[1.03]"
-                            : "border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-white/5"
-                        }`}
-                        disabled={matchingStatus === "processing"}
-                      >
-                        {p.selfie_url ? (
-                          <img 
-                            src={p.selfie_url} 
-                            alt={p.display_name} 
-                            className="w-12 h-12 rounded-full object-cover border-2" 
-                            style={{ borderColor: isSelected ? "var(--color-blue-dark)" : "rgba(255,255,255,0.15)" }}
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-[var(--glass-border)] border border-white/10 grid place-items-center text-[0.85rem] font-bold text-[var(--text-main)]">
-                            {p.display_name.charAt(0)}
-                          </div>
-                        )}
-                        <span className="text-[0.74rem] font-bold text-[var(--text-main)] truncate w-[72px] text-center" title={p.display_name}>
-                          {p.display_name.split(" ")[0]}
-                        </span>
-                      </button>
-                    );
-                  })}
+                  {eventParticipants.length === 0 ? (
+                    <div className="w-full flex justify-center py-4">
+                      <EmptyState
+                        icon={Users}
+                        title="Katılımcı Bulunamadı"
+                        description="Seçilen etkinlikte kayıtlı aktif bir katılımcı bulunmuyor."
+                      />
+                    </div>
+                  ) : (
+                    eventParticipants.map(p => {
+                      const isSelected = selectedParticipantId === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setSelectedParticipantId(p.id)}
+                          className={`flex flex-col items-center gap-1.5 p-2 rounded-[16px] border transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-[var(--color-blue-dark)] bg-[var(--color-blue-dark)]/20 shadow-[0_0_12px_rgba(255,255,255,0.08)] scale-[1.03]"
+                              : "border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-white/5"
+                          }`}
+                          disabled={matchingStatus === "processing"}
+                        >
+                          {p.selfie_url ? (
+                            <img 
+                              src={p.selfie_url} 
+                              alt={p.display_name} 
+                              className="w-12 h-12 rounded-full object-cover border-2" 
+                              style={{ borderColor: isSelected ? "var(--color-blue-dark)" : "rgba(255,255,255,0.15)" }}
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-[var(--glass-border)] border border-white/10 grid place-items-center text-[0.85rem] font-bold text-[var(--text-main)]">
+                              {p.display_name.charAt(0)}
+                            </div>
+                          )}
+                          <span className="text-[0.74rem] font-bold text-[var(--text-main)] truncate w-[72px] text-center" title={p.display_name}>
+                            {p.display_name.split(" ")[0]}
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </div>
@@ -466,38 +478,37 @@ export default function AIMatching() {
               </div>
             </div>
           </GlassCard>
+          {/* Terminal Realtime Job Log */}
+          <GlassCard title="Model Log Çıktısı (Realtime Logs)" className="glass-panel p-0 overflow-hidden">
+            <div className="flex items-center gap-2 bg-black/15 p-[10px_16px] border-b border-[var(--glass-border)]">
+              <Terminal size={16} className="text-[var(--text-muted)]" />
+              <span className="text-[0.78rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">Terminal Console</span>
+            </div>
+            <div className="bg-[#080b11] text-[#4ade80] font-mono p-4 text-[0.82rem] leading-6 max-h-[220px] overflow-y-auto">
+              <div>[20:12:01] [SYSTEM] CUDA 12.1 initialized. GPU acceleration active.</div>
+              <div>[20:12:03] [MODEL] Face detection model 'yolov8-face' loaded successfully.</div>
+              <div>[20:12:04] [MODEL] Feature extraction model 'facenet-512' loaded successfully.</div>
+              {matchingStatus === "processing" && (
+                <>
+                  <div className="text-amber-500">[20:14:10] [JOBS] Processing event batch: {selectedEventId}</div>
+                  <div className="text-amber-500">[20:14:11] [INFO] Extracting biometric vectors for {photosCount} source photos...</div>
+                </>
+              )}
+              {matchingStatus === "completed" && (
+                <>
+                  <div className="text-amber-500">[20:14:10] [JOBS] Processing event batch: {selectedEventId}</div>
+                  <div>[20:14:12] [SUCCESS] Feature matching completed. Found {matchesCount} potential candidate matches.</div>
+                  <div>[20:14:13] [SYSTEM] Syncing matching matrices with workspace analytics database.</div>
+                  <div className="text-slate-200">[20:14:13] [SUCCESS] All matches pushed to review database. Pipeline idle.</div>
+                </>
+              )}
+              {(!matchingStatus || matchingStatus === "idle") && (
+                <div className="text-[var(--text-muted)]">[Idle] Model tetiklenmeye hazır...</div>
+              )}
+            </div>
+          </GlassCard>
         </div>
       </div>
-
-      {/* Terminal Realtime Job Log */}
-      <GlassCard title="Model Log Çıktısı (Realtime Logs)" className="glass-panel p-0 overflow-hidden">
-        <div className="flex items-center gap-2 bg-black/15 p-[10px_16px] border-b border-[var(--glass-border)]">
-          <Terminal size={16} className="text-[var(--text-muted)]" />
-          <span className="text-[0.78rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">Terminal Console</span>
-        </div>
-        <div className="bg-[#080b11] text-[#4ade80] font-mono p-4 text-[0.82rem] leading-6 max-h-[220px] overflow-y-auto">
-          <div>[20:12:01] [SYSTEM] CUDA 12.1 initialized. GPU acceleration active.</div>
-          <div>[20:12:03] [MODEL] Face detection model 'yolov8-face' loaded successfully.</div>
-          <div>[20:12:04] [MODEL] Feature extraction model 'facenet-512' loaded successfully.</div>
-          {matchingStatus === "processing" && (
-            <>
-              <div className="text-amber-500">[20:14:10] [JOBS] Processing event batch: {selectedEventId}</div>
-              <div className="text-amber-500">[20:14:11] [INFO] Extracting biometric vectors for {photosCount} source photos...</div>
-            </>
-          )}
-          {matchingStatus === "completed" && (
-            <>
-              <div className="text-amber-500">[20:14:10] [JOBS] Processing event batch: {selectedEventId}</div>
-              <div>[20:14:12] [SUCCESS] Feature matching completed. Found {matchesCount} potential candidate matches.</div>
-              <div>[20:14:13] [SYSTEM] Syncing matching matrices with workspace analytics database.</div>
-              <div className="text-slate-200">[20:14:13] [SUCCESS] All matches pushed to review database. Pipeline idle.</div>
-            </>
-          )}
-          {(!matchingStatus || matchingStatus === "idle") && (
-            <div className="text-[var(--text-muted)]">[Idle] Model tetiklenmeye hazır...</div>
-          )}
-        </div>
-      </GlassCard>
     </div>
   );
 }

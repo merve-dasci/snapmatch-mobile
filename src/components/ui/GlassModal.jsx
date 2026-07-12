@@ -1,4 +1,4 @@
-import React from "react";
+import { useRef, useEffect } from "react";
 import { X } from "lucide-react";
 
 export default function GlassModal({
@@ -14,10 +14,93 @@ export default function GlassModal({
   height = "max-h-[70vh]",
   overflow = "overflow-y-auto",
 }) {
+  const modalRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const previousActiveRef = useRef(null);
+
+  // Keep onClose ref fresh without re-triggering effects
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  // Focus the first focusable element ONCE when modal opens
+  useEffect(() => {
+    if (!open) return;
+    previousActiveRef.current = document.activeElement;
+
+    const focusTimeout = setTimeout(() => {
+      if (modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll(
+          'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]'
+        );
+        if (focusable.length > 0) {
+          focusable[0].focus();
+        }
+      }
+    }, 50);
+
+    return () => clearTimeout(focusTimeout);
+  }, [open]);
+
+  // Keyboard handling (Escape + Tab trap) & scroll lock
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onCloseRef.current();
+      }
+
+      if (e.key === "Tab" && modalRef.current) {
+        const focusable = Array.from(
+          modalRef.current.querySelectorAll(
+            'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]'
+          )
+        );
+        if (focusable.length === 0) return;
+
+        const firstElement = focusable[0];
+        const lastElement = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Disable body scroll when modal is open
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+      if (previousActiveRef.current && previousActiveRef.current.focus) {
+        previousActiveRef.current.focus();
+      }
+    };
+  }, [open]);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div 
+      ref={modalRef}
+      role="dialog" 
+      aria-modal="true" 
+      aria-label={title || "Bileşen Penceresi"}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+    >
       {/* Backdrop overlay */}
       <div
         onClick={onClose}

@@ -20,7 +20,14 @@ import {
     Download,
     MoreHorizontal,
     Calendar,
-    Images
+    Images,
+    Building2,
+    Database,
+    Activity,
+    FileText,
+    SlidersHorizontal,
+    ArrowUpRight,
+    ShieldAlert
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { ROLES } from "../auth/roles";
@@ -46,6 +53,154 @@ const ROUTE_META = {
     "/my-photos": { label: "Fotoğraflarım", desc: "Size eşleşen fotoğrafları görüntüleyin", icon: Images },
 };
 
+function PlatformAdminDashboard({ firstName, role, navigate }) {
+  const kpis = [
+    { label: "Toplam Tenant (İşletme)", value: "8 Aktif", desc: "Sistemdeki aktif çalışma alanları", icon: Building2, color: "var(--color-blue-dark)" },
+    { label: "Platform Depolama", value: "1.34 TB / 5.00 TB", desc: "%26.8 kullanılan alan", icon: Database, color: "var(--color-blue-medium)" },
+    { label: "Sistem Sağlığı & Uptime", value: "99.98% · Sorunsuz", desc: "Tüm API ve AI servisleri aktif", icon: Activity, color: "var(--accent-green)" },
+    { label: "Genel Konfigürasyon", value: "v1.4.2 · Prod", desc: "Model: FaceNet-V3 · conf: 92%", icon: SlidersHorizontal, color: "var(--accent-yellow)" },
+  ];
+
+  const tenants = [
+    { id: "ws_1", name: "Kadraj Kolektif", plan: "Pro", used: "68 GB", limit: "100 GB", status: "Aktif" },
+    { id: "ws_2", name: "Momento Wedding", plan: "Enterprise", used: "240 GB", limit: "500 GB", status: "Aktif" },
+    { id: "ws_3", name: "Işık Fotoğraf Stüdyosu", plan: "Pro", used: "41 GB", limit: "100 GB", status: "Aktif" },
+    { id: "ws_4", name: "EventPro Ajans", plan: "Enterprise", used: "380 GB", limit: "500 GB", status: "Aktif" },
+  ];
+
+  const logs = [
+    { time: "22:38:15", type: "info", text: "AI face matching worker spawned (job_id: #9204)" },
+    { time: "22:15:02", type: "success", text: "New tenant Momento Wedding joined platform" },
+    { time: "21:50:30", type: "warning", text: "Tenant Kadraj Kolektif storage limit reached 80%" },
+    { time: "20:10:44", type: "info", text: "System configuration backup successfully uploaded to S3" },
+    { time: "18:45:12", type: "info", text: "Database query optimization indices rebuilt" },
+  ];
+
+  const configFields = [
+    { name: "Varsayılan Depolama Limiti (Free)", value: "5 GB" },
+    { name: "Varsayılan Depolama Limiti (Pro)", value: "100 GB" },
+    { name: "Varsayılan Depolama Limiti (Enterprise)", value: "500 GB" },
+    { name: "Otomatik Eşleşme Eşik Skoru (Confidence)", value: "92%" },
+    { name: "Yapay Zeka Yüz Tespit Modeli", value: "FaceNet-V3 / MTCNN" },
+    { name: "Veritabanı Motoru & Durumu", value: "Google Cloud PostgreSQL (Bağlı)" },
+  ];
+
+  return (
+    <div className="flex flex-col gap-[var(--space-lg)]">
+      <div className="page-head flex justify-between items-start">
+        <div>
+          <h1 className="font-extrabold text-[var(--text-main)] text-xl">Merhaba, {firstName}</h1>
+          <p className="text-[var(--text-muted)] text-sm">Sistem Yönetim ve İzleme Paneli (Platform Admin)</p>
+        </div>
+        <button 
+          onClick={() => navigate("/customers")}
+          className="primary-btn flex items-center gap-2"
+        >
+          <Building2 size={16} />
+          <span>Tüm Müşterileri Yönet</span>
+        </button>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-[var(--space-md)]">
+        {kpis.map((k) => (
+          <GlassCard key={k.label} className="p-[var(--space-md)] flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">{k.label}</span>
+              <div 
+                className="w-9 h-9 rounded-[12px] grid place-items-center shrink-0"
+                style={{ color: k.color, background: `color-mix(in srgb, ${k.color} 14%, transparent)` }}
+              >
+                <k.icon size={18} strokeWidth={2.2} />
+              </div>
+            </div>
+            <div className="text-2xl font-black text-[var(--text-main)] mt-1">{k.value}</div>
+            <span className="text-[10px] text-[var(--text-muted)] font-medium">{k.desc}</span>
+          </GlassCard>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-[var(--space-lg)]">
+        {/* Tenants column */}
+        <GlassCard className="p-[var(--space-lg)] flex flex-col gap-4">
+          <div className="flex justify-between items-center border-b border-white/10 pb-2">
+            <h3 className="text-sm font-extrabold text-[var(--text-main)] m-0 flex items-center gap-2">
+              <Building2 size={16} className="text-[var(--color-blue-medium)]" />
+              <span>Çalışma Alanları (Tenants)</span>
+            </h3>
+            <Link to="/customers" className="text-xs font-bold text-[var(--color-blue-medium)] hover:underline flex items-center gap-0.5">
+              <span>Tümünü Gör</span>
+              <ArrowUpRight size={14} />
+            </Link>
+          </div>
+          <div className="flex flex-col gap-3">
+            {tenants.map((t) => (
+              <div key={t.id} className="flex justify-between items-center p-3 rounded-[12px] bg-white/5 border border-white/5">
+                <div className="flex flex-col">
+                  <span className="text-xs font-extrabold text-[var(--text-main)]">{t.name}</span>
+                  <span className="text-[10px] text-[var(--text-muted)]">Plan: {t.plan} · Limit: {t.limit}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-end">
+                    <span className="text-[11px] font-bold text-[var(--text-main)]">{t.used}</span>
+                    <span className="text-[8px] text-[var(--text-muted)]">Depolama</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                    {t.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+
+        {/* Logs column */}
+        <GlassCard className="p-[var(--space-lg)] flex flex-col gap-4">
+          <div className="border-b border-white/10 pb-2">
+            <h3 className="text-sm font-extrabold text-[var(--text-main)] m-0 flex items-center gap-2">
+              <FileText size={16} className="text-[var(--color-blue-medium)]" />
+              <span>Sistem Logları (System Logs)</span>
+            </h3>
+          </div>
+          <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-2">
+            {logs.map((l, i) => (
+              <div key={i} className="flex items-start gap-2.5 p-2 rounded-[8px] hover:bg-white/2 text-[10px] font-medium leading-relaxed">
+                <span className="text-[var(--text-muted)] shrink-0 font-bold">[{l.time}]</span>
+                <span className={`shrink-0 uppercase font-black tracking-wide text-[8px] px-1 py-0.25 rounded ${
+                  l.type === "warning" ? "bg-red-500/10 text-red-400 border border-red-500/20" :
+                  l.type === "success" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
+                  "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                }`}>
+                  {l.type}
+                </span>
+                <span className="text-[var(--text-main)] break-all">{l.text}</span>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      </div>
+
+      {/* Limits & General Config */}
+      <GlassCard className="p-[var(--space-lg)] flex flex-col gap-4">
+        <div className="border-b border-white/10 pb-2">
+          <h3 className="text-sm font-extrabold text-[var(--text-main)] m-0 flex items-center gap-2">
+            <SlidersHorizontal size={16} className="text-[var(--color-blue-medium)]" />
+            <span>Genel Konfigürasyon ve Plan Limitleri</span>
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {configFields.map((f, i) => (
+            <div key={i} className="p-3.5 rounded-[12px] bg-white/3 border border-white/5 flex flex-col gap-1">
+              <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">{f.name}</span>
+              <span className="text-xs font-extrabold text-[var(--text-main)]">{f.value}</span>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+    </div>
+  );
+}
+
 export default function RoleHome() {
     const { user } = useAuth();
     const { isMobile } = useAdaptive();
@@ -56,6 +211,12 @@ export default function RoleHome() {
 
     const firstName = (user.name || "").split(" ")[0];
     const RoleIcon = role.icon;
+
+    if (user?.role === "platform_admin") {
+      return (
+        <PlatformAdminDashboard firstName={firstName} role={role} navigate={navigate} />
+      );
+    }
 
     // Ana sayfa ve detay rotasını kart listesinden çıkar
     const quickRoutes = role.allowed.filter(

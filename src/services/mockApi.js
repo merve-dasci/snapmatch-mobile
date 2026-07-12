@@ -3,6 +3,7 @@ import { mockPhotos } from "../data/mockPhotos";
 import { mockParticipants } from "../data/mockParticipants";
 import { mockMatches } from "../data/mockMatches";
 import { mockAnalytics } from "../data/mockAnalytics";
+import { ROLES } from "../auth/roles";
 
 // Helper to safely get data with fallback to handle corrupt JSON
 const getData = (key, fallback = []) => {
@@ -252,14 +253,14 @@ export const mockApi = {
     return participants;
   },
 
-  createParticipant: (eventId, display_name, selfieUrl) => {
+  createParticipant: (eventId, display_name, selfieUrl, email = null, phone = null) => {
     const participants = getData("sm_participants", mockParticipants);
     const newParticipant = {
       id: `part_${Date.now()}`,
       event_id: eventId,
       display_name: display_name,
-      email: `${display_name.toLowerCase().replace(/\s+/g, "")}@example.com`,
-      phone: "0532 " + Math.floor(1000000 + Math.random() * 9000000),
+      email: email || `${display_name.toLowerCase().replace(/\s+/g, "")}@example.com`,
+      phone: phone || "0532 " + Math.floor(1000000 + Math.random() * 9000000),
       guest_token: `tok_guest_${Math.random().toString(36).substr(2, 10)}`,
       consent_accepted_at: new Date().toISOString(),
       status: "active",
@@ -644,6 +645,61 @@ export const mockApi = {
     };
     messages.push(newMsg);
     saveData("sm_messages", messages);
+
+    // Simulate a natural delayed response and a topbar notification
+    setTimeout(() => {
+      const replyPool = [
+        "Harika, hemen ilgileniyorum.",
+        "Mesajınızı aldım, birazdan kontrol edip ayrıntıları ileteceğim.",
+        "Tamamdır, albümleri güncelledim. Kontrol edebilirsiniz.",
+        "Detaylar için çok teşekkürler, iletişime geçeceğim.",
+        "Sistemi kontrol ettim, her şey yolunda görünüyor.",
+        "Bilgi için teşekkürler, en kısa sürede dönüş yapacağım."
+      ];
+      const randomReply = replyPool[Math.floor(Math.random() * replyPool.length)];
+
+      const replyMsg = {
+        id: `msg_${Date.now() + 1}`,
+        sender_id: receiverId, // Receiver is now the sender replying back
+        receiver_id: senderId,
+        text: randomReply,
+        timestamp: new Date().toISOString()
+      };
+
+      const currentMessages = getData("sm_messages", defaultMessages);
+      currentMessages.push(replyMsg);
+      saveData("sm_messages", currentMessages);
+
+      // Create new notification item in local storage
+      const notificationsKey = "sm_notifications";
+      // Read existing notifications
+      let notifications = [];
+      try {
+        const stored = localStorage.getItem(notificationsKey);
+        notifications = stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        notifications = [];
+      }
+
+      const senderRole = ROLES[receiverId];
+      const senderName = senderRole ? senderRole.name : "Kullanıcı";
+
+      const newNotification = {
+        id: `not_${Date.now()}`,
+        title: "Yeni Mesaj",
+        message: `${senderName}: "${randomReply.substring(0, 45)}${randomReply.length > 45 ? "..." : ""}"`,
+        type: "message",
+        read: false,
+        created_at: new Date().toISOString()
+      };
+      
+      notifications.unshift(newNotification);
+      localStorage.setItem(notificationsKey, JSON.stringify(notifications));
+
+      // Dispatch custom events to inform active views
+      window.dispatchEvent(new CustomEvent("sm_new_message_received", { detail: replyMsg }));
+    }, 3500);
+
     return newMsg;
   }
 };

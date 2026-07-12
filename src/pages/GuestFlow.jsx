@@ -80,7 +80,9 @@ import {
   Grid2X2,
   GalleryHorizontal,
   UploadCloud,
-  X
+  X,
+  MessageCircle,
+  Send
 } from "lucide-react";
 
 // Onboarding adımları (landing hariç)
@@ -331,6 +333,7 @@ export function GuestBottomNav({ activeTab, setActiveTab, onTabClick }) {
     { id: "albums", label: "Albümler", icon: <Library size={18} /> },
     { id: "photos", label: "Fotoğraflar", icon: <ImageIcon size={18} /> },
     { id: "favorites", label: "Favoriler", icon: <Heart size={18} /> },
+    { id: "messages", label: "Mesajlar", icon: <MessageCircle size={18} /> },
     { id: "settings", label: "Ayarlar", icon: <Settings size={18} /> }
   ];
 
@@ -1404,9 +1407,49 @@ const { showToast } = useToast();
   const [isSessionRestored, setIsSessionRestored] = useState(false);
   const [isFavoritesLoaded, setIsFavoritesLoaded] = useState(false);
   const [albumSlideIdx, setAlbumSlideIdx] = useState(0);
+  const [chatMessages, setChatMessages] = useState([
+    { id: 1, sender: "org", text: "Merhaba, etkinliğe hoş geldiniz! Fotoğraflarınızla ilgili bir sorun yaşarsanız veya yardıma ihtiyacınız olursa buradan bana yazabilirsiniz.", time: "10:45" }
+  ]);
+  const [chatInput, setChatInput] = useState("");
   const fileInputRef = useRef(null);
+
+  const handleSendMessage = () => {
+    if (!chatInput.trim()) return;
+    const newMessage = {
+      id: Date.now(),
+      sender: "guest",
+      text: chatInput,
+      time: new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })
+    };
+    setChatMessages([...chatMessages, newMessage]);
+    setChatInput("");
+    
+    setTimeout(() => {
+      setChatMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        sender: "org",
+        text: "Mesajınız alındı, en kısa sürede size döneceğiz.",
+        time: new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })
+      }]);
+    }, 1000);
+  };
   
-  const dispatch = useDispatch();
+  // Window Resizer: Mobil tarayıcılarda viewport yüksekliğini (--vh) dinamik hesapla
+  useEffect(() => {
+    const handleResize = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    handleResize();
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, []);
 
   // URL'den gelen token değerini ve onboarding durumunu useEffect içinde Redux'a kaydet
   useEffect(() => {
@@ -3667,6 +3710,67 @@ const handleFileChange = (e) => {
                         onShare={handleShare}
                       />
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: Messages (Mesajlar) */}
+              {activeTab === "messages" && (
+                <div className="flex flex-col min-h-full relative">
+                  {/* Chat Header */}
+                  <div className="sticky top-0 z-20 p-4 border-b border-white/10 shrink-0 bg-black/40 backdrop-blur-md flex items-center gap-3">
+                    <div 
+                      className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border"
+                      style={{ backgroundColor: `${activeAccent}33`, borderColor: `${activeAccent}80` }}
+                    >
+                      <span className="font-bold" style={{ color: activeAccent }}>O</span>
+                    </div>
+                    <div>
+                      <h3 className="text-white font-semibold text-sm m-0">Organizatör</h3>
+                      <p className="text-emerald-400 text-[11px] m-0">Çevrimiçi</p>
+                    </div>
+                  </div>
+                  
+                  {/* Chat Messages */}
+                  <div className="flex-1 p-4 flex flex-col gap-4 pb-36 overflow-y-auto">
+                    {chatMessages.map(msg => (
+                      <div key={msg.id} className={`flex flex-col gap-1 ${msg.sender === 'guest' ? 'items-end' : 'items-start'}`}>
+                        <div 
+                          className={`p-3 rounded-2xl text-[13.5px] max-w-[85%] border leading-snug ${
+                            msg.sender === 'guest' 
+                              ? 'text-white rounded-tr-sm' 
+                              : 'bg-white/10 text-white rounded-tl-sm border-white/5'
+                          }`}
+                          style={msg.sender === 'guest' ? { backgroundColor: activeAccent, borderColor: `${activeAccent}80` } : {}}
+                        >
+                          {msg.text}
+                        </div>
+                        <span className={`text-white/40 text-[10px] font-medium ${msg.sender === 'guest' ? 'mr-1' : 'ml-1'}`}>
+                          {msg.time}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Chat Input */}
+                  <div className="sticky bottom-0 left-0 right-0 p-3 bg-black/40 backdrop-blur-xl border-t border-white/10 z-10 mt-auto" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 12px) + 70px)" }}>
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="text" 
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                        placeholder="Mesaj yazın..." 
+                        className="flex-1 bg-white/10 border border-white/20 rounded-full py-2.5 px-4 text-white text-sm outline-none placeholder:text-white/40 transition-colors focus:border-white/40"
+                      />
+                      <button 
+                        onClick={handleSendMessage}
+                        className="w-10 h-10 rounded-full text-white flex items-center justify-center shrink-0 shadow-lg active:scale-95 transition-transform border-none cursor-pointer"
+                        style={{ backgroundColor: activeAccent }}
+                      >
+                        <Send size={16} className="ml-0.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
