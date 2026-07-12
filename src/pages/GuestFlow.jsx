@@ -1419,24 +1419,25 @@ export default function GuestFlow() {
     }, 1000);
   };
 
-  // Window Resizer: Mobil tarayıcılarda viewport yüksekliğini (--vh) dinamik hesapla
+  // Window Resizer: Mobil tarayıcılarda viewport yüksekliğini (--vh) dinamik hesapla (Klavye açıldığında da güncellenir)
   useEffect(() => {
-    let lastWidth = 0;
     const handleResize = () => {
-      const currentWidth = window.innerWidth;
-      // Sadece genişlik değiştiğinde (örn. cihaz döndürüldüğünde) veya ilk yüklemede tetikle
-      if (currentWidth !== lastWidth) {
-        lastWidth = currentWidth;
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-      }
+      const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const vh = height * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
 
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+    }
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
     handleResize();
 
     return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+      }
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
     };
@@ -1485,6 +1486,21 @@ export default function GuestFlow() {
       }, 50);
     }
   }, [chatMessages, activeTab]);
+
+  // Lock body scroll when chat tab is active
+  useEffect(() => {
+    if (activeTab === "messages") {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [activeTab]);
 
   const selectedEventId = useSelector((state) => state.guest.selectedEventId);
   const selectedEvent = allEvents.find(e => e.id === selectedEventId) || null;
@@ -3987,15 +4003,9 @@ export default function GuestFlow() {
 
               {/* TAB 4: Messages (Mesajlar) */}
               {activeTab === "messages" && (
-                <div 
-                  className="flex flex-col w-full relative"
-                  style={{
-                    height: "calc(100dvh - 20px - 76px - env(safe-area-inset-bottom, 0px))",
-                    overflow: "hidden"
-                  }}
-                >
+                <div className="guest-chat-wrapper">
                   {/* Chat Header */}
-                  <div className="sticky top-0 z-20 p-4 border-b border-white/10 shrink-0 bg-black/40 backdrop-blur-md flex items-center gap-3">
+                  <div className="guest-chat-header">
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border"
                       style={{ backgroundColor: `${activeAccent}33`, borderColor: `${activeAccent}80` }}
@@ -4009,7 +4019,7 @@ export default function GuestFlow() {
                   </div>
 
                   {/* Chat Messages */}
-                  <div ref={messagesContainerRef} className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto pb-4">
+                  <div ref={messagesContainerRef} className="guest-chat-messages">
                     {chatMessages.map(msg => (
                       <div key={msg.id} className={`flex flex-col gap-1 ${msg.sender === 'guest' ? 'items-end' : 'items-start'}`}>
                         <div
@@ -4029,7 +4039,7 @@ export default function GuestFlow() {
                   </div>
 
                   {/* Chat Input */}
-                  <div className="p-3 bg-black/40 backdrop-blur-xl border-t border-white/10 z-10 shrink-0">
+                  <div className="guest-chat-input-bar">
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
