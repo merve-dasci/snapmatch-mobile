@@ -1395,7 +1395,15 @@ export default function GuestFlow() {
   const [showSplash, setShowSplash] = useState(true);
   const [splashPage, setSplashPage] = useState(1);
   const fileInputRef = useRef(null);
+  const chatMessagesEndRef = useRef(null);
   const dispatch = useDispatch();
+
+  // Scroll to bottom of chat
+  useEffect(() => {
+    if (activeTab === "messages" && chatMessagesEndRef.current) {
+      chatMessagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages, activeTab]);
 
   const handleSendMessage = () => {
     if (!chatInput.trim()) return;
@@ -3976,7 +3984,13 @@ export default function GuestFlow() {
 
               {/* TAB 4: Messages (Mesajlar) */}
               {activeTab === "messages" && (
-                <div className="flex flex-col min-h-full relative">
+                <div 
+                  className="flex flex-col w-full relative"
+                  style={{
+                    height: "calc(100dvh - 20px - 76px - env(safe-area-inset-bottom, 0px))",
+                    overflow: "hidden"
+                  }}
+                >
                   {/* Chat Header */}
                   <div className="sticky top-0 z-20 p-4 border-b border-white/10 shrink-0 bg-black/40 backdrop-blur-md flex items-center gap-3">
                     <div
@@ -3992,7 +4006,7 @@ export default function GuestFlow() {
                   </div>
 
                   {/* Chat Messages */}
-                  <div className="flex-1 p-4 flex flex-col gap-4 pb-36 overflow-y-auto">
+                  <div className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto pb-4">
                     {chatMessages.map(msg => (
                       <div key={msg.id} className={`flex flex-col gap-1 ${msg.sender === 'guest' ? 'items-end' : 'items-start'}`}>
                         <div
@@ -4009,10 +4023,11 @@ export default function GuestFlow() {
                         </span>
                       </div>
                     ))}
+                    <div ref={chatMessagesEndRef} />
                   </div>
 
                   {/* Chat Input */}
-                  <div className="sticky bottom-0 left-0 right-0 p-3 bg-black/40 backdrop-blur-xl border-t border-white/10 z-10 mt-auto" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 12px) + 70px)" }}>
+                  <div className="p-3 bg-black/40 backdrop-blur-xl border-t border-white/10 z-10 shrink-0">
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
@@ -4351,7 +4366,7 @@ export default function GuestFlow() {
         </BottomMobileSheet>
 
         {/* Floating Action Button (FAB) for Guest Photo Upload */}
-        {step === "albums" && event?.category === "wedding" && (() => {
+        {step === "albums" && event?.category === "wedding" && activeTab !== "messages" && activeTab !== "settings" && (() => {
           const weddingEvents = allEvents.filter(e => e.category === "wedding");
           if (weddingEvents.length === 0) return null;
 
