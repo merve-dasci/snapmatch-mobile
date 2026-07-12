@@ -2575,6 +2575,7 @@ body:has(.guest-app-root) {
   flex-direction: column !important;
   gap: 16px !important;
   -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
 }
 
 .guest-chat-input-bar {
@@ -2585,6 +2586,19 @@ body:has(.guest-app-root) {
   -webkit-backdrop-filter: blur(20px) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
   z-index: 10 !important;
+}
+
+/* Style overrides when virtual keyboard is open in the chat view */
+.guest-app-wrapper.keyboard-open {
+  padding-bottom: 0 !important;
+}
+
+.guest-app-wrapper.keyboard-open .guest-tab-bar {
+  display: none !important;
+}
+
+.guest-app-wrapper.keyboard-open .guest-chat-wrapper {
+  height: calc(var(--vh, 1vh) * 100 - 20px) !important;
 }
 
 /* ==========================================================

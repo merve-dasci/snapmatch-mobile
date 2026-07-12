@@ -1490,16 +1490,23 @@ export default function GuestFlow() {
   // Lock body scroll when chat tab is active
   useEffect(() => {
     if (activeTab === "messages") {
+      const preventDefault = (e) => {
+        // Scrollable container dışındaki yerlerde kaydırmayı engelle (örn. header, input alanı)
+        if (messagesContainerRef.current && !messagesContainerRef.current.contains(e.target)) {
+          e.preventDefault();
+        }
+      };
+
+      document.body.addEventListener('touchmove', preventDefault, { passive: false });
       document.body.style.overflow = "hidden";
       document.documentElement.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
+
+      return () => {
+        document.body.removeEventListener('touchmove', preventDefault);
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
+      };
     }
-    return () => {
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
-    };
   }, [activeTab]);
 
   const selectedEventId = useSelector((state) => state.guest.selectedEventId);
@@ -1547,6 +1554,7 @@ export default function GuestFlow() {
   const setSelfieCaptured = (val) => dispatch(setSelfie({ captured: val }));
   const setSelfieUrl = (val) => dispatch(setSelfie({ url: val }));
   const [flashActive, setFlashActive] = useState(false);
+  const [isChatInputFocused, setIsChatInputFocused] = useState(false);
 
   // Matches Data
   const [participant, setParticipant] = useState(null);
@@ -2423,7 +2431,7 @@ export default function GuestFlow() {
       <div className="absolute top-[40%] left-[20%] w-[60%] h-[40%] rounded-full bg-indigo-500/6 blur-[90px] pointer-events-none z-0 guest-bg-blob-3" />
 
       {/* Main Wrapper */}
-      <div className={`guest-app-wrapper guest-theme-${guestTheme}`}>
+      <div className={`guest-app-wrapper guest-theme-${guestTheme} ${isChatInputFocused && activeTab === "messages" ? "keyboard-open" : ""}`}>
 
         {/* Instagram Story Style Step Progress Lines */}
         {/* BYPASSED: Biyometrik onboarding adımları es geçildiği için gizlendi */}
@@ -4047,6 +4055,8 @@ export default function GuestFlow() {
                         onChange={(e) => setChatInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                         placeholder="Mesaj yazın..."
+                        onFocus={() => setIsChatInputFocused(true)}
+                        onBlur={() => setIsChatInputFocused(false)}
                         className="flex-1 bg-white/10 border border-white/20 rounded-full py-2.5 px-4 text-white text-sm outline-none placeholder:text-white/40 transition-colors focus:border-white/40"
                       />
                       <button
