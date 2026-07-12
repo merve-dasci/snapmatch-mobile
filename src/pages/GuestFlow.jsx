@@ -1614,10 +1614,8 @@ export default function GuestFlow() {
   const [uploadedCount, setUploadedCount] = useState(0);
   const [totalUploadCount, setTotalUploadCount] = useState(0);
 
-  // Pull-to-refresh state
-  const [pullDistance, setPullDistance] = useState(0);
+  // Refresh state for manual refresh button
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [touchStartY, setTouchStartY] = useState(0);
   const containerRef = React.useRef(null);
 
   // Simulation loading progress
@@ -1984,41 +1982,7 @@ export default function GuestFlow() {
     return Object.values(matchedPhotosMap).reduce((acc, curr) => acc + curr.length, 0);
   };
 
-  const handleTouchStart = (e) => {
-    if (containerRef.current && containerRef.current.scrollTop === 0 && !isRefreshing) {
-      setTouchStartY(e.touches[0].clientY);
-    } else {
-      setTouchStartY(0);
-    }
-  };
 
-  const handleTouchMove = (e) => {
-    if (touchStartY === 0 || isRefreshing) return;
-    const currentY = e.touches[0].clientY;
-    const deltaY = currentY - touchStartY;
-    if (deltaY > 0) {
-      const dist = Math.min(60, deltaY * 0.3);
-      setPullDistance(dist);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (isRefreshing) return;
-    if (pullDistance >= 40) {
-      setIsRefreshing(true);
-      setPullDistance(40);
-      showToast("Yeni fotoğraflar kontrol ediliyor...", "success");
-
-      setTimeout(() => {
-        setIsRefreshing(false);
-        setPullDistance(0);
-        showToast("Yeni fotoğraf bulunamadı, albümünüz güncel!", "success");
-      }, 1500);
-    } else {
-      setPullDistance(0);
-    }
-    setTouchStartY(0);
-  };
 
   const handleDeleteFaceData = () => {
     if (participant) {
@@ -3466,17 +3430,14 @@ export default function GuestFlow() {
 
         {/* STEP 6: Guest App Dashboard */}
         {!showSplash && step === "albums" && (
-          <div className="flex-grow flex flex-col w-full relative">
+          <div className="flex-grow flex flex-col w-full static">
 
 
 
             {/* TAB VIEW CONTAINER */}
             <div
               ref={containerRef}
-              /* onTouchStart={handleTouchStart} */
-              /* onTouchMove={handleTouchMove} */
-              /* onTouchEnd={handleTouchEnd} */
-              className="flex-1 w-full relative"
+              className="flex-1 w-full static"
             >
               {/* Pull-to-refresh spinner kaldırıldı (sadece resimler sayfasındaki buton kullanılacak) */}
 
@@ -4016,34 +3977,42 @@ export default function GuestFlow() {
                   <div className="guest-chat-header">
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border"
-                      style={{ backgroundColor: `${activeAccent}33`, borderColor: `${activeAccent}80` }}
+                      style={{ backgroundColor: `${activeAccent}22`, borderColor: `${activeAccent}40` }}
                     >
-                      <span className="font-bold" style={{ color: activeAccent }}>O</span>
+                      <span className="font-bold text-sm" style={{ color: activeAccent }}>O</span>
                     </div>
                     <div>
-                      <h3 className="text-white font-semibold text-sm m-0">Organizatör</h3>
-                      <p className="text-emerald-400 text-[11px] m-0">Çevrimiçi</p>
+                      <h3 className="font-semibold text-sm m-0" style={{ color: 'var(--guest-text)' }}>Organizatör</h3>
+                      <p className="text-emerald-400 text-[10px] m-0 font-bold uppercase tracking-wider mt-0.5">Çevrimiçi</p>
                     </div>
                   </div>
 
                   {/* Chat Messages */}
                   <div ref={messagesContainerRef} className="guest-chat-messages">
-                    {chatMessages.map(msg => (
-                      <div key={msg.id} className={`flex flex-col gap-1 ${msg.sender === 'guest' ? 'items-end' : 'items-start'}`}>
-                        <div
-                          className={`p-3 rounded-2xl text-[13.5px] max-w-[85%] border leading-snug ${msg.sender === 'guest'
-                              ? 'text-white rounded-tr-sm'
-                              : 'bg-white/10 text-white rounded-tl-sm border-white/5'
+                    {chatMessages.map(msg => {
+                      const isGuest = msg.sender === 'guest';
+                      return (
+                        <div key={msg.id} className={`flex flex-col gap-1 ${isGuest ? 'items-end' : 'items-start'}`}>
+                          <div
+                            className={`p-3 rounded-2xl text-xs max-w-[85%] leading-snug border ${
+                              isGuest ? 'rounded-tr-sm border-none text-white' : 'rounded-tl-sm'
                             }`}
-                          style={msg.sender === 'guest' ? { backgroundColor: activeAccent, borderColor: `${activeAccent}80` } : {}}
-                        >
-                          {msg.text}
+                            style={isGuest 
+                              ? { backgroundColor: activeAccent, color: '#ffffff' } 
+                              : { backgroundColor: 'var(--guest-surface)', borderColor: 'var(--guest-border)', color: 'var(--guest-text)' }
+                            }
+                          >
+                            {msg.text}
+                          </div>
+                          <span 
+                            className={`text-[9px] font-bold opacity-40 ${isGuest ? 'mr-1' : 'ml-1'}`}
+                            style={{ color: 'var(--guest-text)' }}
+                          >
+                            {msg.time}
+                          </span>
                         </div>
-                        <span className={`text-white/40 text-[10px] font-medium ${msg.sender === 'guest' ? 'mr-1' : 'ml-1'}`}>
-                          {msg.time}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Chat Input */}
@@ -4057,14 +4026,19 @@ export default function GuestFlow() {
                         placeholder="Mesaj yazın..."
                         onFocus={() => setIsChatInputFocused(true)}
                         onBlur={() => setIsChatInputFocused(false)}
-                        className="flex-1 bg-white/10 border border-white/20 rounded-full py-2.5 px-4 text-white text-sm outline-none placeholder:text-white/40 transition-colors focus:border-white/40"
+                        className="flex-1 rounded-full py-2.5 px-4 text-xs outline-none transition-colors border"
+                        style={{
+                          borderColor: 'var(--guest-border)',
+                          backgroundColor: 'var(--guest-bg)',
+                          color: 'var(--guest-text)'
+                        }}
                       />
                       <button
                         onClick={handleSendMessage}
-                        className="w-10 h-10 rounded-full text-white flex items-center justify-center shrink-0 shadow-lg active:scale-95 transition-transform border-none cursor-pointer"
+                        className="w-9 h-9 rounded-full text-white flex items-center justify-center shrink-0 shadow-md active:scale-95 transition-transform border-none cursor-pointer"
                         style={{ backgroundColor: activeAccent }}
                       >
-                        <Send size={16} className="ml-0.5" />
+                        <Send size={14} className="ml-0.5" />
                       </button>
                     </div>
                   </div>
