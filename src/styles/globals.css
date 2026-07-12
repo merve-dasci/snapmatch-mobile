@@ -2415,10 +2415,8 @@ input:checked+.ios-slider:before {
   z-index: 1000 !important;
 }
 
-/* Base resets to prevent horizontal overflow and allow natural scrolling */
 html:has(.guest-app-root),
-body:has(.guest-app-root),
-body:has(.guest-app-root) #root {
+body:has(.guest-app-root) {
   width: 100% !important;
   max-width: 100% !important;
   min-height: 100% !important;
@@ -2429,6 +2427,15 @@ body:has(.guest-app-root) #root {
   -webkit-overflow-scrolling: touch !important;
   background: #080A0F !important;
   overscroll-behavior-y: none !important;
+}
+
+body:has(.guest-app-root) #root {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
 }
 
 body:has(.guest-app-root) {

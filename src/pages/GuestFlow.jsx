@@ -1420,9 +1420,15 @@ export default function GuestFlow() {
 
   // Window Resizer: Mobil tarayıcılarda viewport yüksekliğini (--vh) dinamik hesapla
   useEffect(() => {
+    let lastWidth = 0;
     const handleResize = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      const currentWidth = window.innerWidth;
+      // Sadece genişlik değiştiğinde (örn. cihaz döndürüldüğünde) veya ilk yüklemede tetikle
+      if (currentWidth !== lastWidth) {
+        lastWidth = currentWidth;
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      }
     };
 
     window.addEventListener('resize', handleResize);
