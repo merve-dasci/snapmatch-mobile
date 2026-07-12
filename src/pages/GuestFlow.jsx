@@ -1398,13 +1398,6 @@ export default function GuestFlow() {
   const chatMessagesEndRef = useRef(null);
   const dispatch = useDispatch();
 
-  // Scroll to bottom of chat
-  useEffect(() => {
-    if (activeTab === "messages" && chatMessagesEndRef.current) {
-      chatMessagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [chatMessages, activeTab]);
-
   const handleSendMessage = () => {
     if (!chatInput.trim()) return;
     const newMessage = {
@@ -1482,6 +1475,13 @@ export default function GuestFlow() {
 
   const activeTab = useSelector((state) => state.guest.activeTab);
   const setActiveTab = (val) => dispatch(setActiveTabAction(val));
+
+  // Scroll to bottom of chat
+  useEffect(() => {
+    if (activeTab === "messages" && chatMessagesEndRef.current) {
+      chatMessagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages, activeTab]);
 
   const selectedEventId = useSelector((state) => state.guest.selectedEventId);
   const selectedEvent = allEvents.find(e => e.id === selectedEventId) || null;
